@@ -11,13 +11,13 @@ class Genome(models.Model):
 	biosample = models.CharField(max_length=15)
 	bioproject = models.CharField(max_length=15)
 	assembly_level = models.CharField(max_length=15)
-	assembly_accession = models.CharField(max_length=20, help='assembly accession in genbank')
-	download_accession = models.CharField(max_length=20, help='accession of used sequence file')
+	assembly_accession = models.CharField(max_length=20, help_text='assembly accession in genbank')
+	download_accession = models.CharField(max_length=20, help_text='accession of used sequence file')
 	size = models.BigIntegerField()
 	gc_content = models.FloatField()
-	seq_count = models.IntegerField(help='number of sequences in fasta')
-	gene_count = models.IntegerField(help='number of genes')
-	download_link = models.models.CharField(max_length)
+	seq_count = models.IntegerField(help_text='number of sequences in fasta')
+	gene_count = models.IntegerField(help_text='number of genes')
+	download_link = models.CharField(max_length=255)
 
 class SSR(models.Model):
 	SSR_TYPES = (
@@ -29,30 +29,30 @@ class SSR(models.Model):
 		(6, 'Hexa')
 	)
 	chrom = models.CharField(max_length=50)
-	start = IntegerField()
-	end = IntegerField()
+	start = models.IntegerField()
+	end = models.IntegerField()
 	motif = models.CharField(max_length=6)
 	standard_motif = models.CharField(max_length=6)
 	ssr_type = models.SmallIntegerField(choices=SSR_TYPES)
 	repeats = models.IntegerField()
-	length = IntegerField()
+	length = models.IntegerField()
 
 class SSRMeta(models.Model):
-	ssr = OneToOneField(SSR, on_delete=models.CASCADE)
+	ssr = models.OneToOneField(SSR, on_delete=models.CASCADE)
 	left_flank = models.CharField(max_length=100)
 	right_flank = models.CharField(max_length=100)
 
 class CSSR(models.Model):
 	chrom = models.CharField(max_length=50)
-	start = IntegerField()
-	end = IntegerField()
+	start = models.IntegerField()
+	end = models.IntegerField()
 	motif = models.CharField(max_length=255)
 	complexity = models.SmallIntegerField()
-	length = IntegerField()
-	gap = IntegerField()
+	length = models.IntegerField()
+	gap = models.IntegerField()
 
 class CSSRMeta(models.Model):
-	cssr = OneToOneField(CSSR, on_delete=models.CASCADE)
+	cssr = models.OneToOneField(CSSR, on_delete=models.CASCADE)
 	structure = models.CharField(max_length=255)
 	self_seq = models.CharField(max_length=255)
 	left_flank = models.CharField(max_length=100)
