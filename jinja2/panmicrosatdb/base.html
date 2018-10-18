@@ -26,13 +26,16 @@
 		</button>
 		<div class="collapse navbar-collapse" id="menubar">
 			<ul class="navbar-nav mr-auto">
-				<li class="nav-item active"><a href="" class="nav-link">Home</a></li>
+				<li class="nav-item active"><a href="{{ url('index') }}" class="nav-link">Home</a></li>
 				<li class="nav-item"><a href="{{ url('browse') }}" class="nav-link">Browse</a></li>
 				<li class="nav-item"><a href="" class="nav-link">Analysis</a></li>
 				<li class="nav-item"><a href="" class="nav-link">Primer</a></li>
 				<li class="nav-item"><a href="" class="nav-link">Krait</a></li>
 				<li class="nav-item"><a href="" class="nav-link">Help</a></li>
 			</ul>
+			<div class="navbar-text">
+				<img class="img-fluid" src="{{ static('panmicrosatdb/img/cdu.png') }}">
+			</div>
 		</div>
 	</div>
 </nav>
@@ -41,9 +44,19 @@
 
 <footer class="mt-5 py-5">
 	<div class="container-fluid">
-		<p>Copyright &copy; 2018 Institute of Advanced Study, Chengdu University</p>
-		<p>Current version: 1.0</p>
-		<p>Last updated: Oct 18, 2018</p>
+		<div class="row align-items-center">
+			<div class="col">
+				<p>PanMicrosatDB is hosted and maintained by the Bioinformatics and Integrative Genomics Research Group (BIG) at the Chengdu University, Chengdu, China.</p>
+				<small>Projects that PanMicrosatDB uses to power its infrastructure: Django, Jinja2, MariaDB, Bootstrap, Jquery, DataTables, Select2, D3.js.</small>
+			</div>
+			<div class="col text-center">
+				<img src="{{ static('panmicrosatdb/img/logo.png') }}" width="120">
+				<p><strong>BIG</strong></p>
+			</div>
+			<div class="col text-right">
+				<p>Copyright &copy; 2018 Institute for Advanced Study, Chengdu University</p>
+			</div>
+		</div>
 	</div>
 </footer>
 

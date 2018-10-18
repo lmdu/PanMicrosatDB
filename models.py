@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 class Genome(models.Model):
-	taxonomy = models.IntegerField()
+	taxonomy = models.CharField(max_length=20)
 	species_name = models.CharField(max_length=255)
 	common_name = models.CharField(max_length=255)
 	kingdom = models.CharField(max_length=20)
@@ -15,9 +15,28 @@ class Genome(models.Model):
 	download_accession = models.CharField(max_length=20, help_text='accession of used sequence file')
 	size = models.BigIntegerField()
 	gc_content = models.FloatField()
+	ns_count = models.IntegerField()
 	seq_count = models.IntegerField(help_text='number of sequences in fasta')
 	gene_count = models.IntegerField(help_text='number of genes')
 	download_link = models.CharField(max_length=255)
+
+class Statistics(models.Model):
+	genome = models.OneToOneField(Genome, on_delete=models.CASCADE)
+	ssr_count = models.IntegerField()
+	mono_count = models.IntegerField()
+	di_count = models.IntegerField()
+	tri_count = models.IntegerField()
+	tetra_count = models.IntegerField()
+	penta_count = models.IntegerField()
+	hexa_count = models.IntegerField()
+	ssr_frequency = models.FloatField()
+	ssr_density = models.FloatField()
+	cover = models.FloatField()
+	cm_count = models.IntegerField()
+	cssr_count = models.IntegerField()
+	cssr_percent = models.FloatField()
+	cssr_frequency = models.FloatField()
+	cssr_density = models.FloatField()
 
 class SSR(models.Model):
 	SSR_TYPES = (
@@ -42,6 +61,11 @@ class SSRMeta(models.Model):
 	left_flank = models.CharField(max_length=100)
 	right_flank = models.CharField(max_length=100)
 
+class SSRAnnot(models.Model):
+	ssr = models.ForeignKey(SSR, on_delete=models.CASCADE)
+	gene = models.CharField(max_length=20)
+	location = models.SmallIntegerField()
+
 class CSSR(models.Model):
 	chrom = models.CharField(max_length=50)
 	start = models.IntegerField()
@@ -58,4 +82,8 @@ class CSSRMeta(models.Model):
 	left_flank = models.CharField(max_length=100)
 	right_flank = models.CharField(max_length=100)
 
+class CSSRAnnot(models.Model):
+	cssr = models.ForeignKey(CSSR, on_delete=models.CASCADE)
+	gene = models.CharField(max_length=20)
+	location = models.SmallIntegerField()
 
