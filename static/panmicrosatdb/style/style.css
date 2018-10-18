@@ -1,0 +1,23 @@
+a,
+.text-base {
+	color: #32a1cf;
+}
+
+.btn-base{
+	color: #fff;
+	background-color: #32a1cf;
+	border-color: #32a1cf;
+}
+.search-input{
+	border-color: #32a1cf;
+}
+
+nav.navbar{
+	background: rgba(52, 59, 68, 0.9);
+	font-size: 1.15em;
+}
+
+footer{
+	background: #343b44;
+	color: #fff;
+}

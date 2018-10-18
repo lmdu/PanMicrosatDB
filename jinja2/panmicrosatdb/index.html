@@ -1,42 +1,134 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link rel="stylesheet" href="{{ static('panmicrosatdb/bootstrap.min.css') }}">
-	<script src="{{ static('panmicrosatdb/jquery-3.3.1.min.js') }}"></script>
-	<script src="{{ static('panmicrosatdb/bootstrap.min.js') }}"></script>
-	<title>PanMicrosatDB</title>
-</head>
-<body>
-<nav class="navbar fixed-top navbar-expand-lg navbar-dark" style="background: #343b44;">
-	<div class="container-fluid">
-		<a href="" class="navbar-brand">
-			<img class="img-fluid" src="{{ static('panmicrosatdb/img/logo.png') }}">
-		</a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#menubar" aria-controls="menubar" aria-expanded="false" aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-		<div class="collapse navbar-collapse" id="menubar">
-			<ul class="navbar-nav mr-auto">
-				<li class="nav-item active"><a href="" class="nav-link">Home</a></li>
-				<li class="nav-item"><a href="" class="nav-link">Overview</a></li>
-				<li class="nav-item"><a href="" class="nav-link">Browse</a></li>
-				<li class="nav-item"><a href="" class="nav-link">Analysis</a></li>
-				<li class="nav-item"><a href="" class="nav-link">Primer</a></li>
-				<li class="nav-item"><a href="" class="nav-link">Krait</a></li>
-				<li class="nav-item"><a href="" class="nav-link">Help</a></li>
-			</ul>
-			<div class="navbar-text">
-				Version: 1.0
+{% extends "panmicrosatdb/base.html" %}
+
+{% block title %} PanMicrosatDB Microsatellite Database {% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-lg-9">
+			<div class="py-5">
+				<h3 class="text-base">PanMicrosatDB: Pan-species Microsatellite Database</h3>
+				<p>Krait is a robust and ultrafast tool with a user-friendly graphic interface for genome-wide investigation of microsatellites, which attempts to overcome the limitations of the currently available tools. Krait is written in Python and can be run as a standalone desktop application on Windows, Linux or Mac systems without dependencies. The microsatellite search engine is written in C and compiled as Python modules for import into Krait.</p>
+			</div>
+
+			<div class="jumbotron">
+				<form>
+					<div class="input-group">
+						<input type="text" class="form-control form-control-lg search-input" name="search" placeholder="Homo sapiens">
+						<div class="input-group-append">
+							<button class="btn btn-base" type="submit">Search</button>
+						</div>
+					</div>
+					<small class="form-text text-muted">Species name, common name or taxonomy</small>
+				</form>
+				
+				<p class="mt-5">Quickly jump to human and commonly studied model organism</p>
+				<div class="row">
+					<div class="col text-center">
+						<a href="">
+							<figure>
+								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/human.png') }}">
+								<figcaption>Human</figcaption>
+							</figure>
+						</a>
+					</div>
+					<div class="col text-center">
+						<a href="">
+							<figure>
+								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/mouse.png') }}">
+								<figcaption>Mouse</figcaption>
+							</figure>
+						</a>
+					</div>
+					<div class="col text-center">
+						<a href="">
+							<figure>
+								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/chicken.png') }}">
+								<figcaption>Chicken</figcaption>
+							</figure>
+						</a>
+					</div>
+					<div class="col text-center">
+						<a href="">
+							<figure>
+								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/zebrafish.png') }}">
+								<figcaption>Zebrafish</figcaption>
+							</figure>
+						</a>
+					</div>
+					<div class="col text-center">
+						<a href="">
+							<figure>
+								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/fruitfly.png') }}">
+								<figcaption>Fruitfly</figcaption>
+							</figure>
+						</a>
+					</div>
+					<div class="col text-center">
+						<a href="">
+							<figure>
+								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/nematode.png') }}">
+								<figcaption>Nematode</figcaption>
+							</figure>
+						</a>
+					</div>
+					<div class="col text-center">
+						<a href="">
+							<figure>
+								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/arabidopsis.png') }}">
+								<figcaption>Arabidopsis</figcaption>
+							</figure>
+						</a>
+					</div>
+				</div>
+			</div>
+
+			<div class="mt-5">
+				<h4>Statistics</h4>
+			</div>
+
+			<div class="mt-5">
+				<h4>Related Database</h4>
+				<ul class="list-inline">
+					<li class="list-inline-item">
+						<img src="{{ static('panmicrosatdb/img/msdb.png') }}">
+					</li>
+					<li class="list-inline-item ml-3">
+						<img src="{{ static('panmicrosatdb/img/pmdbase.png') }}">
+					</li>
+					<li class="list-inline-item ml-3">
+						<img src="{{ static('panmicrosatdb/img/fishmicrosat.jpg') }}">
+					</li>
+				</ul>
+			</div>
+
+		</div>
+
+		<div class="col-lg-3">
+			<div class="pt-5">
+				<div class="card">
+					<h5 class="card-header">Release</h5>
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item d-flex justify-content-between align-items-center">
+							Current Version
+							<span class="badge badge-info badge-pill">1.0</span>
+						</li>
+						<li class="list-group-item d-flex justify-content-between align-items-center
+						">
+							Last Updated
+							<span class="badge badge-info badge-pill">Oct 18, 2018</span>
+						</li>
+						
+					</ul>
+				</div>
+				<div class="card mt-3">
+					<h5 class="card-header">News</h5>
+					<div class="card-body">
+						This is some text within a card body.
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
-</nav>
-
-<div class="container-fluid">
-	
 </div>
-
-</body>
-</html>
+{% endblock %}

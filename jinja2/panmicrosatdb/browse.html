@@ -1,0 +1,57 @@
+{% extends "panmicrosatdb/base.html" %}
+
+{% block title %} Browse - PanMicroSatDB {% endblock %}
+
+{% block main %}
+<div class="row">
+	<div class="col-lg-9">
+		<div class="pt-5">
+			<table class="table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Chrom</th>
+						<th>Start</th>
+						<th>End</th>
+						<th>Motif</th>
+						<th>Standard Motif</th>
+						<th>Type</th>
+						<th>Repeats</th>
+						<th>Lenght</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>1234</td>
+						<td>Chr1</td>
+						<td>123455</td>
+						<td>123678</td>
+						<td>AAATGC</td>
+						<td>AAATGC</td>
+						<td>Hexa</td>
+						<td>18</td>
+						<td>108</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="col-lg-3">
+		<div class="pt-5">
+			<div class="card">
+				<h5 class="card-header">Filters</h5>
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item">
+						Chromosome:
+						<select class="custom-select">
+							<option>Chr1</option>
+							<option>Chr2</option>
+						</select>
+					</li>
+					<button class="btn btn-primary">Apply</button>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
