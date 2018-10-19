@@ -38,6 +38,13 @@ class Statistics(models.Model):
 	cssr_frequency = models.FloatField()
 	cssr_density = models.FloatField()
 
+class Sequence(models.Model):
+	name = models.CharField(max_length=50)
+	accession = models.CharField(max_length=50)
+
+	class Meta:
+		db_table = 'sequence'
+
 class SSR(models.Model):
 	SSR_TYPES = (
 		(1, 'Mono'),
@@ -47,7 +54,7 @@ class SSR(models.Model):
 		(5, 'Penta'),
 		(6, 'Hexa')
 	)
-	chrom = models.CharField(max_length=50)
+	sequence = models.ForeignKey(Sequence, on_delete=models.CASCADE)
 	start = models.IntegerField()
 	end = models.IntegerField()
 	motif = models.CharField(max_length=6)
@@ -56,34 +63,72 @@ class SSR(models.Model):
 	repeats = models.IntegerField()
 	length = models.IntegerField()
 
+	class Meta:
+		db_table = 'ssr'
+
 class SSRMeta(models.Model):
 	ssr = models.OneToOneField(SSR, on_delete=models.CASCADE)
 	left_flank = models.CharField(max_length=100)
 	right_flank = models.CharField(max_length=100)
 
+	class Meta:
+		db_table = 'ssrmeta'
+
 class SSRAnnot(models.Model):
+	FEAT_TYPES = (
+		(1, 'CDS'),
+		(2, 'exon'),
+		(3, '3UTR'),
+		(4, 'intron'),
+		(5, '5UTR')
+	)
 	ssr = models.ForeignKey(SSR, on_delete=models.CASCADE)
-	gene = models.CharField(max_length=20)
-	location = models.SmallIntegerField()
+	gene_id = models.CharField(max_length=20)
+	gene_name = models.CharField(max_length=20)
+	location = models.SmallIntegerField(choices=FEAT_TYPES)
+
+	class Meta:
+		db_table = 'ssrannot'
 
 class CSSR(models.Model):
-	chrom = models.CharField(max_length=50)
+	sequence = models.ForeignKey(Sequence, on_delete=models.CASCADE)
 	start = models.IntegerField()
 	end = models.IntegerField()
-	motif = models.CharField(max_length=255)
-	complexity = models.SmallIntegerField()
+	complexity = models.IntegerField()
 	length = models.IntegerField()
-	gap = models.IntegerField()
+	structure = models.CharField(max_length=255)
+
+	class Meta:
+		db_table = 'cssr'
 
 class CSSRMeta(models.Model):
 	cssr = models.OneToOneField(CSSR, on_delete=models.CASCADE)
-	structure = models.CharField(max_length=255)
-	self_seq = models.CharField(max_length=255)
 	left_flank = models.CharField(max_length=100)
 	right_flank = models.CharField(max_length=100)
+	
+	class Meta:
+		db_table = 'cssrmeta'
 
 class CSSRAnnot(models.Model):
+	FEAT_TYPES = (
+		(1, 'CDS'),
+		(2, 'exon'),
+		(3, '3UTR'),
+		(4, 'intron'),
+		(5, '5UTR')
+	)
 	cssr = models.ForeignKey(CSSR, on_delete=models.CASCADE)
-	gene = models.CharField(max_length=20)
-	location = models.SmallIntegerField()
+	gene_id = models.CharField(max_length=20)
+	gene_name = models.CharField(max_length=20)
+	location = models.SmallIntegerField(choices=FEAT_TYPES)
+
+	class Meta:
+		db_table = 'cssrannot'
+
+class SSRStat(models.Model):
+	name = models.CharField(max_length=30)
+	val = models.FloatField()
+
+	class Meta:
+		db_table = 'ssrstat'
 
