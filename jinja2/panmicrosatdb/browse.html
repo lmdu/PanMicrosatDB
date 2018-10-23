@@ -3,13 +3,15 @@
 {% block title %} Browse - PanMicroSatDB {% endblock %}
 
 {% block main %}
+{{ csrf_input }}
 <div class="row">
 	<div class="col-lg-9">
 		<div class="pt-5">
-			<table class="table table-striped table-bordered">
+			<table id="ssrview" class="table table-striped table-bordered" width="100%">
 				<thead>
 					<tr>
 						<th>ID</th>
+						<th>Sequnece Accession</th>
 						<th>Sequence Name</th>
 						<th>Start</th>
 						<th>End</th>
@@ -20,19 +22,6 @@
 						<th>Lenght</th>
 					</tr>
 				</thead>
-				<tbody>
-					<tr>
-						<td>1234</td>
-						<td>Chr1</td>
-						<td>123455</td>
-						<td>123678</td>
-						<td>AAATGC</td>
-						<td>AAATGC</td>
-						<td>Hexa</td>
-						<td>18</td>
-						<td>108</td>
-					</tr>
-				</tbody>
 			</table>
 		</div>
 	</div>
@@ -43,9 +32,19 @@
 				<div class="card-body">
 					<div class="input-group">
 						<div class="input-group-prepend">
-							<label class="input-group-text">Sequnece</label>
+							<label class="input-group-text">Accession</label>
 						</div>
-						<select class="custom-select" name="seqname">
+						<select class="custom-select" name="accession" id="select-seqacc">
+							<option>Chr1</option>
+							<option>Chr2</option>
+						</select>
+					</div>
+
+					<div class="input-group mt-3">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Name</label>
+						</div>
+						<select class="custom-select" name="seqname" id="select-seqname">
 							<option>Chr1</option>
 							<option>Chr2</option>
 						</select>
@@ -132,11 +131,35 @@
 					</div>
 					<div class="mt-3">
 						<button type="button" class="btn btn-info">Apply filters</button>
-						<button type="button" class="btn btn-secondary">Clear filters</button>
+						<button type="button" class="btn btn-secondary">Reset filters</button>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
+<script type="text/javascript">
+$('table#ssrview').DataTable({
+	processing: true,
+	serverSide: true,
+	ajax: {
+		url: "{{ url('browse') }}",
+		type: 'POST',
+		data: function(d){
+
+		}
+	}
+});
+
+$('select#select-seqacc').select2({
+	width: '100%',
+	theme: 'bootstrap4',
+	ajax: {
+		url: "{{ url('seqacc') }}",
+		type: 'POST',
+		dataType: 'json'
+	}
+});
+</script>
 {% endblock %}

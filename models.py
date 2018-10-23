@@ -20,6 +20,9 @@ class Genome(models.Model):
 	gene_count = models.IntegerField(help_text='number of genes')
 	download_link = models.CharField(max_length=255)
 
+	class Meta:
+		db_table = 'genome'
+
 class Statistics(models.Model):
 	genome = models.OneToOneField(Genome, on_delete=models.CASCADE)
 	ssr_count = models.IntegerField()
@@ -37,6 +40,9 @@ class Statistics(models.Model):
 	cssr_percent = models.FloatField()
 	cssr_frequency = models.FloatField()
 	cssr_density = models.FloatField()
+
+	class Meta:
+		db_table = 'statistics'
 
 class Sequence(models.Model):
 	name = models.CharField(max_length=50)

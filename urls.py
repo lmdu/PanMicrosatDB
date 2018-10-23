@@ -5,4 +5,5 @@ from . import views
 urlpatterns = [
 	path('', views.index, name='index'),
 	path('browse', views.browse, name='browse'),
+	path('seqacc', views.get_sequence_accession, name='seqacc')
 ]
