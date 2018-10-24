@@ -51,6 +51,14 @@ class Sequence(models.Model):
 	class Meta:
 		db_table = 'sequence'
 
+class Search(models.Model):
+	rowid = models.AutoField(primary_key=True)
+	name = models.CharField(max_length=50)
+	accession = models.CharField(max_length=50)
+
+	class Meta:
+		db_table = 'search'
+
 class SSR(models.Model):
 	SSR_TYPES = (
 		(1, 'Mono'),
