@@ -6,6 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import *
 
+import json
+
 # Create your views here.
 def index(request):
 	return render(request, 'panmicrosatdb/index.html')
@@ -32,8 +34,10 @@ def browse(request):
 		ssrtype = int(request.POST.get('ssrtype', 0))
 		repsign = request.POST.get('repsign')
 		repeats = int(request.POST.get('repeats', 0))
+		max_repeats = int(request.POST.get('maxrep', 0))
 		lensign = request.POST.get('lensign')
 		ssrlen = int(request.POST.get('ssrlen', 0))
+		max_ssrlen = int(request.POST.get('maxlen', 0))
 
 		data = []
 		with in_database(db_config):
@@ -65,6 +69,8 @@ def browse(request):
 					ssrs = ssrs.filter(repeats__lt=repeats)
 				elif repsign == 'lte':
 					ssrs = ssrs.filter(repeats__lte=repeats)
+				elif repsign == 'in':
+					ssrs = ssrs.filter(repeats__range=(repeats, max_repeats))
 
 			if ssrlen:
 				if lensign == 'gt':
@@ -77,9 +83,21 @@ def browse(request):
 					ssrs = ssrs.filter(length__lt=ssrlen)
 				elif lensign == 'lte':
 					ssrs = ssrs.filter(length__lte=ssrlen)
+				elif lensign == 'in':
+					ssrs = ssrs.filter(length__range=(ssrlen, max_ssrlen))
 
 
 			total = ssrs.count()
+
+			#order by
+			colidx = request.POST.get('order[0][column]')
+			colname = request.POST.get('columns[{}][name]'.format(colidx))
+			sortdir = request.POST.get('order[0][dir]')
+
+			if sortdir == 'asc':
+				ssrs = ssrs.order_by(colname)
+			else:
+				ssrs = ssrs.order_by('-{}'.format(colname))
 
 			for ssr in ssrs[start:start+length]:
 				data.append((ssr.id, ssr.sequence.accession, ssr.sequence.name, ssr.start, ssr.end, ssr.motif, ssr.standard_motif, ssr.get_ssr_type_display(), ssr.repeats, ssr.length))
@@ -142,20 +160,19 @@ def get_seq_flank(request):
 		with in_database(db_config):
 			ssr = SSR.objects.get(id=ssr_id)
 			ssrmeta = SSRMeta.objects.get(id=ssr_id)
-		
-		ssr_seq = "".join([ssr.motif]*ssr.repeats)
-		bases = []
 
-		for b in ssrmeta.left_flank:
-			bases.append('<span class="{0}">{0}<span>'.format(b))
+			info = """
+			<table class="table table-bordered table-sm">
+				<tr><th>Location</th><td colspan="3">{}:{}-{}</td></tr>
+				<tr><th>Motif</th><td>{}</td><th>Repeats</th><td>{}</td></tr>
+				<tr><th>Type</th><td>{}</td><th>Length</th><td>{}</td></tr>
+			</table>
+			""".format(ssr.sequence.name, ssr.start, ssr.end, ssr.motif,
+			 ssr.repeats, ssr.get_ssr_type_display(), ssr.length)
 
-		bases.append('<strong>')
-		for b in ssr_seq:
-			bases.append('<span class="{0}">{0}<span>'.format(b))
-		bases.append('</strong>')
+		left_seq = "".join(['<span class="N">{0}</span>'.format(b) for b in ssrmeta.left_flank])
+		right_seq = "".join(['<span class="N">{0}</span>'.format(b) for b in ssrmeta.right_flank])
+		ssr_seq = "".join(['<span class="{0}">{0}</span>'.format(b) for b in "".join([ssr.motif]*ssr.repeats)])
 
-		for b in ssrmeta.right_flank:
-			bases.append('<span class="{0}">{0}<span>'.format(b))
-
-		return JsonResponse({'seq': "".join(bases)})
+		return JsonResponse({'seq': '{}{}{}{}'.format(info, left_seq, ssr_seq, right_seq)})
 
