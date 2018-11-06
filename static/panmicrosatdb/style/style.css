@@ -36,10 +36,6 @@ nav.navbar{
 	font-size: 1.15em;
 }
 
-tbody{
-	cursor: pointer;
-}
-
 .A,.T,.G,.C,.N{
 	font-family: "RobotoMono";
 	display: inline-block;

@@ -38,6 +38,7 @@ def browse(request):
 		lensign = request.POST.get('lensign')
 		ssrlen = int(request.POST.get('ssrlen', 0))
 		max_ssrlen = int(request.POST.get('maxlen', 0))
+		location = int(request.POST.get('location', 0))
 
 		data = []
 		with in_database(db_config):
@@ -85,6 +86,9 @@ def browse(request):
 					ssrs = ssrs.filter(length__lte=ssrlen)
 				elif lensign == 'in':
 					ssrs = ssrs.filter(length__range=(ssrlen, max_ssrlen))
+
+			if location:
+				ssrs = ssrs.filter(ssrannot__location=location)
 
 
 			total = ssrs.count()
