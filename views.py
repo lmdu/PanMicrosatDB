@@ -12,6 +12,12 @@ import json
 def index(request):
 	return render(request, 'panmicrosatdb/index.html')
 
+def overview(request):
+	return render(request, 'panmicrosatdb/overview.html')
+
+def species(request, sid):
+	return render(request, 'panmicrosatdb/species.html')
+
 @csrf_exempt
 def browse(request):
 	if request.method == 'GET':
