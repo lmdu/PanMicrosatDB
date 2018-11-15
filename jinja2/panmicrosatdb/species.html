@@ -1,4 +1,11 @@
 {% extends "panmicrosatdb/base.html" %}
+{% block head %}
+<style type="text/css">
+table.table{
+	margin-bottom: 0;
+}
+</style>
+{% endblock %}
 
 {% block main %}
 <div class="row mt-5">
@@ -16,32 +23,87 @@
 
 <div class="row mt-3">
 	<div class="col-lg-4">
-		<table class="table table-sm table-bordered">
-			<tbody>
-				<tr><th>Species name</th><td><i>Homo sapiens</i></td></tr>
-				<tr><th>Common name</th><td>Human</td></tr>
-				<tr><th>NCBI taxonomy</th><td><a href="#">9606</a></td></tr>
-				<tr><th>NCBI accession</th><td>GCF_00007653</td></tr>
-				<tr><th>Genome size (bp)</th><td>31,042,453,554</td></tr>
-				<tr><th>GC content (%)</th><td>54.78</td></tr>
-				<tr><th>Total number of sequences</th><td>123456</td></tr>
-				<tr><th>Unkown bases (Ns) in sequences (bp)</th><td>567</td></tr>
-				<tr><th>Total number of microsatellites</th><td>1300012</td></tr>
-				<tr><th>Total length of microsatellites (bp)</th><td>1300012</td></tr>
-				<tr><th>The average length of microsatellites (bp)</th><td>1300012</td></tr>
-				<tr><th>Microsatellite Relative abundance (loci/Mb)</th><td>12</td></tr>
-				<tr><th>Microsatellite Relative density (bp/Mb)</th><td>1234</td></tr>
-				<tr><th>Genome covered by microsatellites (%)</th><td>0.32</td></tr>
-				<tr><th>Total number of compound microsatellites</th><td>GCF_00007653</td></tr>
-				<tr><th>Total length of compound microsatellites (bp)</th><td>1300012</td></tr>
-				<tr><th>The average length of compound microsatellites (bp)</th><td>1300012</td></tr>
-				<tr><th>Compound microsatellite Relative abundance (loci/Mb)</th><td>12</td></tr>
-				<tr><th>Compound microsatellite Relative density (bp/Mb)</th><td>1234</td></tr>
-			</tbody>
-		</table>
+		<div class="card">
+			<h5 class="card-header">Species information</h5>
+			<table class="table">
+				<tbody>
+					<tr><td>Species name</td><td><i>Homo sapiens</i></td></tr>
+					<tr><td>Common name</td><td>Human</td></tr>
+					<tr><td>NCBI taxonomy</td><td><a href="#">9606</a></td></tr>
+					<tr><td>NCBI accession</td><td>GCF_00007653</td></tr>
+					<tr><td>Genome size (bp)</td><td>31,042,453,554</td></tr>
+					<tr><td>Unkown bases (bp)</td><td>567</td></tr>
+					<tr><td>GC content (%)</td><td>54.78</td></tr>
+					<tr><td>Assembly level</td><td>Chromosome</td></tr>
+					<tr><td>Number of sequences</td><td>123456</td></tr>
+					<tr><td>Number of genes</td><td>23583</td></tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
-	<div class="col-lg-8">
-		
+	<div class="col-lg-4">
+		<div class="card">
+			<h5 class="card-header">Microsatellites</h5>
+			<table class="table">
+				<tbody>
+					<tr><td>Total number of microsatellites</td><td>1300012</td></tr>
+					<tr><td>Total length of microsatellites (bp)</td><td>1300012</td></tr>
+					<tr><td>The average length of microsatellites (bp)</td><td>1300012</td></tr>
+					<tr><td>Number of microsatellites per sequence</td><td>3456</td></tr>
+					<tr><td>Relative abundance (loci/Mb)</td><td>12</td></tr>
+					<tr><td>Relative density (bp/Mb)</td><td>1234</td></tr>
+					<tr><td>Percentage of genome covered (%)</td><td>0.32</td></tr>
+					<tr><td>Total number of motif category</td><td>356</td></tr>
+					<tr><td>Maximum repeats / motif</td><td>300 / AT</td></tr>
+					<tr><td>Maximum length (bp) / motif</td><td>1000 / AGCT</td></tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="col-lg-4">
+		<div class="card">
+			<h5 class="card-header">Compound microsatellites</h5>
+			<table class="table">
+				<tbody>
+					<tr><td>Total number of compound microsatellites</td><td>GCF_00007653</td></tr>
+					<tr><td>Total length of compound microsatellites (bp)</td><td>1300012</td></tr>
+					<tr><td>The average length of compound microsatellites (bp)</td><td>1300012</td></tr>
+					<tr><td>Number of compound microsatellites per sequence</td><td>123</td></tr>
+					<tr><td>Relative abundance (loci/Mb)</td><td>12</td></tr>
+					<tr><td>Relative density (bp/Mb)</td><td>1234</td></tr>
+					<tr><td>cSSRs%</td><td>12.35</td></tr>
+					<tr><td>Maximum length (bp)</td><td>1200</td></tr>
+					<tr><td>Maximum complexity</td><td>20</td></tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>
+
+<div class="row mt-3">
+	<div class="col-lg-4">
+		<div class="card">
+			<h5 class="card-header">Microsatellite type distribution <button id="export-chart1" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
+			<div class="card-body" id="chart1">
+				<script type="text/javascript">
+					const data = {
+						labels: ['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa'],
+						datasets: [
+							{values: [124, 80, 50, 70, 40, 30]}
+						]
+					}
+					const chart1 = new frappe.Chart('#chart1', {
+						data: data,
+						type: 'pie',
+						height: 300
+					});
+					$('#export-chart1').click(function(){
+						chart1.export();
+					});
+				</script>
+			</div>
+		</div>
+	</div>
+</div>
+
 {% endblock %}
