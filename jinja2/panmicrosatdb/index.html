@@ -13,13 +13,32 @@
 
 			<div class="jumbotron">
 				<form>
-					<div class="input-group">
-						<input type="text" class="form-control form-control-lg search-input" name="search" placeholder="Homo sapiens">
-						<div class="input-group-append">
-							<button class="btn btn-base" type="submit">Search</button>
+					<div class="form-row">
+						<div class="form-group col-md-2">
+							<label>Kingdom</label>
+							<select name="kingdom" class="form-control form-control-lg">
+								<option value="0"></option>
+							</select>
+						</div>
+						<div class="form-group col-md-2">
+							<label>Group</label>
+							<select name="group" class="form-control form-control-lg">
+								<option value="0"></option>
+							</select>
+						</div>
+						<div class="form-group col-md-2">
+							<label>Subgroup</label>
+							<select name="subgroup" class="form-control form-control-lg">
+								<option value="0"></option>
+							</select>
+						</div>
+						<div class="form-group col-md-6">
+							<label>Species</label>
+							<select name="species" class="form-control form-control-lg">
+								<option value="0"></option>
+							</select>
 						</div>
 					</div>
-					<small class="form-text text-muted">Species name, common name, assembly accession, taxonomy ID</small>
 				</form>
 				
 				<p class="mt-5">Quickly jump to human and commonly studied model organism</p>
@@ -107,7 +126,7 @@
 		<div class="col-lg-3">
 			<div class="pt-5">
 				<div class="card">
-					<h5 class="card-header">Release</h5>
+					<h4 class="card-header">Release</h4>
 					<ul class="list-group list-group-flush">
 						<li class="list-group-item d-flex justify-content-between align-items-center">
 							Current Version
@@ -122,9 +141,43 @@
 					</ul>
 				</div>
 				<div class="card mt-3">
-					<h5 class="card-header">News</h5>
-					<div class="card-body">
-						This is some text within a card body.
+					<h4 class="card-header">News</h4>
+					<div class="list-group list-group-flush">
+						<div class="list-group-item align-items-center">
+							<div class="d-flex justify-content-between">
+								<h5>Version 1</h5>
+								<small>Dec 12, 2018</small>
+							</div>
+							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
+						</div>
+						<div class="list-group-item align-items-center">
+							<div class="d-flex justify-content-between">
+								<h5>Version 2</h5>
+								<small>Dec 20, 2018</small>
+							</div>
+							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
+						</div>
+						<div class="list-group-item align-items-center">
+							<div class="d-flex justify-content-between">
+								<h5>Version 1</h5>
+								<small>Dec 12, 2018</small>
+							</div>
+							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
+						</div>
+						<div class="list-group-item align-items-center">
+							<div class="d-flex justify-content-between">
+								<h5>Version 4</h5>
+								<small>Dec 12, 2018</small>
+							</div>
+							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
+						</div>
+						<div class="list-group-item align-items-center">
+							<div class="d-flex justify-content-between">
+								<h5>Version 4</h5>
+								<small>Dec 12, 2018</small>
+							</div>
+							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -10,13 +10,17 @@ table.table{
 {% block main %}
 <div class="row mt-5">
 	<div class="col-lg-12">
-		<nav aria-label="breadcrumb">
+		<nav aria-label="breadcrumb" class="d-flex justify-content-between">
 			<ol class="breadcrumb">
 				<li class="breadcrumb-item">Eukaryota</li>
 				<li class="breadcrumb-item">Animals</li>
 				<li class="breadcrumb-item">Mammals</li>
 				<li class="breadcrumb-item"><i>Homo sapiens</i></li>
 			</ol>
+			<div>
+				<a href="" class="btn btn-base">Goto View Microsatellites</a>
+				<a href="" class="btn btn-base">Goto View Compound Microsatellites</a>
+			</div>
 		</nav>
 	</div>
 </div>
@@ -71,6 +75,7 @@ table.table{
 					<tr><td>Number of compound microsatellites per sequence</td><td>123</td></tr>
 					<tr><td>Relative abundance (loci/Mb)</td><td>12</td></tr>
 					<tr><td>Relative density (bp/Mb)</td><td>1234</td></tr>
+					<tr><td>Total number of SSRs comprised for compound</td><td>123456</td></tr>
 					<tr><td>cSSRs%</td><td>12.35</td></tr>
 					<tr><td>Maximum length (bp)</td><td>1200</td></tr>
 					<tr><td>Maximum complexity</td><td>20</td></tr>
@@ -84,26 +89,95 @@ table.table{
 	<div class="col-lg-4">
 		<div class="card">
 			<h5 class="card-header">Microsatellite type distribution <button id="export-chart1" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
-			<div class="card-body" id="chart1">
-				<script type="text/javascript">
-					const data = {
-						labels: ['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa'],
-						datasets: [
-							{values: [124, 80, 50, 70, 40, 30]}
-						]
-					}
-					const chart1 = new frappe.Chart('#chart1', {
-						data: data,
-						type: 'pie',
-						height: 300
-					});
-					$('#export-chart1').click(function(){
-						chart1.export();
-					});
-				</script>
+			<div class="card-body">
+				<div id="chart1"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-8">
+		<div class="card">
+			<h5 class="card-header">Motif type distribution <button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
+			<div class="card-body">
+				<div id="chart2"></div>
 			</div>
 		</div>
 	</div>
 </div>
+
+<div class="row mt-3">
+	<div class="col-lg-6">
+		<div class="card">
+			<h5 class="card-header">Microsatellite repeat distribution<button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
+			<div class="card-body">
+				<div id="chart1"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-6">
+		<div class="card">
+			<h5 class="card-header">Microsatellite length distribution <button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
+			<div class="card-body">
+				<div id="chart2"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row mt-3">
+	<div class="col-lg-6">
+		<div class="card">
+			<h5 class="card-header">The complexity distribution of compound microsatellites <button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
+			<div class="card-body">
+				<div id="chart1"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-6">
+		<div class="card">
+			<h5 class="card-header">The length distribution of compound microsatellites <button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
+			<div class="card-body">
+				<div id="chart2"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+c3.generate({
+    bindto: '#chart1',
+    data: {
+      columns: [
+        ['Mono', 120],
+        ['Di', 80],
+        ['Tri', 50],
+        ['Tetra', 70],
+        ['Penta', 40],
+        ['Hexa', 30]
+      ],
+      type: 'pie'
+    }
+});
+
+c3.generate({
+	bindto: '#chart2',
+	data: {
+		columns: [['Motif',149.23,147.41,117.37,79.37,42.44,25.68,25.2,24.93,14.57,14.35,13.16,11.2,10.59,8.17,8.16,7.32,6.98,6.63,6.24,4.24,3.25,3.13,3.11,2.85,2.38,2.36,2.35,2.31,1.84,1.45,1.42,0.88,0.84,0.69,0.57,0.55,0.52,0.5,0.48,0.47,0.42,0.4,0.36,0.36,0.29,0.27,0.27,0.27,0.26,0.23]],
+		type: 'bar'
+	},
+	axis: {
+		x: {
+			type: 'category',
+			tick: {
+				rotate: -65,
+				multiline: false
+			},
+			categories: ["AC","A","AT","AAT","AAAT","ATCC","AG","ATAG","AAGT","AATG","ACAG","ATC","AATAT","AAC","AAAC","C","ATAC","AATC","AAAG","AAAAT","ACTG","AACC","AATT","AAG","ACGC","ACGG","ACTC","AAATT","AGG","AAGG","AATTC","AAAAC","AATAG","ACC","ACG","AATGT","AGC","AACAT","ACCG","AGGG","ATATC","AAATC","AAGC","AAGGC","AAGTC","CG","ACCC","AATCT","AAAAG","AACG"]
+		}
+	},
+	legend: {
+		show: false
+	}
+})
+</script>
 
 {% endblock %}

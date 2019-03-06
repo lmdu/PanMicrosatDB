@@ -1,48 +1,44 @@
 from django.db import models
 
 # Create your models here.
+class Category(models.Model):
+	LEVLES = (
+		(1, 'Kingdom'),
+		(2, 'Group'),
+		(3, 'Subgroup')
+	)
+	name = models.CharField(max_length=50)
+	level = models.SmallIntegerField(choices=LEVLES)
+	parent = models.ForeignKey('self', on_delete=models.CASCADE)
+
+	
+	class Meta:
+		db_table = 'category'
+
 class Genome(models.Model):
 	taxonomy = models.CharField(max_length=20)
 	species_name = models.CharField(max_length=255)
 	common_name = models.CharField(max_length=255)
-	kingdom = models.CharField(max_length=20)
-	groups = models.CharField(max_length=30)
-	subgroup = models.CharField(max_length=50)
 	biosample = models.CharField(max_length=15)
 	bioproject = models.CharField(max_length=15)
 	assembly_level = models.CharField(max_length=15)
 	assembly_accession = models.CharField(max_length=20, help_text='assembly accession in genbank')
 	download_accession = models.CharField(max_length=20, help_text='accession of used sequence file')
+	gene_count = models.IntegerField()
 	size = models.BigIntegerField()
 	gc_content = models.FloatField()
-	ns_count = models.IntegerField()
-	seq_count = models.IntegerField(help_text='number of sequences in fasta')
-	gene_count = models.IntegerField(help_text='number of genes')
-	download_link = models.CharField(max_length=255)
-
-	class Meta:
-		db_table = 'genome'
-
-class Statistics(models.Model):
-	genome = models.OneToOneField(Genome, on_delete=models.CASCADE)
 	ssr_count = models.IntegerField()
-	mono_count = models.IntegerField()
-	di_count = models.IntegerField()
-	tri_count = models.IntegerField()
-	tetra_count = models.IntegerField()
-	penta_count = models.IntegerField()
-	hexa_count = models.IntegerField()
 	ssr_frequency = models.FloatField()
 	ssr_density = models.FloatField()
 	cover = models.FloatField()
 	cm_count = models.IntegerField()
-	cssr_count = models.IntegerField()
+	cm_frequency = models.FloatField()
+	cm_density = models.FloatField()
 	cssr_percent = models.FloatField()
-	cssr_frequency = models.FloatField()
-	cssr_density = models.FloatField()
+	category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
 	class Meta:
-		db_table = 'statistics'
+		db_table = 'genome'
 
 class Sequence(models.Model):
 	name = models.CharField(max_length=50)
@@ -58,6 +54,18 @@ class Search(models.Model):
 
 	class Meta:
 		db_table = 'search'
+
+class Gene(models.Model):
+	sequence = models.ForeignKey(Sequence, on_delete=models.CASCADE)
+	start = models.IntegerField()
+	end = models.IntegerField()
+	gid = models.CharField(max_length=30)
+	name = models.CharField(max_length=30)
+	biotype = models.CharField(max_length=20)
+	dbxref = models.CharField(max_length=200)
+
+	class Meta:
+		db_table = 'gene'
 
 class SSR(models.Model):
 	SSR_TYPES = (
@@ -81,7 +89,7 @@ class SSR(models.Model):
 		db_table = 'ssr'
 
 class SSRMeta(models.Model):
-	ssr = models.OneToOneField(SSR, on_delete=models.CASCADE)
+	ssr = models.OneToOneField(SSR, on_delete=models.CASCADE, primary_key=True)
 	left_flank = models.CharField(max_length=100)
 	right_flank = models.CharField(max_length=100)
 
@@ -96,9 +104,8 @@ class SSRAnnot(models.Model):
 		(4, 'intron'),
 		(5, '5UTR')
 	)
-	ssr = models.ForeignKey(SSR, on_delete=models.CASCADE)
-	gene_id = models.CharField(max_length=20)
-	gene_name = models.CharField(max_length=20)
+	ssr = models.OneToOneField(SSR, on_delete=models.CASCADE, primary_key=True)
+	gene = models.ForeignKey(Gene, on_delete=models.CASCADE)
 	location = models.SmallIntegerField(choices=FEAT_TYPES)
 
 	class Meta:
@@ -116,7 +123,7 @@ class CSSR(models.Model):
 		db_table = 'cssr'
 
 class CSSRMeta(models.Model):
-	cssr = models.OneToOneField(CSSR, on_delete=models.CASCADE)
+	cssr = models.OneToOneField(CSSR, on_delete=models.CASCADE, primary_key=True)
 	left_flank = models.CharField(max_length=100)
 	right_flank = models.CharField(max_length=100)
 	
@@ -131,18 +138,17 @@ class CSSRAnnot(models.Model):
 		(4, 'intron'),
 		(5, '5UTR')
 	)
-	cssr = models.ForeignKey(CSSR, on_delete=models.CASCADE)
-	gene_id = models.CharField(max_length=20)
-	gene_name = models.CharField(max_length=20)
+	cssr = models.OneToOneField(CSSR, on_delete=models.CASCADE, primary_key=True)
+	gene_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
 	location = models.SmallIntegerField(choices=FEAT_TYPES)
 
 	class Meta:
 		db_table = 'cssrannot'
 
-class SSRStat(models.Model):
-	name = models.CharField(max_length=30)
-	val = models.FloatField()
+class Summary(models.Model):
+	option = models.CharField(max_length=30)
+	content = models.FloatField()
 
 	class Meta:
-		db_table = 'ssrstat'
+		db_table = 'summary'
 

@@ -22,13 +22,28 @@ a,
 	color: #32a1cf;
 }
 
-.btn-base{
+.btn-base {
 	color: #fff;
 	background-color: #32a1cf;
 	border-color: #32a1cf;
 }
-.search-input{
-	border-color: #32a1cf;
+h6{
+	font-weight: 600;
+}
+/*
+input,
+textarea,
+select{
+	border-color: #32a1cf !important;
+}*/
+
+#search-bar{
+	width: 300px;
+	border-color: white !important;
+	transition:width 0.5s;
+}
+#search-bar:hover{
+	width: 500px;
 }
 
 nav.navbar{
@@ -36,27 +51,176 @@ nav.navbar{
 	font-size: 1.15em;
 }
 
-.A,.T,.G,.C,.N{
-	font-family: "RobotoMono";
-	display: inline-block;
-	text-align: center;
-	margin: 1px;
-}
-
-.A{
-	color:#5050ff;
-}
-.T{
-	color:#e6e600;
-}
-.G{
-	color:#00c000;
-}
-.C{
-	color:#e00000;
+#primer-table,
+#gannot-table {
+	font-size: 14px;
 }
 
 footer{
 	background: #343b44;
 	color: #fff;
+}
+
+/* sequence viewer */
+.sequence-box {
+	box-sizing:border-box;
+	display:flex;
+	flex:0 1 auto;
+	flex-direction:row;
+	flex-wrap:wrap;
+	margin-right:-.5rem;
+	margin-left:-.5rem;
+}
+.sequence-table {
+	font-family: "RobotoMono";
+	position: relative;
+	font-size: 14px;
+	margin: 0;
+	height: auto;
+	transition: height 0.28s ease;
+}
+
+.sequence-table .sequence-nucleotide {
+	font-size: 12px;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.sequence-table .sequence-nucleotide .base-row {
+	font-size: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	height: 2.8vh;
+	position: relative;
+}
+.sequence-table .sequence-nucleotide .meta-row {
+	font-size: 12px;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	margin: 0;
+	height: 2vh;
+	position: relative;
+}
+.sequence-table .sequence-nucleotide .nucleobase {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #8fb4c6;
+	position: relative;
+	width: 1vw;
+	height: 2.8vh;
+}
+.sequence-table .sequence-nucleotide .nucleobase:before {
+	/*#8fb4c6*/
+	content: "";
+	height: 1px;
+	background-color: #bcbcbc;
+	width: 1vw;
+	position: absolute;
+	bottom: 0;
+}
+.sequence-table .sequence-nucleotide .nucleobase:after {
+	content: "";
+	height: 15%;
+	background-color: #bcbcbc;
+	width: 1px;
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+}
+.sequence-table .sequence-nucleotide .nucleobase-target {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	color: #1d3039;
+	position: relative;
+	width: 1vw;
+	height: 2.8vh;
+}
+.sequence-table .sequence-nucleotide .nucleobase-target:before {
+	content: "";
+	height: 1px;
+	background-color: #1d3039;
+	width: 1vw;
+	position: absolute;
+	bottom: 0;
+}
+.sequence-table .sequence-nucleotide .nucleobase-target:after {
+	content: "";
+	height: 15%;
+	background-color: #1d3039;
+	width: 1px;
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+}
+.sequence-table .sequence-nucleotide .nucleobase-cut {
+	/*#6d9db5*/
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #bcbcbc;
+	position: relative;
+	width: 1.5vw;
+	height: 2.8vh;
+}
+.sequence-table .sequence-nucleotide .nucleobase-cut:before {
+	content: "";
+	height: 1px;
+	border-bottom: 1px dotted #bcbcbc;
+	width: 1.5vw;
+	position: absolute;
+	bottom: 0;
+}
+.sequence-table .sequence-nucleotide .meta-info {
+	color: #2E4C5B;
+	font-size: 11px;
+	display: flex;
+	align-items: flex-end;
+	justify-content: left;
+	position: relative;
+	width: 1vw;
+	height: 0.4vh;
+}
+.sequence-table .sequence-nucleotide .A{
+	color:#5050ff;
+}
+.sequence-table .sequence-nucleotide .T{
+	color:#F1C40F;
+}
+.sequence-table .sequence-nucleotide .G{
+	color:#00c000;
+}
+.sequence-table .sequence-nucleotide .C{
+	color:#e00000;
+}
+.sequence-table .sequence-nucleotide .N{
+	color:#bbb;
+}
+
+/* colored sequence */
+.B{
+	display: inline-block;
+	font-family: "RobotoMono";
+	margin-right: 2px;
+}
+.B.A{
+	color:#5050ff;
+}
+.B.T{
+	color:#F1C40F;
+}
+.B.G{
+	color:#00c000;
+}
+.B.C{
+	color:#e00000;
+}
+.B.N{
+	color:#bbb;
 }

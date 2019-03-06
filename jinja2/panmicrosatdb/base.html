@@ -7,12 +7,16 @@
 	<link rel="stylesheet" href="{{ static('panmicrosatdb/style/select2-bootstrap4.css') }}">
 	<link rel="stylesheet" href="{{ static('panmicrosatdb/style/datatables.min.css') }}">
 	<link rel="stylesheet" href="{{ static('panmicrosatdb/style/bootstrap.min.css') }}">
+	<link rel="stylesheet" href="{{ static('panmicrosatdb/style/c3.min.css') }}">
 	<link rel="stylesheet" href="{{ static('panmicrosatdb/style/style.css') }}">
 	<script src="{{ static('panmicrosatdb/script/jquery-3.3.1.min.js') }}"></script>
+	<script src="{{ static('panmicrosatdb/script/jquery.redirect.js') }}"></script>
+	<script src="{{ static('panmicrosatdb/script/popper.min.js') }}"></script>
 	<script src="{{ static('panmicrosatdb/script/bootstrap.min.js') }}"></script>
 	<script src="{{ static('panmicrosatdb/script/select2.min.js') }}"></script>
 	<script src="{{ static('panmicrosatdb/script/datatables.min.js') }}"></script>
-	<script src="{{ static('panmicrosatdb/script/frappe-charts.min.iife.js') }}"></script>
+	<script src="{{ static('panmicrosatdb/script/d3.v5.min.js') }}" charset="utf-8"></script>
+	<script src="{{ static('panmicrosatdb/script/c3.min.js') }}"></script>
 	<script src="{{ static('panmicrosatdb/script/script.js') }}"></script>
 	<title>{% block title %}{% endblock %}</title>
 	{% block head %}{% endblock %}
@@ -36,9 +40,16 @@
 				<li class="nav-item"><a href="" class="nav-link">Krait</a></li>
 				<li class="nav-item"><a href="" class="nav-link">Help</a></li>
 			</ul>
-			<div class="navbar-text">
-				<img class="img-fluid" src="{{ static('panmicrosatdb/img/cdu.png') }}">
-			</div>
+			<form class="form-inline">
+				<div class="input-group">
+					<input type="text" class="form-control" id="search-bar" name="search" placeholder="Species name, common name, assembly accession, taxonomy ID">
+					<div class="input-group-append">
+						<button class="btn btn-base" type="submit">Search</button>
+					</div>
+				</div>
+			</form>
+
+			
 		</div>
 	</div>
 </nav>
@@ -50,10 +61,11 @@
 		<div class="row align-items-center">
 			<div class="col">
 				<p>PanMicrosatDB is hosted and maintained by the Bioinformatics and Integrative Genomics Research Group (BIG) at the Chengdu University, Chengdu, China.</p>
-				<small>Projects that PanMicrosatDB uses to power its infrastructure: Django, Jinja2, MariaDB, Bootstrap, Jquery, DataTables, Select2, D3.js.</small>
+				<small>Powered by Django, Jinja2, MariaDB, Bootstrap, Jquery, DataTables, Select2, D3.js, C3.js</small>
 			</div>
 			<div class="col text-center">
-				<img src="{{ static('panmicrosatdb/img/logo.png') }}" width="120">
+				<p><img class="img-fluid" src="{{ static('panmicrosatdb/img/cdu.png') }}"></p>
+				<p><img src="{{ static('panmicrosatdb/img/logo.png') }}" width="120"></p>
 				<p><strong>BIG</strong></p>
 			</div>
 			<div class="col text-right">

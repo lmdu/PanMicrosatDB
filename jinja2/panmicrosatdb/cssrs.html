@@ -1,0 +1,232 @@
+{% extends "panmicrosatdb/base.html" %}
+
+{% block title %} Browse - PanMicroSatDB {% endblock %}
+
+{% block main %}
+{{ csrf_input }}
+
+<div class="row mt-5">
+	<div class="col-lg-12">
+		<nav aria-label="breadcrumb" class="d-flex justify-content-between">
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item">Eukaryota</li>
+				<li class="breadcrumb-item">Animals</li>
+				<li class="breadcrumb-item">Mammals</li>
+				<li class="breadcrumb-item"><i>Homo sapiens</i></li>
+			</ol>
+			<div>
+				<a href="" class="btn btn-base">Goto View Compound</a>
+			</div>
+		</nav>
+	</div>
+</div>
+
+<div class="row mt-3">
+	<div class="col">
+		<table id="cssrview" class="table table-bordered table-hover" width="100%">
+		</table>
+	</div>
+</div>
+
+<!-- sequence view dialog -->
+<div class="modal fade" id="cssr-seq-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Detailed information</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		        	<span aria-hidden="true">&times;</span>
+		        </button>
+			</div>
+			<div class="modal-body">
+				<h6>Sequence</h6>
+				<div class="sequence-table sequence-box" id="sequence-table"></div>
+				<h6>Genic location</h6>
+				<table class="table table-bordered table-sm" id="gannot-table">
+					<thead>
+						<th>Gene ID</th>
+						<th>Gene Name</th>
+						<th>Biotype</th>
+						<th>Dbxref</th>
+						<th>Location</th>
+					</thead>
+					<tbody></tbody>
+				</table>
+				<h6>Primers</h6>
+				<table class="table table-bordered table-sm" id="primer-table">
+					<thead>
+						<th>#</th>
+						<th colspan="2">Primer</th>
+						<th>Temperature</th>
+						<th>GC Content</th>
+						<th>End stability</th>
+						<th>Product Size</th>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- right menu -->
+<div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="context-menu" data-ssr="0">
+	<a class="dropdown-item" href="#" id="view-seq">View Sequence</a>
+	<a class="dropdown-item" href="#" id="view-primer">View Primer</a>
+</div>
+
+<script type="text/javascript">
+function view_sequence(ssr_id){
+	
+};
+
+function view_primer(ssr_id){
+	console.log(ssr_id);
+}
+
+$('#context-menu #view-seq').click(function(){
+	$.ajax({
+		url: "{{ url('cssr_detail') }}",
+		method: 'POST',
+		data: {ssrid: $('#context-menu').data('ssr')},
+		dataType: 'json'
+	}).done(function(data){
+		$('#cssr-seq-dialog #sequence-table').html(data.seq);
+		$('#cssr-seq-dialog #gannot-table tbody').html(data.location);
+		$('#cssr-seq-dialog #primer-table tbody').html(data.primer);
+		$('#cssr-seq-dialog').modal('show');
+	});	
+});
+
+$('#context-menu #view-primer').click(function(){
+	alert($('#context-menu').data('ssr'));
+});
+
+
+var apply = false;
+var table = $('table#cssrview').DataTable({
+	scrollX: true,
+	dom: "<'row'<'col-md-6'l><'col-md-6'p>>rt<'row'<'col-md-6'i><'col-md-6'p>>",
+	columns: [
+		{name: 'id', title: 'ID'},
+		{name: 'sequence__accession', title: 'Sequence Accession'},
+		{name: 'sequence__name', title: 'Sequence Name'},
+		{name: 'start', title: 'Start'},
+		{name: 'end', title: 'End'},
+		{name: 'complexity', title: 'Complexity'},
+		{name: 'length', title: 'Length'},
+		{name: 'structure', title: 'Pattern'},
+		{name: 'location', title: 'Location'}
+	],
+	searching: true,
+	processing: true,
+	serverSide: true,
+	//select: true,
+	ajax: {
+		url: "{{ url('cssrs') }}",
+		type: 'POST',
+		data: function(d){
+			if(apply){
+				d.sequence = $('#select-sequence').val() || '0';
+				d.begin = $('#input-start').val() || '0';
+				d.end = $('#input-end').val() || '0';
+				d.motif = $('#input-motif').val();
+				d.smotif = $('#input-smotif').val();
+				d.ssrtype = $('#select-ssrtype').val();
+				d.repsign = $('#select-repeat-sign').val();
+				d.repeats = $('#input-repeats').val() || '0';
+				d.maxrep = $('#max-repeats').val() || '0';
+				d.lensign = $('#select-len-sign').val();
+				d.ssrlen = $('#input-length').val() || '0';
+				d.maxlen = $('#max-length').val() || '0';
+				d.location = $('#select-location').val();
+			}
+		}
+	},
+	drawCallback: function(settings){
+		$('table tbody tr').on('contextmenu', function(e){
+			var row = table.row(this).data();
+			var left = e.pageX + 10;
+			var top = e.pageY - 10;
+			$('#context-menu').css({
+				display: 'block',
+				top: top,
+				left: left
+			});
+			$('#context-menu').data('ssr', row[0]);
+			return false;
+		});
+	}
+});
+
+$('body').on('click', function(){
+	$('#context-menu').data('ssr', 0);
+	$('#context-menu').hide();
+});
+
+$('select#select-sequence').select2({
+	placeholder: "Select a sequence by accession",
+	width: '100%',
+	theme: 'bootstrap4',
+	ajax: {
+		url: "{{ url('seqid') }}",
+		type: 'POST',
+		dataType: 'json',
+		delay: 250,
+		data: function(params){
+			return {
+				term: params.term,
+				page: params.page,
+				label: $('select#select-seqtype').val(),
+				rows: 10
+			};
+		},
+		processResults: function(data, params){
+			params.page = params.page || 1;
+
+			return {
+				results: data.results,
+				pagination: {
+					more: (params.page*10) < data.total
+				}
+			};
+		},
+		cache: true,
+		minimumInputLength: 1
+	},
+});
+
+
+$('#reset-filter').click(function(){
+	apply = false;
+	$('#filters input').val('');
+	$('#filters select').val('').trigger('change');
+	$('#select-ssrtype').val('0').trigger('change');
+	$('#select-repeat-sign').val('gt').trigger('change');
+	$('#select-len-sign').val('gt').trigger('change');
+	$('#select-seqtype').val('name').trigger('change');
+	table.ajax.reload();
+});
+
+$('#apply-filter').click(function(){
+	apply = true;
+	table.ajax.reload();
+});
+
+$('#select-len-sign').change(function(){
+	if($(this).val() == 'in'){
+		$('#max-length').attr('type', 'number');
+	} else {
+		$('#max-length').attr('type', 'hidden');
+	}
+});
+
+$('#select-repeat-sign').change(function(){
+	if($(this).val() == 'in'){
+		$('#max-repeats').attr('type', 'number');
+	} else {
+		$('#max-repeats').attr('type', 'hidden');
+	}
+});
+</script>
+{% endblock %}
