@@ -43,7 +43,18 @@ def overview(request):
 
 
 def species(request, sid):
-	return render(request, 'panmicrosatdb/species.html')
+	db_config = {
+		'ENGINE': 'django.db.backends.sqlite3',
+		'NAME': 'GCF_000001735.4.db'
+	}
+	data = {}
+	with in_database(db_config):
+		for stat in Summary.objects.all():
+			data[stat.option] = stat.content
+
+	return render(request, 'panmicrosatdb/species.html', {
+		summary: data,
+	})
 
 @csrf_exempt
 def browse(request):
