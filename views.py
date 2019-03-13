@@ -16,6 +16,33 @@ def index(request):
 	return render(request, 'panmicrosatdb/index.html')
 
 @csrf_exempt
+def category(request):
+	if request.method == 'POST':
+		term = request.POST.get('term', '')
+		page = int(request.POST.get('page', 1))
+		rows = int(request.POST.get('rows', 10))
+		level = int(request.POST.get('level'))
+		parent = int(request.POST.get('parent'))
+		offset = (page-1)*rows
+
+		if level == 4:
+			gs = Genome.objects.filter(category=parent)
+			if term:
+				gs = gs.filter(species_name__icontains=term)
+
+			total = gs.count()
+			data = [{'id': g.id, 'text': g.species_name}for g in gs[offset:offset+rows]]
+		else:
+			cats = Category.objects.filter(level=level, parent=parent)
+			if term:
+				cats = cats.filter(name__icontains=term)
+
+			total = cats.count()
+			data = [{'id': cat.id, 'text': cat.name}for cat in cats[offset:offset+rows]]
+		
+		return JsonResponse({'results': data, 'total': total})
+
+@csrf_exempt
 def overview(request):
 	if request.method == 'GET':
 		return render(request, 'panmicrosatdb/overview.html')
@@ -23,14 +50,30 @@ def overview(request):
 	start = int(request.POST.get('start'))
 	length = int(request.POST.get('length'))
 	draw = int(request.POST.get('draw'))
+	kingdom = int(request.POST.get('kingdom', 0))
+	group = int(request.POST.get('group', 0))
+	subgroup = int(request.POST.get('subgroup', 0))
+	species = int(request.POST.get('species', 0))
 
 	genomes = Genome.objects.all()
+
+	if species:
+		genomes = genomes.filter(pk=species)
+
+	elif subgroup:
+		genomes = genomes.filter(category=subgroup)
+
+	elif group:
+		genomes = genomes.filter(category__parent=group)
+
+	elif kingdom:
+		genomes = genomes.filter(category__parent__parent=kingdom)
+
 	total = genomes.count()
 
 	data = []
 	for g in genomes[start:start+length]:
-		data.append((g.taxonomy, g.category.parent.parent.name, g.category.parent.name, \
-		g.category.name, g.species_name,  g.download_accession, g.size, g.gc_content, \
+		data.append((g.taxonomy, g.species_name,  g.download_accession, g.size, g.gc_content, \
 		g.ssr_count, g.ssr_frequency, g.ssr_density, g.cover, g.cm_count, g.cm_frequency, \
 		g.cm_density, g.cssr_percent))
 

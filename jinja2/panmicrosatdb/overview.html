@@ -2,14 +2,44 @@
 
 {% block main %}
 <div class="row mt-5">
+	<div class="form-group col-md-2">
+		<label>Kingdom</label>
+		<select name="kingdom" class="form-control" id="kingdom-select">
+			<option value="0"></option>
+		</select>
+	</div>
+	<div class="form-group col-md-2">
+		<label>Group</label>
+		<select name="group" class="form-control" id="group-select">
+			<option value="0"></option>
+		</select>
+	</div>
+	<div class="form-group col-md-2">
+		<label>Subgroup</label>
+		<select name="subgroup" class="form-control" id="subgroup-select">
+			<option value="0"></option>
+		</select>
+	</div>
+	<div class="form-group col-md-5">
+		<label>Species</label>
+		<select name="species" class="form-control form-control-lg" id="species-select">
+			<option value="0" selected="selected"></option>
+		</select>
+	</div>
+	<div class="form-group col-md-1">
+		<div>&nbsp;</div>
+		<div>
+			<button class="btn btn-info btn-block" type="button" id="reset-category">Reset</button>
+		</div>
+	</div>
+</div>
+
+<div class="row mt-4">
 	<div class="col">
 		<table id="summary" class="table table-bordered table-hover" width="100%">
 			<thead>
 				<tr>
 					<th rowspan="2" class="align-middle">Taxonomy</th>
-					<th rowspan="2" class="align-middle">Kingdom</th>
-					<th rowspan="2" class="align-middle">Group</th>
-					<th rowspan="2" class="align-middle">Subgroup</th>
 					<th rowspan="2" class="align-middle">Species</th>
 					<th rowspan="2" class="align-middle">Accession</th>
 					<th rowspan="2" class="align-middle">Genome size (Mb)</th>
@@ -40,7 +70,41 @@ var table = $('#summary').DataTable({
 	ajax: {
 		url: "{{ url('overview') }}",
 		type: 'POST',
+		data: function(d){
+			d.kingdom = $('#kingdom-select').val();
+			d.group = $('#group-select').val();
+			d.subgroup = $('#subgroup-select').val();
+			d.species = $('#species-select').val();
+		}
 	}
+});
+
+$('#kingdom-select').change(function(){
+	if($(this).val()){
+		table.ajax.reload();
+	}
+});
+$('#group-select').change(function(){
+	if($(this).val()){
+		table.ajax.reload();
+	}
+});
+$('#subgroup-select').change(function(){
+	if($(this).val()){
+		table.ajax.reload();
+	}
+});
+$('#species-select').change(function(){
+	if($(this).val()){
+		table.ajax.reload();
+	}
+});
+$('#reset-category').click(function(){
+	$('#kingdom-select').val(0).trigger('change');
+	$('#group-select').val(0).trigger('change');
+	$('#subgroup-select').val(0).trigger('change');
+	$('#species-select').val(0).trigger('change');
+	table.ajax.reload();
 });
 </script>
 {% endblock %}
