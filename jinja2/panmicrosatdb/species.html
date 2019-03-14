@@ -9,23 +9,45 @@ table.table{
 
 {% block main %}
 <div class="row mt-5">
-	<div class="col-lg-12">
-		<nav aria-label="breadcrumb" class="d-flex justify-content-between">
-			<ol class="breadcrumb">
-				<li class="breadcrumb-item">Eukaryota</li>
-				<li class="breadcrumb-item">Animals</li>
-				<li class="breadcrumb-item">Mammals</li>
-				<li class="breadcrumb-item"><i>Homo sapiens</i></li>
-			</ol>
-			<div>
-				<a href="" class="btn btn-base">Goto View Microsatellites</a>
-				<a href="" class="btn btn-base">Goto View Compound Microsatellites</a>
+	<div class="col">
+		<div class="form-row">
+			<div class="form-group col-md-2">
+				<label>Kingdom</label>
+				<select name="kingdom" class="form-control" id="kingdom-select">
+					<option value="{{ species.kingdom[0] }}">{{ species.kingdom[1] }}</option>
+				</select>
 			</div>
-		</nav>
+			<div class="form-group col-md-2">
+				<label>Group</label>
+				<select name="group" class="form-control" id="group-select">
+					<option value="{{ species.group[0] }}">{{ species.group[1] }}</option>
+				</select>
+			</div>
+			<div class="form-group col-md-2">
+				<label>Subgroup</label>
+				<select name="subgroup" class="form-control" id="subgroup-select">
+					<option value="{{ species.subgroup[0] }}">{{ species.subgroup[1] }}</option>
+				</select>
+			</div>
+			<div class="form-group col-md-4">
+				<label>Species</label>
+				<select name="species" class="form-control" id="species-select">
+					<option value="{{ species.species[0] }}">{{ species.species[1] }}</option>
+				</select>
+			</div>
+			<div class="form-group col-md-2">
+				<label>Option</label>
+				<select name="species" class="form-control" id="view-option-select">
+					<option value="summary" selected="selected">Summary statistics</option>
+					<option value="ssr">Perfect microsatellite</option>
+					<option value="cssr">Compound microsatellite</option>
+				</select>
+			</div>
+		</div>
 	</div>
 </div>
 
-<div class="row mt-3">
+<div class="row mt-4">
 	<div class="col-lg-4">
 		<div class="card">
 			<h5 class="card-header">Species information</h5>
@@ -143,6 +165,8 @@ table.table{
 </div>
 
 <script>
+$('#view-option-select').prop('disabled', false);
+
 c3.generate({
     bindto: '#chart1',
     data: {
@@ -177,7 +201,7 @@ c3.generate({
 	legend: {
 		show: false
 	}
-})
+});
 </script>
 
 {% endblock %}

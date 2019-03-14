@@ -131,6 +131,20 @@ $('#species-select').select2({
 	},
 });
 
+
+$('#view-option-select').select2({theme: 'classic'});
+$('#view-option-select').on('change', function(){
+	var option = $('#view-option-select').val();
+	var species = $('#species-select').val();
+	if(option==='summary'){
+		$.redirect('species', {gid: species}, 'POST');
+	}else if(option === 'ssr'){
+		$.redirect('browse', {gid: species}, 'GET');
+	}else{
+
+	}
+});
+
 $('#kingdom-select').on('change', function(){
 	$('#group-select').val(0).trigger('change');
 	$('#subgroup-select').val(0).trigger('change');
@@ -142,6 +156,13 @@ $('#group-select').on('change', function(){
 });
 $('#subgroup-select').on('change', function(){
 	$('#species-select').val(0).trigger('change');
+});
+$('#species-select').on('change', function(){
+	if(parseInt($('#species-select').val())){
+		$('#view-option-select').prop('disabled', false);
+	}else{
+		$('#view-option-select').prop('disabled', true);
+	}
 });
 
 

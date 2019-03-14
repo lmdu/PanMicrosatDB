@@ -10,50 +10,47 @@
 		<div class="form-row">
 			<div class="form-group col-md-1">
 				<label>Kingdom</label>
-				<select name="kingdom" class="form-control">
-					<option value="0"></option>
-				</select>
-			</div>
-			<div class="form-group col-md-1">
-				<label>Group</label>
-				<select name="group" class="form-control">
-					<option value="0"></option>
-				</select>
-			</div>
-			<div class="form-group col-md-1">
-				<label>Subgroup</label>
-				<select name="subgroup" class="form-control">
-					<option value="0"></option>
-				</select>
-			</div>
-			<div class="form-group col-md-3">
-				<label>Species</label>
-				<select name="species" class="form-control">
+				<select name="kingdom" class="form-control" id="kingdom-select">
 					<option value="0"></option>
 				</select>
 			</div>
 			<div class="form-group col-md-2">
-				<label>Type</label>
-				<select name="species" class="form-control">
-					<option value="0">Summary statistics</option>
-					<option value="1">Perfect microsatellite</option>
-					<option value="2">Compound microsatellite</option>
+				<label>Group</label>
+				<select name="group" class="form-control" id="group-select">
+					<option value="0"></option>
 				</select>
 			</div>
-			<div class="form-group col-md-4 text-right">
-				<label>Actions</label>
-				<div>
-					<div class="btn-group">
-						<button type="button" class="btn btn-info" id="set-filter-btn">Filters</button>
-						<button type="button" class="btn btn-primary" id="download-btn">Download</button>
-					</div>
+			<div class="form-group col-md-2">
+				<label>Subgroup</label>
+				<select name="subgroup" class="form-control" id="subgroup-select">
+					<option value="0"></option>
+				</select>
+			</div>
+			<div class="form-group col-md-4">
+				<label>Species</label>
+				<select name="species" class="form-control" id="species-select">
+					<option value="0"></option>
+				</select>
+			</div>
+			<div class="form-group col-md-2">
+				<label>Option</label>
+				<select name="species" class="form-control" id="view-option-select">
+					<option value="summary">Summary statistics</option>
+					<option value="ssr" selected="selected">Perfect microsatellite</option>
+					<option value="cssr">Compound microsatellite</option>
+				</select>
+			</div>
+			<div class="form-group col-md-1 align-self-end text-right">
+				<div class="btn-group btn-group-sm">
+					<button type="button" class="btn btn-info" id="set-filter-btn">Filters</button>
+					<button type="button" class="btn btn-primary" id="download-btn">Download</button>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
 
-<div class="row mt-3">
+<div class="row mt-4">
 	<div class="col">
 		<table id="ssrview" class="table table-bordered table-hover" width="100%">
 		</table>
@@ -266,6 +263,8 @@
 </div>
 
 <script type="text/javascript">
+$('#view-option-select').prop('disabled', true);
+
 $('#set-filter-btn').click(function(){
 	$('#ssr-filter-dialog').modal('show');
 });
@@ -298,6 +297,7 @@ var table = $('table#ssrview').DataTable({
 		url: "{{ url('browse') }}",
 		type: 'POST',
 		data: function(d){
+			d.species = $('#species-select').val() || {{ gid }};
 			if(apply_filter){
 				d.sequence = $('#select-sequence').val() || '0';
 				d.begin = $('#input-start').val() || '0';
@@ -423,6 +423,12 @@ $('#dl-ok').click(function(){
 	}
 	$.redirect("{{ url('browse') }}", data, 'POST', '_blank');
 	$('#download-dialog').modal('hide');
+});
+
+$('#species-select').change(function(){
+	if(parseInt($(this).val())){
+		table.ajax.reload();
+	}
 });
 
 </script>

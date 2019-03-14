@@ -1,7 +1,10 @@
+import os
 import re
 import csv
 from dynamic_db_router import in_database
 from django.http import StreamingHttpResponse
+from .config import Config
+from .models import Genome
 
 def colored_sequence(seq, start, end):
 	pass
@@ -66,3 +69,23 @@ def download_ssrs(db, ssrs, outfmt, outname):
 	
 	return response
 
+def get_ssr_db(gid):
+	'''Get ssr db file for specified species
+	@para gid, species genome id in genome table
+	@return dict, used for dynamic router connection
+	'''
+	try:
+		genome = Genome.objects.get(pk=gid)
+	except Genome.DoesNotExist:
+		return None
+	
+	sub_dir = os.path.join(genome.category.parent.parent.name, genome.category.parent.name, genome.category.name)
+	sub_dir = sub_dir.replace(' ', '_').replace(',', '')
+	db_file = os.path.join(Config.DB_DIR, sub_dir, '{}.db'.format(genome.download_accession))
+
+	db_config = {
+		'ENGINE': 'django.db.backends.sqlite3',
+		'NAME': db_file
+	}
+
+	return db_config

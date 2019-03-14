@@ -85,30 +85,51 @@ def overview(request):
 	})
 
 
-def species(request, sid):
-	db_config = {
-		'ENGINE': 'django.db.backends.sqlite3',
-		'NAME': 'GCF_000001735.4.db'
-	}
-	data = {}
-	with in_database(db_config):
-		for stat in Summary.objects.all():
-			data[stat.option] = stat.content
+@csrf_exempt
+def species(request):
+	if request.method == 'POST':
+		gid = int(request.POST.get('gid', 0))
 
-	return render(request, 'panmicrosatdb/species.html', {
-		summary: data,
-	})
+		
+		genome = Genome.objects.get(pk=gid)
+		species = {
+			'kingdom': (genome.category.parent.parent.pk, genome.category.parent.parent.name),
+			'group': (genome.category.parent.pk, genome.category.parent.name),
+			'subgroup': (genome.category.pk, genome.category.name),
+			'species': (genome.pk, genome.species_name)
+		}
+
+		db_config = get_ssr_db(gid)
+		data = {}
+		with in_database(db_config):
+			for stat in Summary.objects.all():
+				data[stat.option] = stat.content
+
+		return render(request, 'panmicrosatdb/species.html', {
+			'summary': data,
+			'species': species
+		})
 
 @csrf_exempt
 def browse(request):
 	if request.method == 'GET':
-		return render(request, 'panmicrosatdb/browse.html')
+		return render(request, 'panmicrosatdb/browse.html', {
+			'gid': request.GET.get('gid', 0)
+		})
 	
 	elif request.method == 'POST':
-		db_config = {
-			'ENGINE': 'django.db.backends.sqlite3',
-			'NAME': 'GCF_000001735.4.db'
-		}
+		gid = int(request.POST.get('species', 0))
+		draw = int(request.POST.get('draw'))
+
+		if not gid:
+			return JsonResponse({
+				'draw': draw,
+				'recordsTotal': 0,
+				'recordsFiltered': 0,
+				'data': [],
+			})
+
+		db_config = get_ssr_db(gid)
 
 		#action (download or view)
 		action = request.POST.get('action', 'view')
@@ -122,7 +143,6 @@ def browse(request):
 		if action == 'view':
 			start = int(request.POST.get('start'))
 			length = int(request.POST.get('length'))
-			draw = int(request.POST.get('draw'))
 
 		#filter parameters
 		seqid = int(request.POST.get('sequence', 0))
