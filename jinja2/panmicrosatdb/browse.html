@@ -11,25 +11,25 @@
 			<div class="form-group col-md-1">
 				<label>Kingdom</label>
 				<select name="kingdom" class="form-control" id="kingdom-select">
-					<option value="0"></option>
+					<option value="{{ species.kingdom[0] }}">{{ species.kingdom[1] }}</option>
 				</select>
 			</div>
 			<div class="form-group col-md-2">
 				<label>Group</label>
 				<select name="group" class="form-control" id="group-select">
-					<option value="0"></option>
+					<option value="{{ species.group[0] }}">{{ species.group[1] }}</option>
 				</select>
 			</div>
 			<div class="form-group col-md-2">
 				<label>Subgroup</label>
 				<select name="subgroup" class="form-control" id="subgroup-select">
-					<option value="0"></option>
+					<option value="{{ species.subgroup[0] }}">{{ species.subgroup[1] }}</option>
 				</select>
 			</div>
 			<div class="form-group col-md-4">
 				<label>Species</label>
 				<select name="species" class="form-control" id="species-select">
-					<option value="0"></option>
+					<option value="{{ species.species[0] }}">{{ species.species[1] }}</option>
 				</select>
 			</div>
 			<div class="form-group col-md-2">
@@ -58,7 +58,7 @@
 </div>
 
 <!-- sequence view dialog -->
-<div class="modal fade" id="ssr-seq-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="ssr-seq-dialog" role="dialog" aria-hidden="true">
 	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -99,7 +99,7 @@
 </div>
 
 <!-- SSR filter dialog -->
-<div class="modal fade" id="ssr-filter-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="ssr-filter-dialog" role="dialog" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -256,14 +256,8 @@
 	</div>
 </div>
 
-<!-- right menu -->
-<div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="context-menu" data-ssr="0">
-	<a class="dropdown-item" href="#" id="view-seq">View Sequence</a>
-	<a class="dropdown-item" href="#" id="view-primer">View Primer</a>
-</div>
-
 <script type="text/javascript">
-$('#view-option-select').prop('disabled', true);
+$('#view-option-select').prop('disabled', false);
 
 $('#set-filter-btn').click(function(){
 	$('#ssr-filter-dialog').modal('show');
@@ -271,7 +265,7 @@ $('#set-filter-btn').click(function(){
 
 $('#download-btn').click(function(){
 	$('#download-dialog').modal('show');
-})
+});
 
 var apply_filter = false;
 var table = $('table#ssrview').DataTable({
@@ -297,7 +291,7 @@ var table = $('table#ssrview').DataTable({
 		url: "{{ url('browse') }}",
 		type: 'POST',
 		data: function(d){
-			d.species = $('#species-select').val() || {{ gid }};
+			d.species = $('#species-select').val() || '0';
 			if(apply_filter){
 				d.sequence = $('#select-sequence').val() || '0';
 				d.begin = $('#input-start').val() || '0';
@@ -323,7 +317,7 @@ table.on('draw.dt', function(){
 		$.ajax({
 			url: "{{ url('flank') }}",
 			method: 'POST',
-			data: {ssrid: row[0]},
+			data: {ssrid: row[0], type: 'ssr', species: $('#species-select').val()},
 			dataType: 'json'
 		}).done(function(data){
 			$('#ssr-seq-dialog #sequence-table').html(data.seq);
@@ -348,6 +342,7 @@ $('select#select-sequence').select2({
 				term: params.term,
 				page: params.page,
 				label: $('select#select-seqtype').val(),
+				species: $('#species-select').val(),
 				rows: 10
 			};
 		},
@@ -404,7 +399,8 @@ $('#dl-ok').click(function(){
 	var data = {
 		'action': 'download',
 		'outname': $('#dl-outname').val(),
-		'outfmt': $('#dl-format').val()
+		'outfmt': $('#dl-format').val(),
+		'species': $('#species-select').val()
 	};
 	if(apply_filter && $('#dl-rows').val() == 'filtered'){
 		data.sequence = $('#select-sequence').val() || '0';

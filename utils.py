@@ -9,11 +9,20 @@ from .models import Genome
 def colored_sequence(seq, start, end):
 	pass
 
+def color_base(b):
+	return '<span class="B {0}">{0}</span>'.format(b)
+
 def colored_seq(seq):
 	'''
 	colored the base from given dna sequence
 	'''
-	return ''.join('<span class="B {0}">{0}</span>'.format(b)  for b in seq)
+	return ''.join(color_base(b) for b in seq)
+
+def is_dna_base(b):
+	return b in ['A', 'T', 'G', 'C', 'N']
+
+def colored_cssr_pattern(pattern):
+	return ''.join(color_base(b) if is_dna_base(b) else b for b in pattern)
 
 def cssr_pattern_to_seq(pattern):
 	'''

@@ -136,12 +136,13 @@ $('#view-option-select').select2({theme: 'classic'});
 $('#view-option-select').on('change', function(){
 	var option = $('#view-option-select').val();
 	var species = $('#species-select').val();
-	if(option==='summary'){
-		$.redirect('species', {gid: species}, 'POST');
-	}else if(option === 'ssr'){
-		$.redirect('browse', {gid: species}, 'GET');
-	}else{
 
+	if(option==='summary'){
+		$.redirect('species', {species: species}, 'POST');
+	}else if(option === 'ssr'){
+		$.redirect('browse', {species: species}, 'POST');
+	}else{
+		$.redirect('compound', {species: species}, 'POST');
 	}
 });
 

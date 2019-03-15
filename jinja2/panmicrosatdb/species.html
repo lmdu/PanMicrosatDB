@@ -11,28 +11,28 @@ table.table{
 <div class="row mt-5">
 	<div class="col">
 		<div class="form-row">
-			<div class="form-group col-md-2">
+			<div class="form-group col-md-1">
 				<label>Kingdom</label>
 				<select name="kingdom" class="form-control" id="kingdom-select">
-					<option value="{{ species.kingdom[0] }}">{{ species.kingdom[1] }}</option>
+					<option value="{{ summary.kingdom[0] }}">{{ summary.kingdom[1] }}</option>
 				</select>
 			</div>
 			<div class="form-group col-md-2">
 				<label>Group</label>
 				<select name="group" class="form-control" id="group-select">
-					<option value="{{ species.group[0] }}">{{ species.group[1] }}</option>
+					<option value="{{ summary.group[0] }}">{{ summary.group[1] }}</option>
 				</select>
 			</div>
 			<div class="form-group col-md-2">
 				<label>Subgroup</label>
 				<select name="subgroup" class="form-control" id="subgroup-select">
-					<option value="{{ species.subgroup[0] }}">{{ species.subgroup[1] }}</option>
+					<option value="{{ summary.subgroup[0] }}">{{ summary.subgroup[1] }}</option>
 				</select>
 			</div>
 			<div class="form-group col-md-4">
 				<label>Species</label>
 				<select name="species" class="form-control" id="species-select">
-					<option value="{{ species.species[0] }}">{{ species.species[1] }}</option>
+					<option value="{{ summary.species[0] }}">{{ summary.species[1] }}</option>
 				</select>
 			</div>
 			<div class="form-group col-md-2">
@@ -53,16 +53,16 @@ table.table{
 			<h5 class="card-header">Species information</h5>
 			<table class="table">
 				<tbody>
-					<tr><td>Species name</td><td><i>Homo sapiens</i></td></tr>
-					<tr><td>Common name</td><td>Human</td></tr>
-					<tr><td>NCBI taxonomy</td><td><a href="#">9606</a></td></tr>
-					<tr><td>NCBI accession</td><td>GCF_00007653</td></tr>
-					<tr><td>Genome size (bp)</td><td>31,042,453,554</td></tr>
-					<tr><td>Unkown bases (bp)</td><td>567</td></tr>
-					<tr><td>GC content (%)</td><td>54.78</td></tr>
-					<tr><td>Assembly level</td><td>Chromosome</td></tr>
-					<tr><td>Number of sequences</td><td>123456</td></tr>
-					<tr><td>Number of genes</td><td>23583</td></tr>
+					<tr><td>Species name</td><td><i>{{ summary.species[1] }}</i></td></tr>
+					<tr><td>Common name</td><td>{{ summary.common_name }}</td></tr>
+					<tr><td>NCBI taxonomy</td><td><a href="#">{{ summary.taxonomy }}</a></td></tr>
+					<tr><td>NCBI accession</td><td>{{ summary.accession }}</td></tr>
+					<tr><td>Genome size (bp)</td><td>{{ summary.genome_size }}</td></tr>
+					<tr><td>Unkown bases (bp)</td><td>{{ summary.ns_count }}</td></tr>
+					<tr><td>GC content (%)</td><td>{{ summary.gc_content }}</td></tr>
+					<tr><td>Assembly level</td><td>{{ summary.assembly_level }}</td></tr>
+					<tr><td>Number of sequences</td><td>{{ summary.seq_count }}</td></tr>
+					<tr><td>Number of genes</td><td>{{ summary.gene_count }}</td></tr>
 				</tbody>
 			</table>
 		</div>
@@ -72,16 +72,16 @@ table.table{
 			<h5 class="card-header">Microsatellites</h5>
 			<table class="table">
 				<tbody>
-					<tr><td>Total number of microsatellites</td><td>1300012</td></tr>
-					<tr><td>Total length of microsatellites (bp)</td><td>1300012</td></tr>
-					<tr><td>The average length of microsatellites (bp)</td><td>1300012</td></tr>
-					<tr><td>Number of microsatellites per sequence</td><td>3456</td></tr>
-					<tr><td>Relative abundance (loci/Mb)</td><td>12</td></tr>
-					<tr><td>Relative density (bp/Mb)</td><td>1234</td></tr>
-					<tr><td>Percentage of genome covered (%)</td><td>0.32</td></tr>
-					<tr><td>Total number of motif category</td><td>356</td></tr>
-					<tr><td>Maximum repeats / motif</td><td>300 / AT</td></tr>
-					<tr><td>Maximum length (bp) / motif</td><td>1000 / AGCT</td></tr>
+					<tr><td>Total number of microsatellites</td><td>{{ summary.ssr_count }}</td></tr>
+					<tr><td>Total length of microsatellites (bp)</td><td>{{ summary.ssr_length }}</td></tr>
+					<tr><td>The average length of microsatellites (bp)</td><td>{{ summary.ssr_average }}</td></tr>
+					<tr><td>Number of microsatellites per sequence</td><td>{{ summary.ssr_perseq }}</td></tr>
+					<tr><td>Relative abundance (loci/Mb)</td><td>{{ summary.ssr_frequency }}</td></tr>
+					<tr><td>Relative density (bp/Mb)</td><td>{{ summary.ssr_density }}</td></tr>
+					<tr><td>Percentage of genome covered (%)</td><td>{{ summary.genome_cover}}</td></tr>
+					<tr><td>Total number of motif category</td><td>{{ summary.ssr_category }}</td></tr>
+					<tr><td>Maximum repeats / motif</td><td>{{ summary.ssr_maxrep }}</td></tr>
+					<tr><td>Maximum length (bp) / motif</td><td>{{ summary.ssr_maxlen }}</td></tr>
 				</tbody>
 			</table>
 		</div>
@@ -91,16 +91,16 @@ table.table{
 			<h5 class="card-header">Compound microsatellites</h5>
 			<table class="table">
 				<tbody>
-					<tr><td>Total number of compound microsatellites</td><td>GCF_00007653</td></tr>
-					<tr><td>Total length of compound microsatellites (bp)</td><td>1300012</td></tr>
-					<tr><td>The average length of compound microsatellites (bp)</td><td>1300012</td></tr>
-					<tr><td>Number of compound microsatellites per sequence</td><td>123</td></tr>
-					<tr><td>Relative abundance (loci/Mb)</td><td>12</td></tr>
-					<tr><td>Relative density (bp/Mb)</td><td>1234</td></tr>
-					<tr><td>Total number of SSRs comprised for compound</td><td>123456</td></tr>
-					<tr><td>cSSRs%</td><td>12.35</td></tr>
-					<tr><td>Maximum length (bp)</td><td>1200</td></tr>
-					<tr><td>Maximum complexity</td><td>20</td></tr>
+					<tr><td>Total number of compound microsatellites</td><td>{{ summary.cm_count }}</td></tr>
+					<tr><td>Total length of compound microsatellites (bp)</td><td>{{ summary.cssr_length }}</td></tr>
+					<tr><td>The average length of compound microsatellites (bp)</td><td>{{ summary.cm_average }}</td></tr>
+					<tr><td>Number of compound microsatellites per sequence</td><td>{{ summary.cssr_perseq }}</td></tr>
+					<tr><td>Relative abundance (loci/Mb)</td><td>{{ summary.cssr_frequency }}</td></tr>
+					<tr><td>Relative density (bp/Mb)</td><td>{{ summary.cssr_density }}</td></tr>
+					<tr><td>Total number of SSRs comprised for compound</td><td>{{ summary.cssr_count }}</td></tr>
+					<tr><td>cSSRs%</td><td>{{ summary.cssr_percent }}</td></tr>
+					<tr><td>Maximum length (bp)</td><td>{{ summary.cssr_maxlen }}</td></tr>
+					<tr><td>Maximum complexity</td><td>{{ summary.cssr_maxcpl }}</td></tr>
 				</tbody>
 			</table>
 		</div>

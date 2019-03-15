@@ -88,9 +88,39 @@ def overview(request):
 @csrf_exempt
 def species(request):
 	if request.method == 'POST':
-		gid = int(request.POST.get('gid', 0))
-
+		gid = int(request.POST.get('species', 716))
 		
+		genome = Genome.objects.get(pk=gid)
+		data = {
+			'kingdom': (genome.category.parent.parent.pk, genome.category.parent.parent.name),
+			'group': (genome.category.parent.pk, genome.category.parent.name),
+			'subgroup': (genome.category.pk, genome.category.name),
+			'species': (genome.pk, genome.species_name),
+			'common_name': genome.common_name,
+			'taxonomy': genome.taxonomy,
+			'accession': genome.download_accession,
+			'assembly_level': genome.assembly_level,
+			'gene_count': genome.gene_count
+		}
+
+		db_config = get_ssr_db(gid)
+		with in_database(db_config):
+			for stat in Summary.objects.all():
+				data[stat.option] = stat.content
+		if int(data['cm_count']):
+			data['cm_average'] = round(int(data['cssr_length'])/int(data['cm_count']), 2)
+		else:
+			data['cm_average'] = 0
+
+		return render(request, 'panmicrosatdb/species.html', {
+			'summary': data
+		})
+
+@csrf_exempt
+def browse(request):
+	gid = int(request.POST.get('species', 716))
+
+	if 'draw' not in request.POST:
 		genome = Genome.objects.get(pk=gid)
 		species = {
 			'kingdom': (genome.category.parent.parent.pk, genome.category.parent.parent.name),
@@ -98,36 +128,11 @@ def species(request):
 			'subgroup': (genome.category.pk, genome.category.name),
 			'species': (genome.pk, genome.species_name)
 		}
+		return render(request, 'panmicrosatdb/browse.html', {'species':species})
 
-		db_config = get_ssr_db(gid)
-		data = {}
-		with in_database(db_config):
-			for stat in Summary.objects.all():
-				data[stat.option] = stat.content
-
-		return render(request, 'panmicrosatdb/species.html', {
-			'summary': data,
-			'species': species
-		})
-
-@csrf_exempt
-def browse(request):
-	if request.method == 'GET':
-		return render(request, 'panmicrosatdb/browse.html', {
-			'gid': request.GET.get('gid', 0)
-		})
 	
-	elif request.method == 'POST':
-		gid = int(request.POST.get('species', 0))
+	if request.method == 'POST':
 		draw = int(request.POST.get('draw'))
-
-		if not gid:
-			return JsonResponse({
-				'draw': draw,
-				'recordsTotal': 0,
-				'recordsFiltered': 0,
-				'data': [],
-			})
 
 		db_config = get_ssr_db(gid)
 
@@ -162,6 +167,8 @@ def browse(request):
 		with in_database(db_config):
 			#total = int(SSRStat.objects.get(name='ssr_count').val)
 			ssrs = SSR.objects.all()
+			total = ssrs.count()
+
 			if seqid:
 				ssrs = ssrs.filter(sequence=seqid)
 
@@ -213,7 +220,7 @@ def browse(request):
 				return download_ssrs(db_config, ssrs, outfmt, outname)
 
 			##view ssrs for datatable
-			total = ssrs.count()
+			filtered_total = ssrs.count()
 
 			#order by
 			colidx = request.POST.get('order[0][column]')
@@ -232,34 +239,94 @@ def browse(request):
 				except:
 					location = 'Intergenic'
 				
-				data.append((ssr.id, ssr.sequence.accession, ssr.sequence.name, ssr.start, ssr.end, ssr.motif, ssr.standard_motif, ssr.get_ssr_type_display(), ssr.repeats, ssr.length, location))
+				data.append((ssr.id, ssr.sequence.accession, ssr.sequence.name, \
+				 ssr.start, ssr.end, colored_seq(ssr.motif), colored_seq(ssr.standard_motif), \
+				 ssr.get_ssr_type_display(), ssr.repeats, ssr.length, location))
 
 		return JsonResponse({
 			'draw': draw,
 			'recordsTotal': total,
-			'recordsFiltered': total,
+			'recordsFiltered': filtered_total,
 			'data': data
 		})
 
 @csrf_exempt
 def cssrs_browse(request):
-	if request.method == 'GET':
-		return render(request, 'panmicrosatdb/cssrs.html')
+	#if request.method == 'GET':
+	#	return render(request, 'panmicrosatdb/cssrs.html')
 	
-	elif request.method == 'POST':
-		db_config = {
-			'ENGINE': 'django.db.backends.sqlite3',
-			'NAME': 'GCF_000001735.4.db'
-		}
+	if request.method == 'POST':
+		gid = int(request.POST.get('species', 0))
+
+		if 'draw' not in request.POST:
+			genome = Genome.objects.get(pk=gid)
+			species = {
+				'kingdom': (genome.category.parent.parent.pk, genome.category.parent.parent.name),
+				'group': (genome.category.parent.pk, genome.category.parent.name),
+				'subgroup': (genome.category.pk, genome.category.name),
+				'species': (genome.pk, genome.species_name)
+			}
+			return render(request, 'panmicrosatdb/cssrs.html', {'species':species})
+
+		db_config = get_ssr_db(gid)
+
 		start = int(request.POST.get('start'))
 		length = int(request.POST.get('length'))
 		draw = int(request.POST.get('draw'))
 
+		#filter parameters
+		seqid = int(request.POST.get('sequence', 0))
+		begin = int(request.POST.get('begin', 0))
+		end = int(request.POST.get('end', 0))
+		cpxsign = request.POST.get('cpxsign')
+		complexity = int(request.POST.get('complex', 0))
+		max_complexity = int(request.POST.get('maxcpx', 0))
+		lensign = request.POST.get('lensign')
+		ssrlen = int(request.POST.get('ssrlen', 0))
+		max_ssrlen = int(request.POST.get('maxlen', 0))
+		location = int(request.POST.get('location', 0))
+
 		data = []
 		with in_database(db_config):
 			cssrs = CSSR.objects.all()
-
 			total = cssrs.count()
+
+			if seqid:
+				cssrs = cssrs.filter(sequence=seqid)
+
+			if begin and end:
+				cssrs = cssrs.filter(start__gte=begin, end__lte=end)
+
+			if complexity:
+				if cpxsign == 'gt':
+					cssrs = cssrs.filter(complexity__gt=complexity)
+				elif cpxsign == 'gte':
+					cssrs = cssrs.filter(complexity__gte=complexity)
+				elif cpxsign == 'eq':
+					cssrs = cssrs.filter(complexity=complexity)
+				elif cpxsign == 'lt':
+					cssrs = cssrs.filter(complexity__lt=complexity)
+				elif cpxsign == 'lte':
+					cssrs = cssrs.filter(complexity__lte=complexity)
+				elif cpxsign == 'in':
+					cssrs = cssrs.filter(complexity__range=(complexity, max_complexity))
+
+			if ssrlen:
+				if lensign == 'gt':
+					cssrs = cssrs.filter(length__gt=ssrlen)
+				elif lensign == 'gte':
+					cssrs = cssrs.filter(length__gte=ssrlen)
+				elif lensign == 'eq':
+					cssrs = cssrs.filter(length=ssrlen)
+				elif lensign == 'lt':
+					cssrs = cssrs.filter(length__lt=ssrlen)
+				elif lensign == 'lte':
+					cssrs = cssrs.filter(length__lte=ssrlen)
+				elif lensign == 'in':
+					cssrs = cssrs.filter(length__range=(ssrlen, max_ssrlen))
+
+			if location:
+				cssrs = cssrs.filter(cssrannot__location=location)
 
 			#order by
 			colidx = request.POST.get('order[0][column]')
@@ -277,9 +344,11 @@ def cssrs_browse(request):
 				except:
 					location = 'Intergenic'
 
-				pattern = re.sub(r'(\d+)', lambda m: '<sub>'+m.group(0)+'</sub>', cssr.structure)
+				pattern = colored_cssr_pattern(cssr.structure)
+				pattern = re.sub(r'(\d+)', lambda m: '<sub>'+m.group(0)+'</sub>', pattern)
 
-				data.append((cssr.id, cssr.sequence.accession, cssr.sequence.name, cssr.start, cssr.end, cssr.complexity, cssr.length, pattern, location))
+				data.append((cssr.id, cssr.sequence.accession, cssr.sequence.name, cssr.start, \
+				 cssr.end, cssr.complexity, cssr.length, pattern, location))
 
 		return JsonResponse({
 			'draw': draw,
@@ -295,27 +364,34 @@ def get_seq_id(request):
 		page = int(request.POST.get('page', 1))
 		rows = int(request.POST.get('rows', 10))
 		label = request.POST.get('label')
+		gid = int(request.POST.get('species'))
 
-		db_config = {
-			'ENGINE': 'django.db.backends.sqlite3',
-			'NAME': 'GCF_000001735.4.db'
-		}
+		db_config = get_ssr_db(gid)
+
 		with in_database(db_config) as db:
 			offset = (page-1)*rows
 			if term:
-				#total = Sequence.objects.filter(accession__contains=term).count()
-				#seqs = Sequence.objects.filter(accession__contains=term)[offset:offset+rows]
-				term = '{}*'.format(term)
-				with connections[db.unique_db_id].cursor() as cursor:
-					cursor.execute("SELECT COUNT(*) FROM search WHERE search MATCH %s", (term,))
-					total = cursor.fetchone()[0]
-				
-				seqs = Search.objects.raw("SELECT rowid,name,accession FROM search WHERE search MATCH %s LIMIT %s,%s", (term, offset, rows))
-
 				if label == 'accession':
+					total = Sequence.objects.filter(accession__startswith=term).count()
+					seqs = Sequence.objects.filter(accession__startswith=term)[offset:offset+rows]
 					data = [{'id': seq.rowid, 'text': seq.accession} for seq in seqs]
+
 				elif label == 'name':
-					data = [{'id': seq.rowid, 'text': seq.name} for seq in seqs]
+					total = Sequence.objects.filter(name__startswith=term).count()
+					seqs = Sequence.objects.filter(name__startswith=term)[offset:offset+rows]
+					data = [{'id': seq.id, 'text': seq.name} for seq in seqs]
+				
+				#term = '{}*'.format(term)
+				#with connections[db.unique_db_id].cursor() as cursor:
+				#	cursor.execute("SELECT COUNT(*) FROM search WHERE search MATCH %s", (term,))
+				#	total = cursor.fetchone()[0]
+				
+				#seqs = Search.objects.raw("SELECT rowid,name,accession FROM search WHERE search MATCH %s LIMIT %s,%s", (term, offset, rows))
+
+				#if label == 'accession':
+				#	data = [{'id': seq.rowid, 'text': seq.accession} for seq in seqs]
+				#elif label == 'name':
+				#	data = [{'id': seq.rowid, 'text': seq.name} for seq in seqs]
 			else:
 				total = int(Summary.objects.get(option='seq_count').content)
 				seqs = Sequence.objects.all()[offset:offset+rows]
@@ -331,20 +407,34 @@ def get_seq_id(request):
 def get_seq_flank(request):
 	if request.method == 'POST':
 		ssr_id = int(request.POST.get('ssrid'))
+		gid = int(request.POST.get('species'))
+		type_ = request.POST.get('type')
 		
-		db_config = {
-			'ENGINE': 'django.db.backends.sqlite3',
-			'NAME': 'GCF_000001735.4.db'
-		}
+		db_config = get_ssr_db(gid)
+
 		with in_database(db_config):
-			ssr = SSR.objects.get(pk=ssr_id)
-			ssrmeta = ssr.ssrmeta
-			try:
-				ssrannot = ssr.ssrannot
-				gene = ssrannot.gene
-			except:
-				ssrannot = None
-				gene = None
+			if type_ == 'ssr':
+				ssr = SSR.objects.get(pk=ssr_id)
+				ssrmeta = ssr.ssrmeta
+				try:
+					ssrannot = ssr.ssrannot
+					gene = ssrannot.gene
+				except:
+					ssrannot = None
+					gene = None
+			
+			elif type_ == 'cssr':
+				ssr = CSSR.objects.get(pk=ssr_id)
+				ssrmeta = ssr.cssrmeta
+				try:
+					ssrannot = ssr.cssrannot
+					gene = ssrannot.gene
+				except:
+					ssrannot = None
+					gene = None
+
+			else:
+				return None
 
 		nucleotide = """
 		<div class="sequence-nucleotide">
@@ -373,7 +463,10 @@ def get_seq_flank(request):
 		for b in ssrmeta.left_flank:
 			html.append(nucleotide.format(b))
 
-		ssr_seq = "".join([ssr.motif]*ssr.repeats)
+		if type_ == 'ssr':
+			ssr_seq = "".join([ssr.motif]*ssr.repeats)
+		elif type_ == 'cssr':
+			ssr_seq = cssr_pattern_to_seq(ssr.structure)
 
 		for i,b in enumerate(ssr_seq):
 			if i == 0:
@@ -465,11 +558,10 @@ def get_seq_flank(request):
 def get_cssr_detail(request):
 	if request.method == 'POST':
 		ssr_id = int(request.POST.get('ssrid'))
+		gid = int(request.POST.get('species'))
 		
-		db_config = {
-			'ENGINE': 'django.db.backends.sqlite3',
-			'NAME': 'GCF_000001735.4.db'
-		}
+		db_config = get_ssr_db(gid)
+
 		with in_database(db_config):
 			cssr = CSSR.objects.get(pk=ssr_id)
 			cssrmeta = cssr.cssrmeta
