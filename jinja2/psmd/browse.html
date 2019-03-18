@@ -1,4 +1,4 @@
-{% extends "panmicrosatdb/base.html" %}
+{% extends "psmd/base.html" %}
 
 {% block title %} Browse - PanMicroSatDB {% endblock %}
 
@@ -36,8 +36,8 @@
 				<label>Option</label>
 				<select name="species" class="form-control" id="view-option-select">
 					<option value="summary">Summary statistics</option>
-					<option value="ssr">Perfect microsatellite</option>
-					<option value="cssr" selected="selected">Compound microsatellite</option>
+					<option value="ssr" selected="selected">Perfect microsatellite</option>
+					<option value="cssr">Compound microsatellite</option>
 				</select>
 			</div>
 			<div class="form-group col-md-1 align-self-end text-right">
@@ -52,13 +52,13 @@
 
 <div class="row mt-4">
 	<div class="col">
-		<table id="cssrview" class="table table-bordered table-hover" width="100%">
+		<table id="ssrview" class="table table-bordered table-hover" width="100%">
 		</table>
 	</div>
 </div>
 
 <!-- sequence view dialog -->
-<div class="modal fade" id="cssr-seq-dialog" role="dialog" aria-hidden="true">
+<div class="modal fade" id="ssr-seq-dialog" role="dialog" aria-hidden="true">
 	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -103,7 +103,7 @@
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Set Compound SSR filters</h5>
+				<h5 class="modal-title">Set SSR filters</h5>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 		        	<span aria-hidden="true">&times;</span>
 		        </button>
@@ -131,10 +131,24 @@
 						<input type="number" id="input-end" name="end" class="form-control">
 					</div>
 
+					<div class="form-group col-5 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Motif</label>
+						</div>
+						<input type="text" id="input-motif" name="motif" class="form-control">
+					</div>
+
+					<div class="form-group col-7 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Standard Motif</label>
+						</div>
+						<input type="text" id="input-smotif" name="smotif" class="form-control">
+					</div>
+
 					<div class="form-group col-12 input-group">
 						<div class="input-group-prepend">
-							<label class="input-group-text">Complexity</label>
-							<select class="custom-select input-group-text" id="select-complex-sign" name="complexsign">
+							<label class="input-group-text">Repeats</label>
+							<select class="custom-select input-group-text" id="select-repeat-sign" name="repeatsign">
 								<option value="gt">></option>
 								<option value="gte">>=</option>
 								<option value="eq">=</option>
@@ -143,8 +157,8 @@
 								<option value="in">between</option>
 							</select>
 						</div>
-						<input type="number" id="input-complex" name="complex" class="form-control">
-						<input type="hidden" id="max-complex" name="maxcopmplex" class="form-control">
+						<input type="number" id="input-repeats" name="repeats" class="form-control">
+						<input type="hidden" id="max-repeats" name="maxrepeats" class="form-control">
 					</div>
 
 					<div class="form-group col-12 input-group">
@@ -163,7 +177,22 @@
 						<input type="hidden" id="max-length" name="maxlength" class="form-control">
 					</div>
 
-					<div class="form-group col-12 input-group">
+					<div class="form-group col-6 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Type</label>
+						</div>
+						<select class="custom-select" id="select-ssrtype" name="ssrtype">
+							<option value="0">All</option>
+							<option value="1">Mono</option>
+							<option value="2">Di</option>
+							<option value="3">Tri</option>
+							<option value="4">Tetra</option>
+							<option value="5">Penta</option>
+							<option value="6">Hexa</option>
+						</select>
+					</div>
+
+					<div class="form-group col-6 input-group">
 						<div class="input-group-prepend">
 							<label class="input-group-text">Location</label>
 						</div>
@@ -228,6 +257,8 @@
 </div>
 
 <script type="text/javascript">
+$('#view-option-select').prop('disabled', false);
+
 $('#set-filter-btn').click(function(){
 	$('#ssr-filter-dialog').modal('show');
 });
@@ -236,9 +267,8 @@ $('#download-btn').click(function(){
 	$('#download-dialog').modal('show');
 });
 
-var apply = false;
-var table = $('table#cssrview').DataTable({
-	scrollX: true,
+var apply_filter = false;
+var table = $('table#ssrview').DataTable({
 	dom: "<'row'<'col-md-6'l><'col-md-6'p>>rt<'row'<'col-md-6'i><'col-md-6'p>>",
 	columns: [
 		{name: 'id', title: 'ID'},
@@ -246,9 +276,11 @@ var table = $('table#cssrview').DataTable({
 		{name: 'sequence__name', title: 'Sequence Name'},
 		{name: 'start', title: 'Start'},
 		{name: 'end', title: 'End'},
-		{name: 'complexity', title: 'Complexity'},
+		{name: 'motif', title: 'Motif'},
+		{name: 'standard_motif', title: 'Standard Motif'},
+		{name: 'ssr_type', title: 'Type'},
+		{name: 'repeats', title: 'Repeats'},
 		{name: 'length', title: 'Length'},
-		{name: 'structure', title: 'Pattern', orderable: false},
 		{name: 'location', title: 'Location'}
 	],
 	searching: true,
@@ -256,17 +288,20 @@ var table = $('table#cssrview').DataTable({
 	serverSide: true,
 	//select: true,
 	ajax: {
-		url: "{{ url('cssrs') }}",
+		url: "{{ url('browse') }}",
 		type: 'POST',
 		data: function(d){
 			d.species = $('#species-select').val() || '0';
-			if(apply){
+			if(apply_filter){
 				d.sequence = $('#select-sequence').val() || '0';
 				d.begin = $('#input-start').val() || '0';
 				d.end = $('#input-end').val() || '0';
-				d.cpxsign = $('#select-complex-sign').val();
-				d.complex = $('#input-complex').val() || '0';
-				d.maxcpx = $('#max-complex').val() || '0';
+				d.motif = $('#input-motif').val();
+				d.smotif = $('#input-smotif').val();
+				d.ssrtype = $('#select-ssrtype').val();
+				d.repsign = $('#select-repeat-sign').val();
+				d.repeats = $('#input-repeats').val() || '0';
+				d.maxrep = $('#max-repeats').val() || '0';
 				d.lensign = $('#select-len-sign').val();
 				d.ssrlen = $('#input-length').val() || '0';
 				d.maxlen = $('#max-length').val() || '0';
@@ -277,18 +312,18 @@ var table = $('table#cssrview').DataTable({
 });
 
 table.on('draw.dt', function(){
-	$('#cssrview tbody tr').dblclick(function(){
+	$('#ssrview tbody tr').dblclick(function(){
 		var row = table.row(this).data();
 		$.ajax({
 			url: "{{ url('flank') }}",
 			method: 'POST',
-			data: {ssrid: row[0], type: 'cssr', species: $('#species-select').val()},
+			data: {ssrid: row[0], type: 'ssr', species: $('#species-select').val()},
 			dataType: 'json'
 		}).done(function(data){
-			$('#cssr-seq-dialog #sequence-table').html(data.seq);
-			$('#cssr-seq-dialog #gannot-table tbody').html(data.location);
-			$('#cssr-seq-dialog #primer-table tbody').html(data.primer);
-			$('#cssr-seq-dialog').modal('show');
+			$('#ssr-seq-dialog #sequence-table').html(data.seq);
+			$('#ssr-seq-dialog #gannot-table tbody').html(data.location);
+			$('#ssr-seq-dialog #primer-table tbody').html(data.primer);
+			$('#ssr-seq-dialog').modal('show');
 		});
 	});
 });
@@ -327,17 +362,20 @@ $('select#select-sequence').select2({
 });
 
 
-$('#reset-filter').click(function(){
-	apply = false;
-	$('#filters input').val('');
-	$('#filters select').val('').trigger('change');
-	$('#select-complex-sign').val('gt').trigger('change');
+$('#reset-filter-btn').click(function(){
+	apply_filter = false;
+	$('#ssr-filter-dialog input').val('');
+	$('#ssr-filter-dialog select').val('').trigger('change');
+	$('#select-ssrtype').val('0').trigger('change');
+	$('#select-location').val('0').trigger('change');
+	$('#select-repeat-sign').val('gt').trigger('change');
 	$('#select-len-sign').val('gt').trigger('change');
+	$('#select-seqtype').val('name').trigger('change');
 	table.ajax.reload();
 });
 
-$('#apply-filter').click(function(){
-	apply = true;
+$('#apply-filter-btn').click(function(){
+	apply_filter = true;
 	table.ajax.reload();
 });
 
@@ -349,11 +387,11 @@ $('#select-len-sign').change(function(){
 	}
 });
 
-$('#select-complex-sign').change(function(){
+$('#select-repeat-sign').change(function(){
 	if($(this).val() == 'in'){
-		$('#max-complex').attr('type', 'number');
+		$('#max-repeats').attr('type', 'number');
 	} else {
-		$('#max-complex').attr('type', 'hidden');
+		$('#max-repeats').attr('type', 'hidden');
 	}
 });
 
@@ -368,9 +406,12 @@ $('#dl-ok').click(function(){
 		data.sequence = $('#select-sequence').val() || '0';
 		data.begin = $('#input-start').val() || '0';
 		data.end = $('#input-end').val() || '0';
-		data.cpxsign = $('#select-complex-sign').val();
-		data.complex = $('#input-complex').val() || '0';
-		data.maxcpx = $('#max-complex').val() || '0';
+		data.motif = $('#input-motif').val();
+		data.smotif = $('#input-smotif').val();
+		data.ssrtype = $('#select-ssrtype').val();
+		data.repsign = $('#select-repeat-sign').val();
+		data.repeats = $('#input-repeats').val() || '0';
+		data.maxrep = $('#max-repeats').val() || '0';
 		data.lensign = $('#select-len-sign').val();
 		data.ssrlen = $('#input-length').val() || '0';
 		data.maxlen = $('#max-length').val() || '0';
@@ -385,5 +426,6 @@ $('#species-select').change(function(){
 		table.ajax.reload();
 	}
 });
+
 </script>
 {% endblock %}

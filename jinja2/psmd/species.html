@@ -1,4 +1,4 @@
-{% extends "panmicrosatdb/base.html" %}
+{% extends "psmd/base.html" %}
 {% block head %}
 <style type="text/css">
 table.table{
@@ -110,7 +110,6 @@ table.table{
 <div class="row mt-3">
 	<div class="col-lg-4">
 		<div class="card">
-			<h5 class="card-header">Microsatellite type distribution <button id="export-chart1" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
 			<div class="card-body">
 				<div id="chart1"></div>
 			</div>
@@ -118,7 +117,6 @@ table.table{
 	</div>
 	<div class="col-lg-8">
 		<div class="card">
-			<h5 class="card-header">Motif type distribution <button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
 			<div class="card-body">
 				<div id="chart2"></div>
 			</div>
@@ -129,17 +127,15 @@ table.table{
 <div class="row mt-3">
 	<div class="col-lg-6">
 		<div class="card">
-			<h5 class="card-header">Microsatellite repeat distribution<button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
 			<div class="card-body">
-				<div id="chart1"></div>
+				<div id="chart3"></div>
 			</div>
 		</div>
 	</div>
 	<div class="col-lg-6">
 		<div class="card">
-			<h5 class="card-header">Microsatellite length distribution <button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
 			<div class="card-body">
-				<div id="chart2"></div>
+				<div id="chart4"></div>
 			</div>
 		</div>
 	</div>
@@ -148,17 +144,15 @@ table.table{
 <div class="row mt-3">
 	<div class="col-lg-6">
 		<div class="card">
-			<h5 class="card-header">The complexity distribution of compound microsatellites <button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
 			<div class="card-body">
-				<div id="chart1"></div>
+				<div id="chart5"></div>
 			</div>
 		</div>
 	</div>
 	<div class="col-lg-6">
 		<div class="card">
-			<h5 class="card-header">The length distribution of compound microsatellites <button id="export-chart2" class="btn btn-sm btn-outline-info float-right">Export</button></h5>
 			<div class="card-body">
-				<div id="chart2"></div>
+				<div id="chart6"></div>
 			</div>
 		</div>
 	</div>
@@ -167,40 +161,168 @@ table.table{
 <script>
 $('#view-option-select').prop('disabled', false);
 
-c3.generate({
-    bindto: '#chart1',
-    data: {
-      columns: [
-        ['Mono', 120],
-        ['Di', 80],
-        ['Tri', 50],
-        ['Tetra', 70],
-        ['Penta', 40],
-        ['Hexa', 30]
-      ],
-      type: 'pie'
-    }
+//highchart global setting
+Highcharts.setOptions({
+	credits: {
+		enabled: false
+	}
 });
 
-c3.generate({
-	bindto: '#chart2',
-	data: {
-		columns: [['Motif',149.23,147.41,117.37,79.37,42.44,25.68,25.2,24.93,14.57,14.35,13.16,11.2,10.59,8.17,8.16,7.32,6.98,6.63,6.24,4.24,3.25,3.13,3.11,2.85,2.38,2.36,2.35,2.31,1.84,1.45,1.42,0.88,0.84,0.69,0.57,0.55,0.52,0.5,0.48,0.47,0.42,0.4,0.36,0.36,0.29,0.27,0.27,0.27,0.26,0.23]],
-		type: 'bar'
+//ssr type distribution
+Highcharts.chart('chart1',{
+	chart:{
+		type: 'pie'
 	},
-	axis: {
-		x: {
-			type: 'category',
-			tick: {
-				rotate: -65,
-				multiline: false
-			},
-			categories: ["AC","A","AT","AAT","AAAT","ATCC","AG","ATAG","AAGT","AATG","ACAG","ATC","AATAT","AAC","AAAC","C","ATAC","AATC","AAAG","AAAAT","ACTG","AACC","AATT","AAG","ACGC","ACGG","ACTC","AAATT","AGG","AAGG","AATTC","AAAAC","AATAG","ACC","ACG","AATGT","AGC","AACAT","ACCG","AGGG","ATATC","AAATC","AAGC","AAGGC","AAGTC","CG","ACCC","AATCT","AAAAG","AACG"]
+	title: {
+		text: 'SSR type distribution'
+	},
+	plotOptions: {
+		pie: {
+			allowPointSelect: true,
+			cursor: 'pointer',
+			dataLabels: {
+                enabled: true,
+                format: '<b>{point.name}</b>: {point.percentage:.2f} %',
+                style: {
+                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                }
+            }
+		}
+	},
+	series: [{
+		name: 'SSR counts',
+		colorByPoint: true,
+		data: {{ summary.ssr_types|safe }}
+	}]
+});
+
+//ssr motif distribution
+Highcharts.chart('chart2', {
+	chart: {
+		type: 'column'
+	},
+	title: {
+		text: 'SSR motif distribution'
+	},
+	xAxis: {
+		type: 'category',
+		labels: {
+			rotation: -45
+		}
+	},
+	yAxis: {
+		title: {
+			text: 'SSR counts'
+		},
+		type: 'logarithmic'
+	},
+	legend: {
+		enabled: false
+	},
+	series: [{
+		name: 'SSR counts',
+		data: {{ summary.ssr_motif|safe }}
+	}]
+});
+
+//SSR repeat distribution
+Highcharts.chart('chart3', {
+	title: {
+		text: 'SSR repeat distribution'
+	},
+	yAxis: {
+		title: {
+			text: 'SSR counts'
+		}
+	},
+	xAxis: {
+		title:{
+			text: 'SSR repeats'
+		},
+		categories: {{ summary.ssr_replabel|safe }} 
+	},
+	series: {{ summary.ssr_repdis|safe }}
+});
+
+//SSR length distribution
+Highcharts.chart('chart4', {
+	title: {
+		text: 'SSR length distribution'
+	},
+	yAxis: {
+		title: {
+			text: 'SSR counts'
+		}
+	},
+	xAxis: {
+		title:{
+			text: 'SSR length'
+		},
+		categories: {{ summary.ssr_lenlabel|safe }} 
+	},
+	plotOptions:{
+		series: {
+			lineWidth: 0
+		}
+	},
+	series: {{ summary.ssr_lendis|safe }}
+});
+
+//compound complexity distribution
+Highcharts.chart('chart5', {
+	chart: {
+		type: 'areaspline'
+	},
+	title: {
+		text: 'Compound SSR complexity distribution'
+	},
+	xAxis: {
+		title: {
+			text: 'Complexity'
+		},
+		type: 'category',
+	},
+	yAxis: {
+		title: {
+			text: 'SSR Counts'
+		},
+		type: 'logarithmic'
+	},
+	legend: {
+		enabled: false
+	},
+	series:[{
+		name: 'SSR counts',
+		data: {{ summary.cssr_cpldis }}
+	}]
+});
+
+//compound length distribution
+Highcharts.chart('chart6', {
+	chart: {
+		type: 'areaspline'
+	},
+	title: {
+		text: 'Compound SSR length distribution'
+	},
+	xAxis: {
+		title: {
+			text: 'Length'
+		},
+		type: 'category',
+	},
+	yAxis: {
+		title: {
+			text: 'SSR Counts'
 		}
 	},
 	legend: {
-		show: false
-	}
+		enabled: false
+	},
+	series:[{
+		name: 'SSR counts',
+		data: {{ summary.cssr_lendis }}
+	}]
 });
 </script>
 

@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import *
 from .utils import *
+from .plots import *
 
 import re
 import json
@@ -13,7 +14,7 @@ import primer3
 
 # Create your views here.
 def index(request):
-	return render(request, 'panmicrosatdb/index.html')
+	return render(request, 'psmd/index.html')
 
 @csrf_exempt
 def category(request):
@@ -45,7 +46,7 @@ def category(request):
 @csrf_exempt
 def overview(request):
 	if request.method == 'GET':
-		return render(request, 'panmicrosatdb/overview.html')
+		return render(request, 'psmd/overview.html')
 
 	start = int(request.POST.get('start'))
 	length = int(request.POST.get('length'))
@@ -87,7 +88,8 @@ def overview(request):
 
 @csrf_exempt
 def species(request):
-	if request.method == 'POST':
+	#if request.method == 'POST':
+	if request.method in ['GET', 'POST']:
 		gid = int(request.POST.get('species', 716))
 		
 		genome = Genome.objects.get(pk=gid)
@@ -106,13 +108,14 @@ def species(request):
 		db_config = get_ssr_db(gid)
 		with in_database(db_config):
 			for stat in Summary.objects.all():
-				data[stat.option] = stat.content
+				make_plot(data, stat.content, stat.option)
+		
 		if int(data['cm_count']):
 			data['cm_average'] = round(int(data['cssr_length'])/int(data['cm_count']), 2)
 		else:
 			data['cm_average'] = 0
 
-		return render(request, 'panmicrosatdb/species.html', {
+		return render(request, 'psmd/species.html', {
 			'summary': data
 		})
 
@@ -128,7 +131,7 @@ def browse(request):
 			'subgroup': (genome.category.pk, genome.category.name),
 			'species': (genome.pk, genome.species_name)
 		}
-		return render(request, 'panmicrosatdb/browse.html', {'species':species})
+		return render(request, 'psmd/browse.html', {'species':species})
 
 	
 	if request.method == 'POST':
@@ -253,7 +256,7 @@ def browse(request):
 @csrf_exempt
 def cssrs_browse(request):
 	#if request.method == 'GET':
-	#	return render(request, 'panmicrosatdb/cssrs.html')
+	#	return render(request, 'psmd/cssrs.html')
 	
 	if request.method == 'POST':
 		gid = int(request.POST.get('species', 0))
@@ -266,7 +269,7 @@ def cssrs_browse(request):
 				'subgroup': (genome.category.pk, genome.category.name),
 				'species': (genome.pk, genome.species_name)
 			}
-			return render(request, 'panmicrosatdb/cssrs.html', {'species':species})
+			return render(request, 'psmd/cssrs.html', {'species':species})
 
 		db_config = get_ssr_db(gid)
 
@@ -689,5 +692,8 @@ def get_cssr_detail(request):
 
 def krait(request):
 	if request.method == 'GET':
-		return render(request, 'panmicrosatdb/krait.html')
+		return render(request, 'psmd/krait.html')
+
+	if request.method == 'POST':
+		pass
 

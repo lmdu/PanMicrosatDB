@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=50)),
                 ('level', models.SmallIntegerField(choices=[(1, 'Kingdom'), (2, 'Group'), (3, 'Subgroup')])),
-                ('parent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='panmicrosatdb.Category')),
+                ('parent', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='psmd.Category')),
             ],
             options={
                 'db_table': 'category',
@@ -76,7 +76,7 @@ class Migration(migrations.Migration):
                 ('cm_frequency', models.FloatField()),
                 ('cm_density', models.FloatField()),
                 ('cssr_percent', models.FloatField()),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='panmicrosatdb.Category')),
+                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='psmd.Category')),
             ],
             options={
                 'db_table': 'genome',
@@ -134,7 +134,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CSSRAnnot',
             fields=[
-                ('cssr', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='panmicrosatdb.CSSR')),
+                ('cssr', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='psmd.CSSR')),
                 ('location', models.SmallIntegerField(choices=[(1, 'CDS'), (2, 'exon'), (3, '3UTR'), (4, 'intron'), (5, '5UTR')])),
             ],
             options={
@@ -144,7 +144,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CSSRMeta',
             fields=[
-                ('cssr', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='panmicrosatdb.CSSR')),
+                ('cssr', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='psmd.CSSR')),
                 ('left_flank', models.CharField(max_length=100)),
                 ('right_flank', models.CharField(max_length=100)),
             ],
@@ -155,7 +155,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SSRAnnot',
             fields=[
-                ('ssr', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='panmicrosatdb.SSR')),
+                ('ssr', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='psmd.SSR')),
                 ('location', models.SmallIntegerField(choices=[(1, 'CDS'), (2, 'exon'), (3, '3UTR'), (4, 'intron'), (5, '5UTR')])),
             ],
             options={
@@ -165,7 +165,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SSRMeta',
             fields=[
-                ('ssr', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='panmicrosatdb.SSR')),
+                ('ssr', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='psmd.SSR')),
                 ('left_flank', models.CharField(max_length=100)),
                 ('right_flank', models.CharField(max_length=100)),
             ],
@@ -176,26 +176,26 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='ssr',
             name='sequence',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='panmicrosatdb.Sequence'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='psmd.Sequence'),
         ),
         migrations.AddField(
             model_name='gene',
             name='sequence',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='panmicrosatdb.Sequence'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='psmd.Sequence'),
         ),
         migrations.AddField(
             model_name='cssr',
             name='sequence',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='panmicrosatdb.Sequence'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='psmd.Sequence'),
         ),
         migrations.AddField(
             model_name='ssrannot',
             name='gene',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='panmicrosatdb.Gene'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='psmd.Gene'),
         ),
         migrations.AddField(
             model_name='cssrannot',
             name='gene_id',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='panmicrosatdb.Gene'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='psmd.Gene'),
         ),
     ]

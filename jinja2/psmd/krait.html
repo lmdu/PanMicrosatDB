@@ -1,0 +1,254 @@
+{% extends "psmd/base.html" %}
+
+{% block main %}
+<div class="row mt-5">
+	<div class="col-md-7">
+		<div class="card">
+			<div class="card-header">
+				<div class="btn-group">
+					<button type="button" class="btn btn-info active" id="step-one">Step 1<br><small>Input sequence</small></button>
+					<button type="button" class="btn btn-info" id="step-two">Step 2<br><small>Set parameters</small></button>
+					<button type="button" class="btn btn-info" id="step-three">Step 3<br><small>Start search</small></button>
+				</div>
+			</div>
+			<div class="card-body">
+				<div id="wizard" class="carousel slide" data-interval="false" data-ride="carousel">
+					<div class="carousel-inner" style="min-height: 410px !important;">
+						<div class="carousel-item active">
+							<div><strong>Select a genome</strong></div>
+							<div class="form-row">
+								<div class="form-group col-md-2">
+									<label>Kingdom</label>
+									<select class="form-control" name="kingdom" id="kingdom-select">
+									</select>
+								</div>
+								<div class="form-group col-md-2">
+									<label>Group</label>
+									<select class="form-control" name="group" id="group-select">
+									</select>
+								</div>
+								<div class="form-group col-md-2">
+									<label>Subgroup</label>
+									<select class="form-control" name="subgroup" id="subgroup-select">
+									</select>
+								</div>
+								<div class="form-group col-md-6">
+									<label>Species</label>
+									<select class="form-control" name="species" id="species-select">
+									</select>
+								</div>
+							</div>
+							
+							<div class="mt-3"><strong>Or input your DNA sequence</strong><span class="badge badge-info ml-3">example</span></div>
+							<div class="form-group">
+								<textarea class="form-control" id="seq-dna" rows=5></textarea>
+								 <small class="form-text text-muted">Only support for fasta formatted sequence</small>
+							</div>
+
+							<div class="mt-3"><strong>Or provide a URL for fasta formatted file</strong><span class="badge badge-info ml-3">example</span></div>
+							<div class="form-group">
+								<input type="text" id="seq-url" class="form-control">
+								<small class="form-text text-muted">Support for gzipped fasta</small>
+							</div>
+
+						</div>
+
+						<div class="carousel-item">
+							<div class="custom-control-inline">
+						  		<label class="custom-control-label"><strong>Search for</strong></label>
+							</div>
+							<div class="custom-control custom-radio custom-control-inline">
+						  		<input type="radio" value="ssr" id="ssr" name="ssrtype" class="custom-control-input" checked="checked">
+						  		<label class="custom-control-label" for="ssr">Perfect SSRs</label>
+							</div>
+							<div class="custom-control custom-radio custom-control-inline">
+								<input type="radio" value="cssr" id="cssr" name="ssrtype" class="custom-control-input">
+								<label class="custom-control-label" for="cssr">Compound SSRs</label>
+							</div>
+							<div class="custom-control custom-radio custom-control-inline">
+								<input type="radio" value="issr" id="issr" name="ssrtype" class="custom-control-input">
+								<label class="custom-control-label" for="issr">Imperfect SSRs</label>
+							</div>
+
+							<div class="mt-3"><strong>Perfect and Compound:</strong> (Minimum tandem repeats)</div>
+							<div class="form-row" id="min-repeats">
+								<div class="form-group col-md-2">
+									<label>Mono</label>
+									<input type="number" class="form-control" id="mono" value="12">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Di</label>
+									<input type="number" class="form-control" id="di" value="7">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Tri</label>
+									<input type="number" class="form-control" id="tri" value="5">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Tetra</label>
+									<input type="number" class="form-control" id="tetra" value="4">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Penta</label>
+									<input type="number" class="form-control" id="penta" value="4">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Hexa</label>
+									<input type="number" class="form-control" id="hexa" value="4">
+								</div>
+							</div>
+							<div class="form-inline">
+								<div class="form-group">
+									<label>Max distance allowed between two SSRs</label>
+									<input type="number" id="dmax" class="form-control mx-2" value="10">
+								</div>
+							</div>
+
+							<div class="mt-3"><strong>Imperfect:</strong></div>
+							<div class="form-row">
+								<div class="form-group col-md-2">
+									<label>Min seed repeats</label>
+									<input type="number" class="form-control" id="min-seed-rep" value="3">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Min seed length</label>
+									<input type="number" class="form-control" id="min-seed-len" value="8">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Max consecutive edits</label>
+									<input type="number" class="form-control" id="max-edits" value="3">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Mismatch penalty</label>
+									<input type="number" class="form-control" id="mis-penalty" value="1">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Gap penalty</label>
+									<input type="number" class="form-control" id="gap-penalty" value="2">
+								</div>
+								<div class="form-group col-md-2">
+									<label>Min score</label>
+									<input type="number" class="form-control" id="min-score" value="10">
+								</div>
+							</div>
+							<hr>
+							<div class="form-inline mt-3">
+								<div class="form-group">
+									<label for="flank-len">Flanking sequence length</label>
+									<input type="number" id="flank-len" class="form-control" value="100">
+									<label class="ml-2" for="standard-level">Motif standardization</label>
+									<select class="form-control" id="standard-level">
+										<option value="0">No standardization</option>
+										<option value="1">Level 1 Similar motifs</option>
+										<option value="2">Level 2 Reverse complementary motifs + Level 1</option>
+										<option value="3">Level 3 Complementary motifs + Level 2</option>
+										<option value="4">Level 4 Reverse motifs + Level 3 (not recommend)</option>
+									</select>
+								</div>
+							</div>							
+						</div>
+
+						<div class="carousel-item">
+							<table class="table table-bordered">
+								<tbody>
+									<tr><th>Input</th><td id="input-file"></td></tr>
+									<tr><th>Mode</th><td id="search-mode"></td></tr>
+									<tr><th>Parameters</th><td id="search-paras"></td></tr>
+								</tbody>
+							</table>
+
+							<div class="form-group">
+								<label>Email <small class="text-muted">Message for task completed (optional)</small></label>
+								<input type="email" id="user-email" class="form-control">
+							</div>
+
+							<button class="btn btn-primary mt-2" type="submit">Start Search</button>
+							<div class="text-right">Remember your task ID: <span class="h2 text-danger">BRT870AD</span></div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-5">
+		<h3>Krait online version</h3>
+	</div>
+</div>
+
+<script type="text/javascript">
+$('#step-one').click(function(){
+	$('#wizard').carousel(0);
+	$(this).addClass('active');
+	$(this).siblings().removeClass('active');
+});
+$('#step-two').click(function(){
+	$('#wizard').carousel(1);
+	$(this).addClass('active');
+	$(this).siblings().removeClass('active');
+});
+$('#step-three').click(function(){
+	var species = $('#species-select option:selected').text();
+	var seqdna = $('#seq-dna').val();
+	var sequrl = $('#seq-url').val();
+
+	var input_message;
+	if(species){
+		input_message = 'Selected genome of <span class="text-success">' + species + '</span> as input';
+	} else if (seqdna){
+		var seq_count = (seqdna.match(/>/g)||[]).length;
+		input_message = 'Manually input <span class="text-success">' + seq_count + '</span> sequence(s)';
+	} else if (sequrl){
+		input_message = '<span class="text-success">' + sequrl + '</span>';
+	} else {
+		input_message = '<span class="text-danger">No input sequence</span>';
+	}
+	$('#input-file').html(input_message);
+
+	//perfect
+	var minreps = $('#min-repeats input').map(function(){
+		return $(this).val();
+	}).get().join(', ');
+	var perfect_message = 'Minimum repeats for Mono, Di, Tri, Tetra, Penta, Hexa: <span class="text-success">' + minreps + '</span>';
+
+	//compound
+	var compound_message = perfect_message;
+	compound_message += '<br>' + 'Maximum distance allowed between two microsatellites: ';
+	compound_message += '<span class="text-success">' + $('#dmax').val() + ' </span>bp';
+
+	//imperfect
+	var imperfect_message = 'Minimum seed repeats: <span class="text-success">' + $('#min-seed-rep').val() + '</span>; ';
+	imperfect_message += 'minimum seed length: <span class="text-success">' + $('#min-seed-len').val() + '</span>; ';
+	imperfect_message += 'maximum consecutive edits: <span class="text-success">' + $('#max-edits').val() + '</span>; ';
+	imperfect_message += 'mismatch penalty: <span class="text-success">' + $('#mis-penalty').val() + '</span>; ';
+	imperfect_message += 'gap penalty: <span class="text-success">' + $('#gap-penalty').val() + '</span>; ';
+	imperfect_message += 'minimum score: <span class="text-success">' + $('#min-score').val() + '</span>';
+
+
+	var mode_message;
+	var para_message;
+	var ssrtype = $('input[name=ssrtype]:checked').val();
+	if(ssrtype === 'ssr'){
+		mode_message = 'Search for <span class="text-success">perfect</span> microsatellites';
+		para_message = perfect_message;
+		para_message += '<br>Motif standardization level: <span class="text-success">' + $('#standard-level').val() + '</span>';
+	}else if(ssrtype === 'cssr'){
+		mode_message = 'Search for <span class="text-success">compound</span> microsatellites';
+		para_message = compound_message;
+	}else if(ssrtype === 'issr'){
+		mode_message = 'Search for <span class="text-success">imperfect</span> microsatellites';
+		para_message = imperfect_message;
+		para_message += '<br>Motif standardization level: <span class="text-success">' + $('#standard-level').val() + '</span>';
+	}
+	$('#search-mode').html(mode_message);
+	para_message += '<br>Flanking sequence length: <span class="text-success">' + $('#flank-len').val() + '</span> bp';
+	$('#search-paras').html(para_message);
+
+	$('#wizard').carousel(2);
+	$(this).addClass('active');
+	$(this).siblings().removeClass('active');
+});
+</script>
+
+{% endblock %}

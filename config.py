@@ -1,5 +1,8 @@
 import os
 
 class Config:
-	DB_DIR = '/mnt/d/research/PSMD/dbs'
-	TASK_DIR = '/mnt/d/research/PSMD/tasks'
+	ROOT_DIR = '/mnt/d/research/PSMD/'
+	DB_DIR = os.path.join(ROOT_DIR, 'dbs')
+	TASK_FASTA_DIR = os.path.join(ROOT_DIR, 'tasks/fastas')
+	TASK_RESULT_DIR = os.path.join(ROOT_DIR, 'tasks/results')
+	ARIA2C_RPC = 'http://localhost:6800/jsonrpc'
