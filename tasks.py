@@ -134,14 +134,7 @@ def get_flank_seq(seq, start, end, flank):
 
 def search_for_ssr(fasta_file, min_repeats, standard_level, flank_len):
 	standard_motifs = StandardMotif(standard_level)
-	kseq.open_fasta(fasta_file)
-	while 1:
-		record = kseq.iter_seq()
-
-		if record is None:
-			break
-
-		seqid, seq = record
+	for seqid, seq in kseq.fasta(fasta_file):
 		ssrs = tandem.search_ssr(seq, min_repeats)
 		if not ssrs:
 			continue
@@ -173,13 +166,7 @@ def concatenate_cssr(seqid, seq, cssrs, flank_len):
 	return (None, seqid, start, end, complexity, length, structure, left, right)
 
 def search_for_cssr(fasta_file, min_repeats, dmax, flank_len):
-	kseq.open_fasta(fasta_file)
-	while 1:
-		record = kseq.iter_seq()
-		if record is None:
-			break
-
-		seqid, seq = record
+	for seqid, seq in kseq.fasta(fasta_file):
 		ssrs = tandem.search_ssr(seq, min_repeats)
 		if not ssrs:
 			continue
@@ -202,13 +189,7 @@ def search_for_cssr(fasta_file, min_repeats, dmax, flank_len):
 
 def search_for_issr(fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, gap_penalty, min_score, standard_level, flank_len):
 	standard_motifs = StandardMotif(standard_level)
-	kseq.open_fasta(fasta_file)
-	while 1:
-		record = kseq.iter_seq()
-		if record is None:
-			break
-
-		seqid, seq = record
+	for seqid, seq in kseq.fasta(fasta_file):
 		issrs = tandem.search_issr(seq, seed_repeat, seed_len, max_edits, mis_penalty, gap_penalty, min_score, 500)
 		if not issrs:
 			continue
@@ -253,19 +234,12 @@ def search_ssrs(self, params):
 	flank_length = int(params['flank_len'])
 	email_addr = params['email']
 
-	print('start')
-
-	print(params['ssr_type'])
-
 	if params['ssr_type'] == 'ssr':
-		print('yes')
 		sql = "INSERT INTO ssr VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 		min_repeats = [int(rep) for rep in params['min_reps'].split('-')]
 		standard_level = int(params['level'])
 		ssrs = search_for_ssr(fasta_file, min_repeats, standard_level, flank_length)
 		self.db.cursor().executemany(sql, ssrs)
-
-		print('no')
 
 	elif params['ssr_type'] == 'cssr':
 		sql = "INSERT INTO ssr VALUES (?,?,?,?,?,?,?,?,?)"
