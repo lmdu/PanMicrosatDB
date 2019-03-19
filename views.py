@@ -3,10 +3,12 @@ from django.http import JsonResponse
 from django.db import connections
 from dynamic_db_router import in_database
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.crypto import get_random_string
 
 from .models import *
 from .utils import *
 from .plots import *
+from .tasks import *
 
 import re
 import json
@@ -690,10 +692,26 @@ def get_cssr_detail(request):
 			primer = primers
 		))
 
+@csrf_exempt
 def krait(request):
 	if request.method == 'GET':
 		return render(request, 'psmd/krait.html')
 
 	if request.method == 'POST':
-		pass
+		task_id = get_random_string(10)
+		params = request.POST
+
+		search_ssrs.apply_async((params,), task_id=task_id)
+
+		return JsonResponse(dict(
+			task_id = task_id
+		))
+
+def task(request, task_id):
+	task = search_ssrs.AsyncResult(task_id)
+
+	return render(request, 'psmd/task.html', {
+		'state': task.state
+	})
+		
 

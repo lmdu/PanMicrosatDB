@@ -13,4 +13,5 @@ urlpatterns = [
 	path('flank', views.get_seq_flank, name='flank'),
 	path('cssrdetail', views.get_cssr_detail, name='cssr_detail'),
 	path('krait', views.krait, name='krait'),
+	path('task/<task_id>', views.task, name='task'),
 ]
