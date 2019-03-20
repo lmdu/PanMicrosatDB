@@ -154,6 +154,41 @@ class CSSRAnnot(models.Model):
 		db_table = 'cssrannot'
 		app_label = None
 
+class ISSR(models.Model):
+	ISSR_TYPES = (
+		(1, 'Mono'),
+		(2, 'Di'),
+		(3, 'Tri'),
+		(4, 'Tetra'),
+		(5, 'Penta'),
+		(6, 'Hexa')
+	)
+	sequence = models.ForeignKey(Sequence, on_delete=models.CASCADE)
+	start = models.IntegerField()
+	end = models.IntegerField()
+	motif = models.CharField(max_length=6)
+	standard_motif = models.CharField(max_length=6)
+	ssr_type = models.SmallIntegerField(choices=ISSR_TYPES)
+	length = models.IntegerField()
+	match = models.IntegerField(),
+	substitution = models.IntegerField(),
+	insertion = models.IntegerField(),
+	deletion = models.IntegerField(),
+	score = models.IntegerField()
+
+	class Meta:
+		db_table = 'issr'
+		app_label = None
+
+class ISSRMeta(models.Model):
+	issr = models.OneToOneField(ISSR, on_delete=models.CASCADE, primary_key=True)
+	left_flank = models.CharField(max_length=100)
+	right_flank = models.CharField(max_length=100)
+	
+	class Meta:
+		db_table = 'issrmeta'
+		app_label = None
+
 class Summary(models.Model):
 	option = models.CharField(max_length=30)
 	content = models.FloatField()
@@ -161,4 +196,23 @@ class Summary(models.Model):
 	class Meta:
 		db_table = 'summary'
 		app_label = None
+
+class Job(models.Model):
+	STATES = (
+		(0, 'Waiting'),
+		(1, 'Running'),
+		(2, 'Success'),
+		(3, 'Failure')
+	)
+	job_id = models.CharField(max_length=10)
+	fasta = models.CharField(max_length=255)
+	mode = models.CharField(max_length=5)
+	parameter = models.CharField(max_length=255)
+	status = models.PositiveSmallIntegerField(choices=STATES, default=0)
+	message = models.TextField(null=True)
+	
+	created = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		db_table = 'job'
 

@@ -1,0 +1,369 @@
+
+{% block main %}
+
+<div class="btn-group btn-group-sm">
+	<button type="button" class="btn btn-info" id="set-filter-btn">Filters</button>
+	<button type="button" class="btn btn-primary" id="download-btn">Download</button>
+</div>
+
+
+<div class="row mt-4">
+	<div class="col">
+		<table id="viewer" class="table table-bordered table-hover" width="100%">
+		</table>
+	</div>
+</div>
+
+<!-- sequence view dialog -->
+<div class="modal fade" id="ssr-seq-dialog" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Detailed information</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		        	<span aria-hidden="true">&times;</span>
+		        </button>
+			</div>
+			<div class="modal-body">
+				<h6>Sequence</h6>
+				<div class="sequence-table sequence-box" id="sequence-table"></div>
+				<h6>Genic location</h6>
+				<table class="table table-bordered table-sm" id="gannot-table">
+					<thead>
+						<th>Gene ID</th>
+						<th>Gene Name</th>
+						<th>Biotype</th>
+						<th>Dbxref</th>
+						<th>Location</th>
+					</thead>
+					<tbody></tbody>
+				</table>
+				<h6>Primers</h6>
+				<table class="table table-bordered table-sm" id="primer-table">
+					<thead>
+						<th>#</th>
+						<th colspan="2">Primer</th>
+						<th>Temperature</th>
+						<th>GC Content</th>
+						<th>End stability</th>
+						<th>Product Size</th>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- SSR filter dialog -->
+<div class="modal fade" id="ssr-filter-dialog" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Set SSR filters</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		        	<span aria-hidden="true">&times;</span>
+		        </button>
+			</div>
+			<div class="modal-body">
+				<div class="form-row">
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<select class="input-group-text" id="select-seqtype">
+								<option value="name">Name</option>
+								<option value="accession">Accession</option>
+							</select>
+						</div>
+						<select class="custom-select" name="sequence" id="select-sequence"></select>
+					</div>
+					
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Region from</label>
+						</div>
+						<input type="number" id="input-start" name="start" class="form-control">
+						<div class="input-group-prepend input-group-append">
+							<label class="input-group-text">to</label>
+						</div>
+						<input type="number" id="input-end" name="end" class="form-control">
+					</div>
+
+					<div class="form-group col-5 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Motif</label>
+						</div>
+						<input type="text" id="input-motif" name="motif" class="form-control">
+					</div>
+
+					<div class="form-group col-7 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Standard Motif</label>
+						</div>
+						<input type="text" id="input-smotif" name="smotif" class="form-control">
+					</div>
+
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Repeats</label>
+							<select class="custom-select input-group-text" id="select-repeat-sign" name="repeatsign">
+								<option value="gt">></option>
+								<option value="gte">>=</option>
+								<option value="eq">=</option>
+								<option value="lt"><</option>
+								<option value="lte"><=</option>
+								<option value="in">between</option>
+							</select>
+						</div>
+						<input type="number" id="input-repeats" name="repeats" class="form-control">
+						<input type="hidden" id="max-repeats" name="maxrepeats" class="form-control">
+					</div>
+
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Length</label>
+							<select class="custom-select input-group-text" id="select-len-sign" name="lensign">
+								<option value="gt">></option>
+								<option value="gte">>=</option>
+								<option value="eq">=</option>
+								<option value="lt"><</option>
+								<option value="lte"><=</option>
+								<option value="in">between</option>
+							</select>
+						</div>
+						<input type="number" id="input-length" name="length" class="form-control">
+						<input type="hidden" id="max-length" name="maxlength" class="form-control">
+					</div>
+
+					<div class="form-group col-6 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Type</label>
+						</div>
+						<select class="custom-select" id="select-ssrtype" name="ssrtype">
+							<option value="0">All</option>
+							<option value="1">Mono</option>
+							<option value="2">Di</option>
+							<option value="3">Tri</option>
+							<option value="4">Tetra</option>
+							<option value="5">Penta</option>
+							<option value="6">Hexa</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-info" id="apply-filter-btn">Apply filters</button>
+				<button type="button" class="btn btn-secondary" id="reset-filter-btn">Reset filters</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- download dialog -->
+<div class="modal fade" id="download-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5>Download as file</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		        	<span aria-hidden="true">&times;</span>
+		        </button>
+			</div>
+			<div class="modal-body">
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<label class="input-group-text">Output file name</label>
+					</div>
+					<input class="form-control" type="text" id="dl-outname">
+					<div class="input-group-append">
+						<select class="custom-select" id="dl-format">
+							<option value="csv">CSV</option>
+							<option value="tsv">TSV</option>
+							<option value="gff">GFF</option>
+						</select>
+					</div>
+				</div>
+				<div class="input-group mt-3">
+					<div class="input-group-prepend">
+						<label class="input-group-text">Select output rows</label>
+					</div>
+					<select class="custom-select" id="dl-rows">
+						<option value="all">All rows</option>
+						<option value="filtered">Filtered rows</option>
+					</select>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" id="dl-ok">Ok</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+$('#set-filter-btn').click(function(){
+	$('#ssr-filter-dialog').modal('show');
+});
+
+$('#download-btn').click(function(){
+	$('#download-dialog').modal('show');
+});
+
+var apply_filter = false;
+var table = $('table#viewer').DataTable({
+	dom: "<'row'<'col-md-6'l><'col-md-6'p>>rt<'row'<'col-md-6'i><'col-md-6'p>>",
+	columns: [
+		{name: 'id', title: 'ID'},
+		{name: 'sequence__name', title: 'Sequence Name'},
+		{name: 'start', title: 'Start'},
+		{name: 'end', title: 'End'},
+		{name: 'motif', title: 'Motif'},
+		{name: 'standard_motif', title: 'Standard Motif'},
+		{name: 'ssr_type', title: 'Type'},
+		{name: 'repeats', title: 'Repeats'},
+		{name: 'length', title: 'Length'}
+	],
+	searching: true,
+	processing: true,
+	serverSide: true,
+	//select: true,
+	ajax: {
+		url: "{{ url('task', kwargs={'task_id': task.job_id}) }}",
+		type: 'POST',
+		data: function(d){
+			if(apply_filter){
+				d.sequence = $('#select-sequence').val() || '0';
+				d.begin = $('#input-start').val() || '0';
+				d.end = $('#input-end').val() || '0';
+				d.motif = $('#input-motif').val();
+				d.smotif = $('#input-smotif').val();
+				d.ssrtype = $('#select-ssrtype').val();
+				d.repsign = $('#select-repeat-sign').val();
+				d.repeats = $('#input-repeats').val() || '0';
+				d.maxrep = $('#max-repeats').val() || '0';
+				d.lensign = $('#select-len-sign').val();
+				d.ssrlen = $('#input-length').val() || '0';
+				d.maxlen = $('#max-length').val() || '0';
+				d.location = $('#select-location').val();
+			}
+		}
+	}
+});
+
+table.on('draw.dt', function(){
+	$('#viewer tbody tr').dblclick(function(){
+		var row = table.row(this).data();
+		$.ajax({
+			url: "{{ url('flank') }}",
+			method: 'POST',
+			data: {ssrid: row[0], type: 'ssr', species: $('#species-select').val()},
+			dataType: 'json'
+		}).done(function(data){
+			$('#ssr-seq-dialog #sequence-table').html(data.seq);
+			$('#ssr-seq-dialog #gannot-table tbody').html(data.location);
+			$('#ssr-seq-dialog #primer-table tbody').html(data.primer);
+			$('#ssr-seq-dialog').modal('show');
+		});
+	});
+});
+
+$('select#select-sequence').select2({
+	placeholder: "Select a sequence by accession",
+	width: '100%',
+	theme: 'bootstrap4',
+	ajax: {
+		url: "{{ url('seqid') }}",
+		type: 'POST',
+		dataType: 'json',
+		delay: 250,
+		data: function(params){
+			return {
+				term: params.term,
+				page: params.page,
+				label: $('select#select-seqtype').val(),
+				species: $('#species-select').val(),
+				rows: 10
+			};
+		},
+		processResults: function(data, params){
+			params.page = params.page || 1;
+
+			return {
+				results: data.results,
+				pagination: {
+					more: (params.page*10) < data.total
+				}
+			};
+		},
+		cache: true,
+		minimumInputLength: 1
+	},
+});
+
+
+$('#reset-filter-btn').click(function(){
+	apply_filter = false;
+	$('#ssr-filter-dialog input').val('');
+	$('#ssr-filter-dialog select').val('').trigger('change');
+	$('#select-ssrtype').val('0').trigger('change');
+	$('#select-location').val('0').trigger('change');
+	$('#select-repeat-sign').val('gt').trigger('change');
+	$('#select-len-sign').val('gt').trigger('change');
+	$('#select-seqtype').val('name').trigger('change');
+	table.ajax.reload();
+});
+
+$('#apply-filter-btn').click(function(){
+	apply_filter = true;
+	table.ajax.reload();
+});
+
+$('#select-len-sign').change(function(){
+	if($(this).val() == 'in'){
+		$('#max-length').attr('type', 'number');
+	} else {
+		$('#max-length').attr('type', 'hidden');
+	}
+});
+
+$('#select-repeat-sign').change(function(){
+	if($(this).val() == 'in'){
+		$('#max-repeats').attr('type', 'number');
+	} else {
+		$('#max-repeats').attr('type', 'hidden');
+	}
+});
+
+$('#dl-ok').click(function(){
+	var data = {
+		'action': 'download',
+		'outname': $('#dl-outname').val(),
+		'outfmt': $('#dl-format').val(),
+		'species': $('#species-select').val()
+	};
+	if(apply_filter && $('#dl-rows').val() == 'filtered'){
+		data.sequence = $('#select-sequence').val() || '0';
+		data.begin = $('#input-start').val() || '0';
+		data.end = $('#input-end').val() || '0';
+		data.motif = $('#input-motif').val();
+		data.smotif = $('#input-smotif').val();
+		data.ssrtype = $('#select-ssrtype').val();
+		data.repsign = $('#select-repeat-sign').val();
+		data.repeats = $('#input-repeats').val() || '0';
+		data.maxrep = $('#max-repeats').val() || '0';
+		data.lensign = $('#select-len-sign').val();
+		data.ssrlen = $('#input-length').val() || '0';
+		data.maxlen = $('#max-length').val() || '0';
+		data.location = $('#select-location').val();
+	}
+	$.redirect("{{ url('browse') }}", data, 'POST', '_blank');
+	$('#download-dialog').modal('hide');
+});
+
+$('#species-select').change(function(){
+	if(parseInt($(this).val())){
+		table.ajax.reload();
+	}
+});
+
+</script>
+{% endblock %}

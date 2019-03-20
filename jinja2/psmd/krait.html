@@ -180,6 +180,8 @@
 </div>
 
 <script type="text/javascript">
+var input_message;
+var para_message;
 $('#step-one').click(function(){
 	$('#wizard').carousel(0);
 	$(this).addClass('active');
@@ -195,7 +197,6 @@ $('#step-three').click(function(){
 	var seqdna = $('#seq-dna').val();
 	var sequrl = $('#seq-url').val();
 
-	var input_message;
 	if(species){
 		input_message = 'Selected genome of <span class="text-success">' + species + '</span> as input';
 	} else if (seqdna){
@@ -229,7 +230,6 @@ $('#step-three').click(function(){
 
 
 	var mode_message;
-	var para_message;
 	var ssrtype = $('input[name=ssrtype]:checked').val();
 	if(ssrtype === 'ssr'){
 		mode_message = 'Search for <span class="text-success">perfect</span> microsatellites';
@@ -284,6 +284,8 @@ $('#start-search').click(function(){
 	data.flank_len = $('#flank-len').val();
 	data.level = $('#standard-level').val();
 	data.email = $('#user-email').val();
+	data.input_message = input_message;
+	data.para_message = para_message;
 
 	if (data.input_type === null) {
 		alert('No input sequences');

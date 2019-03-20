@@ -1,45 +1,58 @@
 import os
 import json
+import time
 import sqlite3
 import requests
 
 from celery import shared_task, Task
 
-from .models import Genome
+from .models import Genome, Job
 from .config import Config
 from .thirds import kseq, tandem
 from .thirds.motifs import StandardMotif
 
 TABLE_SQL = """
+CREATE TABLE sequence(
+	id INTEGER PRIMARY KEY,
+	name TEXT,
+	accession TEXT
+);
 CREATE TABLE ssr(
 	id INTEGER PRIMARY KEY,
-	seqid TEXT,
+	sequence_id INTEGER,
 	start INTEGER,
 	end INTEGER,
 	motif TEXT,
 	standard_motif TEXT,
 	ssr_type INTEGER,
 	repeats INTEGER,
-	length INTEGER,
-	left TEXT,
-	right TEXT
+	length INTEGER
+);
+CREATE TABLE ssrmeta(
+	ssr_id INTEGER PRIMARY KEY,
+	left_flank TEXT,
+	right_flank TEXT
 );
 
 CREATE TABLE cssr(
 	id INTEGER PRIMARY KEY,
-	seqid TEXT,
+	sequence_id INTEGER,
 	start INTEGER,
 	end INTEGER,
 	complexity INTEGER,
 	length INTEGER,
-	structure TEXT,
-	left TEXT,
-	right TEXT
+	structure TEXT
+);
+
+CREATE TABLE cssrmeta(
+	cssr_id INTEGER PRIMARY KEY,
+	left_flank TEXT,
+	right_flank TEXT
 );
 
 CREATE TABLE issr(
 	id INTEGER PRIMARY KEY,
-	seqid TEXT,
+	sequence_id INTEGER,
 	start INTEGER,
 	end INTEGER,
 	motif TEXT,
@@ -50,10 +63,13 @@ CREATE TABLE issr(
 	substitution INTEGER,
 	insertion INTEGER,
 	deletion INTEGER,
-	score INTEGER,
-	left TEXT,
-	right TEXT
-)
+	score INTEGER
+);
+CREATE TABLE issrmeta(
+	issr_id INTEGER PRIMARY KEY,
+	left_flank TEXT,
+	right_flank TEXT
+);
 """
 
 def download_fasta_file(tid, url):
@@ -74,9 +90,10 @@ def download_fasta_file(tid, url):
 	})
 	response = requests.post(url=Config.ARIA2C_RPC, data=down_request)
 
-	result = None
 	if response.status_code == requests.codes.ok:
 		result = response.json()['result']
+	else:
+		raise Exception("Failed to download {}".format(url))
 
 	check_request = json.dumps({
 		'id': '',
@@ -86,15 +103,18 @@ def download_fasta_file(tid, url):
 	})
 
 	while 1:
+		time.sleep(1)
 		response = requests.post(url=Config.ARIA2C_RPC, data=check_request)
 
 		if response.status_code == requests.codes.ok:
-			status = response.join()['result']['status']
+			status = response.json()['result']['status']
 
-			if status == 'complete' or status == 'error':
+			if status == 'complete':
 				break
+			elif status == 'error':
+				raise Exception(response.json()['result']['errorMessage'])
 		else:
-			break
+			raise Exception("Failed to get task ({}) status".format(tid))
 
 	return os.path.join(Config.TASK_FASTA_DIR, outname)
 
@@ -105,7 +125,7 @@ def get_selected_fasta_file(gid):
 	try:
 		genome = Genome.objects.get(pk=gid)
 	except Genome.DoesNotExist:
-		return None
+		raise Exception("Fasta file does not exist")
 	
 	sub_dir = os.path.join(genome.category.parent.parent.name, genome.category.parent.name, genome.category.name)
 	sub_dir = sub_dir.replace(' ', '_').replace(',', '')
@@ -132,21 +152,32 @@ def get_flank_seq(seq, start, end, flank):
 
 	return (left, right)
 
-def search_for_ssr(fasta_file, min_repeats, standard_level, flank_len):
+def search_for_ssr(db, fasta_file, min_repeats, standard_level, flank_len):
 	standard_motifs = StandardMotif(standard_level)
+	seq_num = 0
+	ssr_num = 1
+	seq_sql = "INSERT INTO sequence VALUES (?,?,?)"
 	for seqid, seq in kseq.fasta(fasta_file):
+		seq_num += 1
+		db.cursor().execute(seq_sql, (seq_num, seqid, seqid))
+
 		ssrs = tandem.search_ssr(seq, min_repeats)
 		if not ssrs:
 			continue
 
-		for ssr in ssrs:
-			smotif = standard_motifs.standard(ssr[0])
-			left, right = get_flank_seq(seq, ssr[3], ssr[4], flank_len)
-			yield [None, seqid, ssr[3], ssr[4], ssr[0], smotif, ssr[1], ssr[2], ssr[5], left, right]
+		ssrs = [(ssr_num+idx, seq_num, ssr[3], ssr[4], ssr[0], standard_motifs.standard(ssr[0]), ssr[1], ssr[2], ssr[5]) for idx, ssr in enumerate(ssrs)]
+		ssr_num += len(ssrs)
+		ssr_sql = "INSERT INTO ssr VALUES (?,?,?,?,?,?,?,?,?)"
+		db.cursor().executemany(ssr_sql, ssrs)
 
-	kseq.close_fasta()
+		def extract_flank(x):
+			left, right = get_flank_seq(seq, x[2], x[3], flank_len)
+			return (x[0], left, right)
+			
+		flank_sql = "INSERT INTO ssrmeta VALUES (?,?,?)"
+		db.cursor().executemany(flank_sql, map(extract_flank, ssrs))
 
-def concatenate_cssr(seqid, seq, cssrs, flank_len):
+def concatenate_cssr(seqid, seq, cssrs):
 	start = cssrs[0][3]
 	end = cssrs[-1][4]
 	complexity = len(cssrs)
@@ -160,17 +191,22 @@ def concatenate_cssr(seqid, seq, cssrs, flank_len):
 			components.append(seq[cssr[4]:cssrs[i+1][3]-1])
 
 	structure = "".join(components)
-
-	left, right = get_flank_seq(seq, start, end, flank_len)
 	
-	return (None, seqid, start, end, complexity, length, structure, left, right)
+	return [None, seqid, start, end, complexity, length, structure]
 
-def search_for_cssr(fasta_file, min_repeats, dmax, flank_len):
+def search_for_cssr(db, fasta_file, min_repeats, dmax, flank_len):
+	seq_num = 0
+	cm_num = 0
+	seq_sql = "INSERT INTO sequence VALUES (?,?,?)"
 	for seqid, seq in kseq.fasta(fasta_file):
+		seq_num += 1
+		db.cursor().execute(seq_sql, (seq_num, seqid, seqid))
+
 		ssrs = tandem.search_ssr(seq, min_repeats)
 		if not ssrs:
 			continue
 
+		cms = []
 		cssrs = [ssrs[0]]
 		for ssr in ssrs[1:]:
 			d = ssr[3] - cssrs[-1][4] - 1
@@ -178,37 +214,62 @@ def search_for_cssr(fasta_file, min_repeats, dmax, flank_len):
 				cssrs.append(ssr)
 			else:
 				if len(cssrs) > 1:
-					yield concatenate_cssr(seqid, seq, cssrs, flank_len)
+					cm = concatenate_cssr(seq_num, seq, cssrs)
+					cm_num += 1
+					cm[0] = cm_num
+					cms.append(cm)
 
 				cssrs = [ssr]
 
 		if len(cssrs) > 1:
-			yield concatenate_cssr(seqid, seq, cssrs, flank_len)
+			cm = concatenate_cssr(seq_num, seq, cssrs)
+			cm_num += 1
+			cm[0] = cm_num
+			cms.append(cm)
+			
+		cm_sql = "INSERT INTO ssr VALUES (?,?,?,?,?,?,?)"
+		db.cursor().executemany(cm_sql, cms)
 
-	kseq.close_fasta()
+		def extract_flank(cm):
+			left, right = get_flank_seq(seq, cm[2], cm[3], flank_len)
+			return (cm[0], left, right)
+		flank_sql = "INSERT INTO ssrmeta VALUES (?,?,?)"
+		db.cursor().executemany(flank_sql, map(extract_flank, cms))
 
-def search_for_issr(fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, gap_penalty, min_score, standard_level, flank_len):
+def search_for_issr(db, fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, gap_penalty, min_score, standard_level, flank_len):
 	standard_motifs = StandardMotif(standard_level)
+	seq_num = 0
+	issr_num = 1
+	seq_sql = "INSERT INTO sequence VALUES (?,?,?)"
 	for seqid, seq in kseq.fasta(fasta_file):
+		seq_num += 1
+		db.cursor().execute(seq_sql, (seq_num, seqid, seqid))
+
 		issrs = tandem.search_issr(seq, seed_repeat, seed_len, max_edits, mis_penalty, gap_penalty, min_score, 500)
 		if not issrs:
 			continue
 
-		for issr in issrs:
-			smotif = standard_motifs.standard(issr[0])
+		issrs = [(issr_num+idx, seq_num, issr[2], issr[3], issr[0], standard_motifs.standard(issr[0]), issr[4], issr[5], issr[6], issr[7], issr[8], issr[9]) for idx,issr in enumerat(issrs)]
+		issr_num += len(issrs)
+		issr_sql = "INSERT INTO issr VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+		db.cursor().executemany(issr_sql, issrs)
+
+		def extract_flank(issr):
 			letf, right = get_flank_seq(seq, issr[2], issr[3], flank_len)
-			yield [None, seqid, issr[2], issr[3], issr[0], smotif, issr[4], issr[5], issr[6], issr[7], issr[8], issr[9], left, right]
-
-	kseq.close_fasta()
-
+			return (issr[0], left, right)
+		flank_sql = "INSERT INTO ssrmeta VALUES (?,?,?)"
+		db.cursor().executemany(flank_sql, map(extract_flank, issrs))
 
 class BaseTask(Task):
 	_db = None
+	def after_return(self, status, retval, task_id, args, kwargs, einfo):
+		self.db.commit()
+
 	def on_failure(self, exc, task_id, args, kwargs, einfo):
-		print(exc)
+		Job.objects.filter(job_id=task_id).update(status=3, message=str(einfo))
 
 	def on_success(self, retval, task_id, args, kwargs):
-		print('success')
+		Job.objects.filter(job_id=task_id).update(status=2)
 
 	@property
 	def db(self):
@@ -221,6 +282,9 @@ class BaseTask(Task):
 @shared_task(bind=True, base=BaseTask)
 def search_ssrs(self, params):
 	task_id = self.request.id
+
+	#change job status
+	Job.objects.filter(job_id=task_id).update(status=1)
 
 	if params['input_type'] == 'select':
 		fasta_file = get_selected_fasta_file(int(params['select_species']))
@@ -235,21 +299,16 @@ def search_ssrs(self, params):
 	email_addr = params['email']
 
 	if params['ssr_type'] == 'ssr':
-		sql = "INSERT INTO ssr VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 		min_repeats = [int(rep) for rep in params['min_reps'].split('-')]
 		standard_level = int(params['level'])
-		ssrs = search_for_ssr(fasta_file, min_repeats, standard_level, flank_length)
-		self.db.cursor().executemany(sql, ssrs)
+		search_for_ssr(self.db, fasta_file, min_repeats, standard_level, flank_length)
 
 	elif params['ssr_type'] == 'cssr':
-		sql = "INSERT INTO ssr VALUES (?,?,?,?,?,?,?,?,?)"
 		min_repeats = [int(rep) for rep in params['min_reps'].split('-')]
 		dmax = int(params['dmax'])
-		cssrs = search_for_cssr(fasta_file, min_repeats, dmax, flank_length)
-		self.db.cursor().executemany(sql, cssrs)
+		search_for_cssr(fasta_file, min_repeats, dmax, flank_length)
 
 	elif params['ssr_type'] == 'issr':
-		sql = "INSERT INTO issr VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 		seed_repeat = int(params['min_seed_rep'])
 		seed_len = int(params['min_seed_len'])
 		max_edits = int(params['max_edits'])
@@ -257,5 +316,5 @@ def search_ssrs(self, params):
 		gap_penalty = int(params['gap_penalty'])
 		min_score = int(params['min_score'])
 		standard_level = int(params['level'])
-		issrs = search_for_issr(fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, gap_penalty, min_score, standard_level, flank_len)
-		self.db.cursor().executemany(sql, issrs)
+		search_for_issr(fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, \
+		 gap_penalty, min_score, standard_level, flank_len)

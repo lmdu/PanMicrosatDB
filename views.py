@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.db import connections
 from dynamic_db_router import in_database
 from django.views.decorators.csrf import csrf_exempt
@@ -271,7 +271,7 @@ def cssrs_browse(request):
 				'subgroup': (genome.category.pk, genome.category.name),
 				'species': (genome.pk, genome.species_name)
 			}
-			return render(request, 'psmd/cssrs.html', {'species':species})
+			return render(request, 'psmd/compound.html', {'species':species})
 
 		db_config = get_ssr_db(gid)
 
@@ -701,17 +701,31 @@ def krait(request):
 		task_id = get_random_string(10)
 		params = request.POST
 
-		search_ssrs.apply_async((params,), task_id=task_id)
+		Job.objects.create(
+			job_id=task_id,
+			mode=params['ssr_type'],
+			fasta=params['input_message'],
+			parameter=params['para_message']
+		)
 
+		#send task to celery
+		search_ssrs.apply_async((params,), task_id=task_id)
 		return JsonResponse(dict(
 			task_id = task_id
 		))
 
+@csrf_exempt
 def task(request, task_id):
-	task = search_ssrs.AsyncResult(task_id)
+	if request.method == 'GET':
+		try:
+			task = Job.objects.get(job_id=task_id)
+		except Job.DoesNotExist:
+			raise Http404('{} does not exist'.format(task_id))
 
-	return render(request, 'psmd/task.html', {
-		'state': task.state
-	})
-		
+		return render(request, 'psmd/task.html', {
+			'task': task
+		})
 
+	elif request.method == 'POST':
+		db_config = get_task_db(task_id)
+		return get_ssrs(request.POST, db_config)
