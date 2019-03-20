@@ -124,8 +124,11 @@ def species(request):
 @csrf_exempt
 def browse(request):
 	gid = int(request.POST.get('species', 716))
+	
+	#action (download or view)
+	action = request.POST.get('action', 'view')
 
-	if 'draw' not in request.POST:
+	if 'draw' not in request.POST and action != 'download':
 		genome = Genome.objects.get(pk=gid)
 		species = {
 			'kingdom': (genome.category.parent.parent.pk, genome.category.parent.parent.name),
@@ -137,12 +140,7 @@ def browse(request):
 
 	
 	if request.method == 'POST':
-		draw = int(request.POST.get('draw'))
-
 		db_config = get_ssr_db(gid)
-
-		#action (download or view)
-		action = request.POST.get('action', 'view')
 
 		#download parameters
 		if action == 'download':
@@ -151,6 +149,7 @@ def browse(request):
 
 		#datatable parameters
 		if action == 'view':
+			draw = int(request.POST.get('draw'))
 			start = int(request.POST.get('start'))
 			length = int(request.POST.get('length'))
 

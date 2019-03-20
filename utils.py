@@ -62,16 +62,18 @@ def download_ssrs(db, ssrs, outfmt, outname):
 	else:
 		writer = csv.writer(pseudo_writer, delimiter='\t')
 
-	def ssrs_iter():
-		yield writer.writerow(['ID', 'Seqacc', 'Seqname', 'Start', 'End', 'Motif', 'Standmotif', 'Type', 'Repeats', 'Length', 'Location', 'Leftflank', 'Rightflank'])
+	targets = [make_table(ssr) for ssr in ssrs]
 
-		with in_database(db):
-			for ssr in ssrs:
-				yield writer.writerow(make_table(ssr))
+	#def ssrs_iter():
+	#	yield writer.writerow(['ID', 'Seqacc', 'Seqname', 'Start', 'End', 'Motif', 'Standmotif', 'Type', 'Repeats', 'Length', 'Location', 'Leftflank', 'Rightflank'])
+
+	#	with in_database(db):
+	#		for ssr in ssrs:
+	#			yield writer.writerow(make_table(ssr))
 
 	
 	response = StreamingHttpResponse(
-		streaming_content = ssrs_iter(),
+		streaming_content = targets,
 		content_type='text/csv'
 	)
 	response['Content-Disposition'] = 'attachment; filename="{}"'.format(outfile)
