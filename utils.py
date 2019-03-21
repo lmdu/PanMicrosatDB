@@ -1,12 +1,6 @@
 import os
 import re
-import csv
-import time
-import sqlite3
-from django.http import StreamingHttpResponse, JsonResponse
-from django.db import connection
 
-from .router import in_database
 from .config import Config
 from .models import *
 
@@ -41,115 +35,6 @@ def cssr_pattern_to_seq(pattern):
 			elements.append(gap)
 
 	return "".join(elements)
-
-class Echo:
-	def write(self, value):
-		return value
-
-def make_table(ssr):
-	try:
-		location = ssr.ssrannot.get_location_display()
-	except:
-		location = 'Intergenic'
-	
-	return (ssr.id, ssr.sequence.accession, ssr.sequence.name, ssr.start, ssr.end, ssr.motif, ssr.standard_motif, ssr.get_ssr_type_display(), ssr.repeats, ssr.length, location, ssr.ssrmeta.left_flank, ssr.ssrmeta.right_flank)
-
-def make_gff(ssr):
-	pass
-
-def get_output_ssr(ssr):
-	locations = {1: 'CDS', 2: 'exon', 3: '3UTR', 4: 'intron', 5: '5UTR'}
-	locaton = locations.get(ssr[16], 'Intergenic')
-	return (ssr[0], ssr[10], ssr[11], ssr[2], ssr[3], ssr[4], ssr[5], ssr[6], ssr[7], ssr[8], \
-		locaton, ssr[13], ssr[14])
-
-class BaseDownloader(object):
-	def __init__(self, db, ssrs, outfmt):
-		self.headers = None
-		self.base_sql = None
-		self.query = str(ssrs.query)
-		self.outfmt = outfmt
-		self.conn = sqlite3.connect(db['NAME'])
-
-		if self.outfmt == 'gff':
-			self.format = self.gff_format
-		else:
-			self.format = self.tab_format
-
-		pseudo_writer = Echo()
-		if outfmt == 'csv':
-			self.writer = csv.writer(pseudo_writer)
-		else:
-			self.writer = csv.writer(pseudo_writer, delimiter='\t')
-
-		self.locations = {1: 'CDS', 2: 'exon', 3: '3UTR', 4: 'intron', 5: '5UTR'}
-
-	def get_location(self, locid):
-		return self.locations.get(locid, 'N/A')
-
-	@property
-	def sql(self):
-		try:
-			where = self.query.split('WHERE')[1].replace('"', '')
-		except IndexError:
-			where = None
-
-		if where is not None:
-			query = "{} WHERE {}".format(self.base_sql, where)
-		else:
-			query = self.base_sql
-
-		return query
-
-	def tab_format(self, r):
-		pass
-
-	def gff_format(self, r):
-		pass
-
-	def iter(self):
-		if self.headers:
-			yield self.writer.writerow(self.headers)
-
-		cursor = self.conn.cursor()
-		for row in cursor.execute(self.sql):
-			yield self.writer.writerow(self.format(row))
-
-		self.conn.close()
-
-class SSRDownloader(BaseDownloader):
-	def __init__(self, db, ssrs, outfmt):
-		super(SSRDownloader, self).__init__(db, ssrs, outfmt)
-		self.base_sql = ("SELECT * FROM ssr INNER JOIN sequence AS s ON (s.id=ssr.sequence_id)"
-				" INNER JOIN ssrmeta AS m ON (m.ssr_id=ssr.id)"
-				" LEFT JOIN ssrannot AS a ON (a.ssr_id=ssr.id)")
-
-		if outfmt != 'gff':
-			self.headers = ['#ID', 'Seqacc', 'Seqname', 'Start', 'End', 'Motif', 'Standmotif', \
-							'Type', 'Repeats', 'Length', 'Location', 'Leftflank', 'Rightflank']
-
-	def tab_format(self, row):
-		locaton = self.get_location(row[16])
-		return (row[0], row[10], row[11], row[2], row[3], row[4], row[5], row[6], row[7], \
-		 		row[8], locaton, row[13], row[14])
-
-	def gff_format(self, row):
-		pass
-
-
-def download_ssrs(db, ssrs, ssrtype, outfmt):
-	outfile = '{}-{}.{}'.format(ssrtype.upper(), time.strftime("%Y%m%d-%H%M%S"), outfmt)
-
-	if ssrtype == 'ssr':
-		loader = SSRDownloader(db, ssrs, outfmt)
-
-	response = StreamingHttpResponse(
-		streaming_content = loader.iter(),
-		content_type='text/csv'
-	)
-	response['Content-Disposition'] = 'attachment; filename="{}"'.format(outfile)
-	
-	return response
 
 def get_ssr_db(gid):
 	'''Get ssr db file for specified species
@@ -186,6 +71,10 @@ class Filters(dict):
 		if isinstance(val, tuple):
 			if not val[0] or not val[1]:
 				return
+
+			if not val[1]:
+				val = val[0]
+
 		else:
 			if not val:
 				return
@@ -214,7 +103,6 @@ def get_ssr_request_filters(params):
 	location = int(params.get('location', 0))
 
 	filters = Filters()
-	
 	filters.add('sequence', seqid)
 	filters.add('start', begin, 'gte')
 	filters.add('end', end, 'lte')
@@ -224,6 +112,29 @@ def get_ssr_request_filters(params):
 	filters.add('repeats', (repeats, max_repeats), repsign)
 	filters.add('length', (ssrlen, max_ssrlen), lensign)
 	filters.add('ssrannot__location', location)
+
+	return filters
+
+def get_cssr_request_filters(params):
+	#filter parameters
+	seqid = int(params.get('sequence', 0))
+	begin = int(params.get('begin', 0))
+	end = int(params.get('end', 0))
+	cpxsign = params.get('cpxsign')
+	complexity = int(params.get('complex', 0))
+	max_complexity = int(params.get('maxcpx', 0))
+	lensign = params.get('lensign')
+	ssrlen = int(params.get('ssrlen', 0))
+	max_ssrlen = int(params.get('maxlen', 0))
+	location = int(params.get('location', 0))
+
+	filters = Filters()
+	filters.add('sequence', seqid)
+	filters.add('start', begin, 'gte')
+	filters.add('end', end, 'lte')
+	filters.add('complexity', (complexity, max_complexity), cpxsign)
+	filters.add('length', (ssrlen, max_ssrlen), lensign)
+	filters.add('cssrannot__location', location)
 
 	return filters
  

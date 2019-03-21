@@ -10,6 +10,7 @@ from .models import *
 from .utils import *
 from .plots import *
 from .tasks import *
+from .downloader import *
 
 import re
 import json
@@ -126,10 +127,7 @@ def species(request):
 def browse(request):
 	gid = int(request.POST.get('species', 716))
 	
-	#action (download or view)
-	action = request.POST.get('action', 'view')
-
-	if 'draw' not in request.POST and action != 'download':
+	if 'draw' not in request.POST:
 		genome = Genome.objects.get(pk=gid)
 		species = {
 			'kingdom': (genome.category.parent.parent.pk, genome.category.parent.parent.name),
@@ -208,90 +206,50 @@ def cssrs_browse(request):
 
 		db_config = get_ssr_db(gid)
 
+		#dataTables parameters
 		start = int(request.POST.get('start'))
 		length = int(request.POST.get('length'))
 		draw = int(request.POST.get('draw'))
+		#order by
+		colidx = request.POST.get('order[0][column]')
+		colname = request.POST.get('columns[{}][name]'.format(colidx))
+		sortdir = request.POST.get('order[0][dir]')
 
-		#filter parameters
-		seqid = int(request.POST.get('sequence', 0))
-		begin = int(request.POST.get('begin', 0))
-		end = int(request.POST.get('end', 0))
-		cpxsign = request.POST.get('cpxsign')
-		complexity = int(request.POST.get('complex', 0))
-		max_complexity = int(request.POST.get('maxcpx', 0))
-		lensign = request.POST.get('lensign')
-		ssrlen = int(request.POST.get('ssrlen', 0))
-		max_ssrlen = int(request.POST.get('maxlen', 0))
-		location = int(request.POST.get('location', 0))
+		filters = get_cssr_request_filters(request.POST)
 
-		data = []
 		with in_database(db_config):
-			cssrs = CSSR.objects.all()
-			total = cssrs.count()
+			cssrs = CSSR.objects.select_related().all()
+			total = CSSR.objects.all().count()
 
-			if seqid:
-				cssrs = cssrs.filter(sequence=seqid)
-
-			if begin and end:
-				cssrs = cssrs.filter(start__gte=begin, end__lte=end)
-
-			if complexity:
-				if cpxsign == 'gt':
-					cssrs = cssrs.filter(complexity__gt=complexity)
-				elif cpxsign == 'gte':
-					cssrs = cssrs.filter(complexity__gte=complexity)
-				elif cpxsign == 'eq':
-					cssrs = cssrs.filter(complexity=complexity)
-				elif cpxsign == 'lt':
-					cssrs = cssrs.filter(complexity__lt=complexity)
-				elif cpxsign == 'lte':
-					cssrs = cssrs.filter(complexity__lte=complexity)
-				elif cpxsign == 'in':
-					cssrs = cssrs.filter(complexity__range=(complexity, max_complexity))
-
-			if ssrlen:
-				if lensign == 'gt':
-					cssrs = cssrs.filter(length__gt=ssrlen)
-				elif lensign == 'gte':
-					cssrs = cssrs.filter(length__gte=ssrlen)
-				elif lensign == 'eq':
-					cssrs = cssrs.filter(length=ssrlen)
-				elif lensign == 'lt':
-					cssrs = cssrs.filter(length__lt=ssrlen)
-				elif lensign == 'lte':
-					cssrs = cssrs.filter(length__lte=ssrlen)
-				elif lensign == 'in':
-					cssrs = cssrs.filter(length__range=(ssrlen, max_ssrlen))
-
-			if location:
-				cssrs = cssrs.filter(cssrannot__location=location)
-
-			#order by
-			colidx = request.POST.get('order[0][column]')
-			colname = request.POST.get('columns[{}][name]'.format(colidx))
-			sortdir = request.POST.get('order[0][dir]')
+			if filters:
+				cssrs = CSSR.objects.select_related().filter(**filters)
+				filtered_total = CSSR.objects.filters(**filters).count()
+			else:
+				filtered_total = total
 
 			if sortdir == 'asc':
 				cssrs = cssrs.order_by(colname)
 			else:
 				cssrs = cssrs.order_by('-{}'.format(colname))
 
-			for cssr in cssrs[start:start+length]:
+			def get_vals(cssr):
 				try:
 					location = cssr.cssrannot.get_location_display()
 				except:
-					location = 'Intergenic'
+					location = 'N/A'
 
 				pattern = colored_cssr_pattern(cssr.structure)
 				pattern = re.sub(r'(\d+)', lambda m: '<sub>'+m.group(0)+'</sub>', pattern)
 
-				data.append((cssr.id, cssr.sequence.accession, cssr.sequence.name, cssr.start, \
-				 cssr.end, cssr.complexity, cssr.length, pattern, location))
+				return (cssr.id, cssr.sequence.accession, cssr.sequence.name, \
+					cssr.start, cssr.end, cssr.complexity, cssr.length, pattern, location)
+
+			data = [get_vals(cssr) for cssr in cssrs[start:start+length]]
 
 		return JsonResponse({
 			'draw': draw,
 			'recordsTotal': total,
-			'recordsFiltered': total,
+			'recordsFiltered': filtered_total,
 			'data': data
 		})
 
@@ -317,6 +275,18 @@ def download(request):
 			ssrs = SSR.objects.select_related().filter(**filters)
 		else:
 			ssrs = SSR.objects.select_related().all()
+
+	elif mode == 'cssr':
+		filters = get_cssr_request_filters(request.POST)
+
+		if filters:
+			ssrs = CSSR.objects.select_related().filter(**filters)
+		else:
+			ssrs = CSSR.objects.select_related().all()
+
+	elif mode == 'issr':
+		pass
+
 
 	return download_ssrs(db_config, ssrs, mode, outfmt)
 

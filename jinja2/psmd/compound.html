@@ -3,12 +3,10 @@
 {% block title %} Browse - PanMicroSatDB {% endblock %}
 
 {% block main %}
-{{ csrf_input }}
-
 <div class="row mt-5">
 	<div class="col">
 		<div class="form-row">
-			<div class="form-group col-md-1">
+			<div class="form-group col-md-2">
 				<label>Kingdom</label>
 				<select name="kingdom" class="form-control" id="kingdom-select">
 					<option value="{{ species.kingdom[0] }}">{{ species.kingdom[1] }}</option>
@@ -39,12 +37,6 @@
 					<option value="ssr">Perfect microsatellite</option>
 					<option value="cssr" selected="selected">Compound microsatellite</option>
 				</select>
-			</div>
-			<div class="form-group col-md-1 align-self-end text-right">
-				<div class="btn-group btn-group-sm">
-					<button type="button" class="btn btn-info" id="set-filter-btn">Filters</button>
-					<button type="button" class="btn btn-primary" id="download-btn">Download</button>
-				</div>
 			</div>
 		</div>
 	</div>
@@ -140,7 +132,7 @@
 								<option value="eq">=</option>
 								<option value="lt"><</option>
 								<option value="lte"><=</option>
-								<option value="in">between</option>
+								<option value="range">between</option>
 							</select>
 						</div>
 						<input type="number" id="input-complex" name="complex" class="form-control">
@@ -156,7 +148,7 @@
 								<option value="eq">=</option>
 								<option value="lt"><</option>
 								<option value="lte"><=</option>
-								<option value="in">between</option>
+								<option value="range">between</option>
 							</select>
 						</div>
 						<input type="number" id="input-length" name="length" class="form-control">
@@ -188,7 +180,7 @@
 
 <!-- download dialog -->
 <div class="modal fade" id="download-dialog" tabindex="-1" role="dialog" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered" role="document">
+	<div class="modal-dialog modal-sm modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5>Download as file</h5>
@@ -199,16 +191,13 @@
 			<div class="modal-body">
 				<div class="input-group">
 					<div class="input-group-prepend">
-						<label class="input-group-text">Output file name</label>
+						<label class="input-group-text">Output file format</label>
 					</div>
-					<input class="form-control" type="text" id="dl-outname">
-					<div class="input-group-append">
-						<select class="custom-select" id="dl-format">
-							<option value="csv">CSV</option>
-							<option value="tsv">TSV</option>
-							<option value="gff">GFF</option>
-						</select>
-					</div>
+					<select class="custom-select" id="dl-format">
+						<option value="csv">CSV</option>
+						<option value="tsv">TSV</option>
+						<option value="gff">GFF</option>
+					</select>
 				</div>
 				<div class="input-group mt-3">
 					<div class="input-group-prepend">
@@ -228,18 +217,32 @@
 </div>
 
 <script type="text/javascript">
-$('#set-filter-btn').click(function(){
-	$('#ssr-filter-dialog').modal('show');
-});
-
-$('#download-btn').click(function(){
-	$('#download-dialog').modal('show');
-});
-
-var apply = false;
+var apply_filter = false;
 var table = $('table#cssrview').DataTable({
 	scrollX: true,
-	dom: "<'row'<'col-md-6'l><'col-md-6'p>>rt<'row'<'col-md-6'i><'col-md-6'p>>",
+	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-right'B>>" +
+		 "<'row'<'col-sm-12'tr>>" +
+		 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+	buttons: [
+		{
+			text: 'Filters',
+			className: 'btn-sm btn-info',
+			action: function(){
+				$('#ssr-filter-dialog').modal('show');
+			}
+		},
+		{
+			text: 'primer3 settings',
+			className: 'btn-sm btn-dark',
+		},
+		{
+			text: 'Download',
+			className: 'btn-sm btn-danger',
+			action: function(){
+				$('#download-dialog').modal('show');
+			}
+		}
+	],
 	columns: [
 		{name: 'id', title: 'ID'},
 		{name: 'sequence__accession', title: 'Sequence Accession'},
@@ -260,7 +263,7 @@ var table = $('table#cssrview').DataTable({
 		type: 'POST',
 		data: function(d){
 			d.species = $('#species-select').val() || '0';
-			if(apply){
+			if(apply_filter){
 				d.sequence = $('#select-sequence').val() || '0';
 				d.begin = $('#input-start').val() || '0';
 				d.end = $('#input-end').val() || '0';
@@ -328,7 +331,7 @@ $('select#select-sequence').select2({
 
 
 $('#reset-filter').click(function(){
-	apply = false;
+	apply_filter = false;
 	$('#filters input').val('');
 	$('#filters select').val('').trigger('change');
 	$('#select-complex-sign').val('gt').trigger('change');
@@ -337,7 +340,7 @@ $('#reset-filter').click(function(){
 });
 
 $('#apply-filter').click(function(){
-	apply = true;
+	apply_filter = true;
 	table.ajax.reload();
 });
 
@@ -359,8 +362,7 @@ $('#select-complex-sign').change(function(){
 
 $('#dl-ok').click(function(){
 	var data = {
-		'action': 'download',
-		'outname': $('#dl-outname').val(),
+		'mode': 'cssr',
 		'outfmt': $('#dl-format').val(),
 		'species': $('#species-select').val()
 	};
@@ -376,7 +378,7 @@ $('#dl-ok').click(function(){
 		data.maxlen = $('#max-length').val() || '0';
 		data.location = $('#select-location').val();
 	}
-	$.redirect("{{ url('browse') }}", data, 'POST', '_blank');
+	$.redirect("{{ url('download') }}", data, 'POST', '_blank');
 	$('#download-dialog').modal('hide');
 });
 

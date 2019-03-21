@@ -6,7 +6,7 @@
 <div class="row mt-5">
 	<div class="col">
 		<div class="form-row">
-			<div class="form-group col-md-1">
+			<div class="form-group col-md-2">
 				<label>Kingdom</label>
 				<select name="kingdom" class="form-control" id="kingdom-select">
 					<option value="{{ species.kingdom[0] }}">{{ species.kingdom[1] }}</option>
@@ -30,7 +30,7 @@
 					<option value="{{ species.species[0] }}">{{ species.species[1] }}</option>
 				</select>
 			</div>
-			<div class="form-group col-md-3">
+			<div class="form-group col-md-2">
 				<label>Option</label>
 				<select name="species" class="form-control" id="view-option-select">
 					<option value="summary">Summary statistics</option>
@@ -250,20 +250,25 @@ $('#view-option-select').prop('disabled', false);
 
 var apply_filter = false;
 var table = $('table#ssrview').DataTable({
+	scrollX: true,
 	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-right'B>>" +
 		 "<'row'<'col-sm-12'tr>>" +
 		 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
 	buttons:[
 		{
 			text: 'Filters',
-			className: 'btn btn-sm btn-info',
+			className: 'btn-sm btn-info',
 			action: function(){
 				$('#ssr-filter-dialog').modal('show');
 			}
 		},
 		{
+			text: 'primer3 settings',
+			className: 'btn-sm btn-dark',
+		},
+		{
 			text: 'Download',
-			className: 'btn btn-sm btn-primary',
+			className: 'btn-sm btn-danger',
 			action: function(){
 				$('#download-dialog').modal('show');
 			}
