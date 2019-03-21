@@ -1,10 +1,11 @@
 from django.shortcuts import render
 from django.http import JsonResponse, Http404
 from django.db import connections
-from dynamic_db_router import in_database
+
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.crypto import get_random_string
 
+from .router import in_database
 from .models import *
 from .utils import *
 from .plots import *
@@ -142,110 +143,43 @@ def browse(request):
 	if request.method == 'POST':
 		db_config = get_ssr_db(gid)
 
-		#download parameters
-		if action == 'download':
-			outname = request.POST.get('outname')
-			outfmt = request.POST.get('outfmt')
+		#datatable paramers
+		draw = int(request.POST.get('draw'))
+		start = int(request.POST.get('start'))
+		length = int(request.POST.get('length'))
+		#order by
+		colidx = request.POST.get('order[0][column]')
+		colname = request.POST.get('columns[{}][name]'.format(colidx))
+		sortdir = request.POST.get('order[0][dir]')
 
-		#datatable parameters
-		if action == 'view':
-			draw = int(request.POST.get('draw'))
-			start = int(request.POST.get('start'))
-			length = int(request.POST.get('length'))
-
-		#filter parameters
-		seqid = int(request.POST.get('sequence', 0))
-		begin = int(request.POST.get('begin', 0))
-		end = int(request.POST.get('end', 0))
-		motif = request.POST.get('motif')
-		smotif = request.POST.get('smotif')
-		ssrtype = int(request.POST.get('ssrtype', 0))
-		repsign = request.POST.get('repsign')
-		repeats = int(request.POST.get('repeats', 0))
-		max_repeats = int(request.POST.get('maxrep', 0))
-		lensign = request.POST.get('lensign')
-		ssrlen = int(request.POST.get('ssrlen', 0))
-		max_ssrlen = int(request.POST.get('maxlen', 0))
-		location = int(request.POST.get('location', 0))
+		filters = get_ssr_request_filters(request.POST)
 
 		with in_database(db_config):
-			#total = int(SSRStat.objects.get(name='ssr_count').val)
-			ssrs = SSR.objects.all()
+			ssrs = SSR.objects.select_related().all()
 			total = ssrs.count()
 
-			if seqid:
-				ssrs = ssrs.filter(sequence=seqid)
-
-			if begin and end:
-				ssrs = ssrs.filter(start__gte=begin, end__lte=end)
-
-			if motif:
-				ssrs = ssrs.filter(motif=motif)
-
-			if smotif:
-				ssrs = ssrs.filter(standard_motif=smotif)
-
-			if ssrtype:
-				ssrs = ssrs.filter(ssr_type=ssrtype)
-
-			if repeats:
-				if repsign == 'gt':
-					ssrs = ssrs.filter(repeats__gt=repeats)
-				elif repsign == 'gte':
-					ssrs = ssrs.filter(repeats__gte=repeats)
-				elif repsign == 'eq':
-					ssrs = ssrs.filter(repeats=repeats)
-				elif repsign == 'lt':
-					ssrs = ssrs.filter(repeats__lt=repeats)
-				elif repsign == 'lte':
-					ssrs = ssrs.filter(repeats__lte=repeats)
-				elif repsign == 'in':
-					ssrs = ssrs.filter(repeats__range=(repeats, max_repeats))
-
-			if ssrlen:
-				if lensign == 'gt':
-					ssrs = ssrs.filter(length__gt=ssrlen)
-				elif lensign == 'gte':
-					ssrs = ssrs.filter(length__gte=ssrlen)
-				elif lensign == 'eq':
-					ssrs = ssrs.filter(length=ssrlen)
-				elif lensign == 'lt':
-					ssrs = ssrs.filter(length__lt=ssrlen)
-				elif lensign == 'lte':
-					ssrs = ssrs.filter(length__lte=ssrlen)
-				elif lensign == 'in':
-					ssrs = ssrs.filter(length__range=(ssrlen, max_ssrlen))
-
-			if location:
-				ssrs = ssrs.filter(ssrannot__location=location)
-
-			##download ssrs as file
-			if action == 'download':
-				return download_ssrs(db_config, ssrs, outfmt, outname)
-
-			##view ssrs for datatable
-			filtered_total = ssrs.count()
-
-			#order by
-			colidx = request.POST.get('order[0][column]')
-			colname = request.POST.get('columns[{}][name]'.format(colidx))
-			sortdir = request.POST.get('order[0][dir]')
-
+			if filters:
+				ssrs = SSR.objects.select_related().filter(**filters)
+				filtered_total = ssrs.count()
+			else:
+				filtered_total = total
+			
 			if sortdir == 'asc':
 				ssrs = ssrs.order_by(colname)
 			else:
 				ssrs = ssrs.order_by('-{}'.format(colname))
 
-			data = []
-			for ssr in ssrs[start:start+length]:
+			def get_vals(ssr):
 				try:
 					location = ssr.ssrannot.get_location_display()
 				except:
-					location = 'Intergenic'
-				
-				data.append((ssr.id, ssr.sequence.accession, ssr.sequence.name, \
-				 ssr.start, ssr.end, colored_seq(ssr.motif), colored_seq(ssr.standard_motif), \
-				 ssr.get_ssr_type_display(), ssr.repeats, ssr.length, location))
+					location = 'N/A'
+
+				return (ssr.id, ssr.sequence.accession, ssr.sequence.name, ssr.start, \
+				 ssr.end, colored_seq(ssr.motif), colored_seq(ssr.standard_motif), \
+				 ssr.get_ssr_type_display(), ssr.repeats, ssr.length, location)
+
+			data = [get_vals(ssr) for ssr in ssrs[start:start+length]]
 
 		return JsonResponse({
 			'draw': draw,
@@ -360,6 +294,31 @@ def cssrs_browse(request):
 			'recordsFiltered': total,
 			'data': data
 		})
+
+@csrf_exempt
+def download(request):
+	if request.method != 'POST':
+		return
+
+	mode = request.POST.get('mode')
+	outfmt = request.POST.get('outfmt')
+	gid = int(request.POST.get('species', 0))
+	tid = request.POST.get('task_id', None)
+
+	if gid:
+		db_config = get_ssr_db(gid)
+	elif tid:
+		db_config = get_task_db(tid)
+
+	if mode == 'ssr':
+		filters = get_ssr_request_filters(request.POST)
+
+		if filters:
+			ssrs = SSR.objects.select_related().filter(**filters)
+		else:
+			ssrs = SSR.objects.select_related().all()
+
+	return download_ssrs(db_config, ssrs, mode, outfmt)
 
 @csrf_exempt
 def get_seq_id(request):

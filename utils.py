@@ -1,8 +1,12 @@
 import os
 import re
 import csv
-from dynamic_db_router import in_database
+import time
+import sqlite3
 from django.http import StreamingHttpResponse, JsonResponse
+from django.db import connection
+
+from .router import in_database
 from .config import Config
 from .models import *
 
@@ -53,27 +57,94 @@ def make_table(ssr):
 def make_gff(ssr):
 	pass
 
-def download_ssrs(db, ssrs, outfmt, outname):
-	outfile = '{}.{}'.format(outname, outfmt)
-	
-	pseudo_writer = Echo()
-	if outfmt == 'csv':
-		writer = csv.writer(pseudo_writer)
-	else:
-		writer = csv.writer(pseudo_writer, delimiter='\t')
+def get_output_ssr(ssr):
+	locations = {1: 'CDS', 2: 'exon', 3: '3UTR', 4: 'intron', 5: '5UTR'}
+	locaton = locations.get(ssr[16], 'Intergenic')
+	return (ssr[0], ssr[10], ssr[11], ssr[2], ssr[3], ssr[4], ssr[5], ssr[6], ssr[7], ssr[8], \
+		locaton, ssr[13], ssr[14])
 
-	targets = [make_table(ssr) for ssr in ssrs]
+class BaseDownloader(object):
+	def __init__(self, db, ssrs, outfmt):
+		self.headers = None
+		self.base_sql = None
+		self.query = str(ssrs.query)
+		self.outfmt = outfmt
+		self.conn = sqlite3.connect(db['NAME'])
 
-	#def ssrs_iter():
-	#	yield writer.writerow(['ID', 'Seqacc', 'Seqname', 'Start', 'End', 'Motif', 'Standmotif', 'Type', 'Repeats', 'Length', 'Location', 'Leftflank', 'Rightflank'])
+		if self.outfmt == 'gff':
+			self.format = self.gff_format
+		else:
+			self.format = self.tab_format
 
-	#	with in_database(db):
-	#		for ssr in ssrs:
-	#			yield writer.writerow(make_table(ssr))
+		pseudo_writer = Echo()
+		if outfmt == 'csv':
+			self.writer = csv.writer(pseudo_writer)
+		else:
+			self.writer = csv.writer(pseudo_writer, delimiter='\t')
 
-	
+		self.locations = {1: 'CDS', 2: 'exon', 3: '3UTR', 4: 'intron', 5: '5UTR'}
+
+	def get_location(self, locid):
+		return self.locations.get(locid, 'N/A')
+
+	@property
+	def sql(self):
+		try:
+			where = self.query.split('WHERE')[1].replace('"', '')
+		except IndexError:
+			where = None
+
+		if where is not None:
+			query = "{} WHERE {}".format(self.base_sql, where)
+		else:
+			query = self.base_sql
+
+		return query
+
+	def tab_format(self, r):
+		pass
+
+	def gff_format(self, r):
+		pass
+
+	def iter(self):
+		if self.headers:
+			yield self.writer.writerow(self.headers)
+
+		cursor = self.conn.cursor()
+		for row in cursor.execute(self.sql):
+			yield self.writer.writerow(self.format(row))
+
+		self.conn.close()
+
+class SSRDownloader(BaseDownloader):
+	def __init__(self, db, ssrs, outfmt):
+		super(SSRDownloader, self).__init__(db, ssrs, outfmt)
+		self.base_sql = ("SELECT * FROM ssr INNER JOIN sequence AS s ON (s.id=ssr.sequence_id)"
+				" INNER JOIN ssrmeta AS m ON (m.ssr_id=ssr.id)"
+				" LEFT JOIN ssrannot AS a ON (a.ssr_id=ssr.id)")
+
+		if outfmt != 'gff':
+			self.headers = ['#ID', 'Seqacc', 'Seqname', 'Start', 'End', 'Motif', 'Standmotif', \
+							'Type', 'Repeats', 'Length', 'Location', 'Leftflank', 'Rightflank']
+
+	def tab_format(self, row):
+		locaton = self.get_location(row[16])
+		return (row[0], row[10], row[11], row[2], row[3], row[4], row[5], row[6], row[7], \
+		 		row[8], locaton, row[13], row[14])
+
+	def gff_format(self, row):
+		pass
+
+
+def download_ssrs(db, ssrs, ssrtype, outfmt):
+	outfile = '{}-{}.{}'.format(ssrtype.upper(), time.strftime("%Y%m%d-%H%M%S"), outfmt)
+
+	if ssrtype == 'ssr':
+		loader = SSRDownloader(db, ssrs, outfmt)
+
 	response = StreamingHttpResponse(
-		streaming_content = targets,
+		streaming_content = loader.iter(),
 		content_type='text/csv'
 	)
 	response['Content-Disposition'] = 'attachment; filename="{}"'.format(outfile)
@@ -110,22 +181,23 @@ def get_task_db(tid):
 
 	return db_config
 
-def get_ssrs(params, db):
-	draw = int(params.get('draw'))
+class Filters(dict):
+	def add(self, field, val, sign=None):
+		if isinstance(val, tuple):
+			if not val[0] or not val[1]:
+				return
+		else:
+			if not val:
+				return
 
-	#action (download or view)
-	action = params.get('action', 'view')
+		if sign is None or sign == 'eq':
+			k = field
+		else:
+			k = '{}__{}'.format(field, sign)
+		
+		self[k] = val
 
-	#download parameters
-	if action == 'download':
-		outname = params.get('outname')
-		outfmt = params.get('outfmt')
-
-	#datatable parameters
-	if action == 'view':
-		start = int(params.get('start'))
-		length = int(params.get('length'))
-
+def get_ssr_request_filters(params):
 	#filter parameters
 	seqid = int(params.get('sequence', 0))
 	begin = int(params.get('begin', 0))
@@ -139,80 +211,19 @@ def get_ssrs(params, db):
 	lensign = params.get('lensign')
 	ssrlen = int(params.get('ssrlen', 0))
 	max_ssrlen = int(params.get('maxlen', 0))
+	location = int(params.get('location', 0))
 
-	with in_database(db):
-		#total = int(SSRStat.objects.get(name='ssr_count').val)
-		ssrs = SSR.objects.all()
-		total = ssrs.count()
+	filters = Filters()
+	
+	filters.add('sequence', seqid)
+	filters.add('start', begin, 'gte')
+	filters.add('end', end, 'lte')
+	filters.add('motif', motif)
+	filters.add('standard_motif', smotif)
+	filters.add('ssr_type', ssrtype)
+	filters.add('repeats', (repeats, max_repeats), repsign)
+	filters.add('length', (ssrlen, max_ssrlen), lensign)
+	filters.add('ssrannot__location', location)
 
-		if seqid:
-			ssrs = ssrs.filter(sequence=seqid)
-
-		if begin and end:
-			ssrs = ssrs.filter(start__gte=begin, end__lte=end)
-
-		if motif:
-			ssrs = ssrs.filter(motif=motif)
-
-		if smotif:
-			ssrs = ssrs.filter(standard_motif=smotif)
-
-		if ssrtype:
-			ssrs = ssrs.filter(ssr_type=ssrtype)
-
-		if repeats:
-			if repsign == 'gt':
-				ssrs = ssrs.filter(repeats__gt=repeats)
-			elif repsign == 'gte':
-				ssrs = ssrs.filter(repeats__gte=repeats)
-			elif repsign == 'eq':
-				ssrs = ssrs.filter(repeats=repeats)
-			elif repsign == 'lt':
-				ssrs = ssrs.filter(repeats__lt=repeats)
-			elif repsign == 'lte':
-				ssrs = ssrs.filter(repeats__lte=repeats)
-			elif repsign == 'in':
-				ssrs = ssrs.filter(repeats__range=(repeats, max_repeats))
-
-		if ssrlen:
-			if lensign == 'gt':
-				ssrs = ssrs.filter(length__gt=ssrlen)
-			elif lensign == 'gte':
-				ssrs = ssrs.filter(length__gte=ssrlen)
-			elif lensign == 'eq':
-				ssrs = ssrs.filter(length=ssrlen)
-			elif lensign == 'lt':
-				ssrs = ssrs.filter(length__lt=ssrlen)
-			elif lensign == 'lte':
-				ssrs = ssrs.filter(length__lte=ssrlen)
-			elif lensign == 'in':
-				ssrs = ssrs.filter(length__range=(ssrlen, max_ssrlen))
-
-		##download ssrs as file
-		if action == 'download':
-			return download_ssrs(db_config, ssrs, outfmt, outname)
-
-		##view ssrs for datatable
-		filtered_total = ssrs.count()
-
-		#order by
-		colidx = params.get('order[0][column]')
-		colname = params.get('columns[{}][name]'.format(colidx))
-		sortdir = params.get('order[0][dir]')
-
-		if sortdir == 'asc':
-			ssrs = ssrs.order_by(colname)
-		else:
-			ssrs = ssrs.order_by('-{}'.format(colname))
-
-		data = []
-		for ssr in ssrs[start:start+length]:
-			data.append((ssr.id, ssr.sequence.name, ssr.start, ssr.end, colored_seq(ssr.motif), \
-				colored_seq(ssr.standard_motif), ssr.get_ssr_type_display(), ssr.repeats, ssr.length))
-
-	return JsonResponse({
-		'draw': draw,
-		'recordsTotal': total,
-		'recordsFiltered': filtered_total,
-		'data': data
-	})
+	return filters
+ 

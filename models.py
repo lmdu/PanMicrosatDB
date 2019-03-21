@@ -46,7 +46,6 @@ class Sequence(models.Model):
 
 	class Meta:
 		db_table = 'sequence'
-		app_label = None
 
 class Search(models.Model):
 	rowid = models.AutoField(primary_key=True)
@@ -55,7 +54,6 @@ class Search(models.Model):
 
 	class Meta:
 		db_table = 'search'
-		app_label = None
 
 class Gene(models.Model):
 	sequence = models.ForeignKey(Sequence, on_delete=models.CASCADE)
@@ -68,7 +66,6 @@ class Gene(models.Model):
 
 	class Meta:
 		db_table = 'gene'
-		app_label = None
 
 class SSR(models.Model):
 	SSR_TYPES = (
@@ -90,7 +87,6 @@ class SSR(models.Model):
 
 	class Meta:
 		db_table = 'ssr'
-		app_label = None
 
 class SSRMeta(models.Model):
 	ssr = models.OneToOneField(SSR, on_delete=models.CASCADE, primary_key=True)
@@ -99,7 +95,6 @@ class SSRMeta(models.Model):
 
 	class Meta:
 		db_table = 'ssrmeta'
-		app_label = None
 
 class SSRAnnot(models.Model):
 	FEAT_TYPES = (
@@ -115,7 +110,6 @@ class SSRAnnot(models.Model):
 
 	class Meta:
 		db_table = 'ssrannot'
-		app_label = None
 
 class CSSR(models.Model):
 	sequence = models.ForeignKey(Sequence, on_delete=models.CASCADE)
@@ -127,7 +121,6 @@ class CSSR(models.Model):
 
 	class Meta:
 		db_table = 'cssr'
-		app_label = None
 
 class CSSRMeta(models.Model):
 	cssr = models.OneToOneField(CSSR, on_delete=models.CASCADE, primary_key=True)
@@ -136,7 +129,6 @@ class CSSRMeta(models.Model):
 	
 	class Meta:
 		db_table = 'cssrmeta'
-		app_label = None
 
 class CSSRAnnot(models.Model):
 	FEAT_TYPES = (
@@ -152,7 +144,6 @@ class CSSRAnnot(models.Model):
 
 	class Meta:
 		db_table = 'cssrannot'
-		app_label = None
 
 class ISSR(models.Model):
 	ISSR_TYPES = (
@@ -178,7 +169,6 @@ class ISSR(models.Model):
 
 	class Meta:
 		db_table = 'issr'
-		app_label = None
 
 class ISSRMeta(models.Model):
 	issr = models.OneToOneField(ISSR, on_delete=models.CASCADE, primary_key=True)
@@ -187,7 +177,6 @@ class ISSRMeta(models.Model):
 	
 	class Meta:
 		db_table = 'issrmeta'
-		app_label = None
 
 class Summary(models.Model):
 	option = models.CharField(max_length=30)
@@ -195,7 +184,6 @@ class Summary(models.Model):
 
 	class Meta:
 		db_table = 'summary'
-		app_label = None
 
 class Job(models.Model):
 	STATES = (

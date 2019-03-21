@@ -132,7 +132,11 @@ $('#species-select').select2({
 });
 
 
-$('#view-option-select').select2({theme: 'classic'});
+$('#view-option-select').select2({
+	width: '100%',
+	theme: 'classic'
+});
+
 $('#view-option-select').on('change', function(){
 	var option = $('#view-option-select').val();
 	var species = $('#species-select').val();
