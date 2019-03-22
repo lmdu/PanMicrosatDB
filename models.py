@@ -139,7 +139,7 @@ class CSSRAnnot(models.Model):
 		(5, '5UTR')
 	)
 	cssr = models.OneToOneField(CSSR, on_delete=models.CASCADE, primary_key=True)
-	gene_id = models.ForeignKey(Gene, on_delete=models.CASCADE)
+	gene = models.ForeignKey(Gene, on_delete=models.CASCADE)
 	location = models.SmallIntegerField(choices=FEAT_TYPES)
 
 	class Meta:
@@ -195,7 +195,7 @@ class Job(models.Model):
 	job_id = models.CharField(max_length=10)
 	fasta = models.CharField(max_length=255)
 	mode = models.CharField(max_length=5)
-	parameter = models.CharField(max_length=255)
+	parameter = models.TextField()
 	status = models.PositiveSmallIntegerField(choices=STATES, default=0)
 	message = models.TextField(null=True)
 	

@@ -330,7 +330,7 @@ $('select#select-sequence').select2({
 });
 
 
-$('#reset-filter').click(function(){
+$('#reset-filter-btn').click(function(){
 	apply_filter = false;
 	$('#filters input').val('');
 	$('#filters select').val('').trigger('change');
@@ -339,7 +339,7 @@ $('#reset-filter').click(function(){
 	table.ajax.reload();
 });
 
-$('#apply-filter').click(function(){
+$('#apply-filter-btn').click(function(){
 	apply_filter = true;
 	table.ajax.reload();
 });

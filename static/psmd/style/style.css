@@ -56,6 +56,13 @@ nav.navbar{
 	font-size: 14px;
 }
 
+.list-inline li{
+	display: inline-block;
+}
+.list-inline li:not(:last-child){
+	margin-right: 1.5rem;
+}
+
 footer{
 	background: #343b44;
 	color: #fff;

@@ -13,7 +13,7 @@
 			</div>
 			<div class="card-body">
 				<div id="wizard" class="carousel slide" data-interval="false" data-ride="carousel">
-					<div class="carousel-inner" style="min-height: 410px !important;">
+					<div class="carousel-inner" style="min-height: 470px !important;">
 						<div class="carousel-item active">
 							<div><strong>Select a genome</strong></div>
 							<div class="form-row">
@@ -41,8 +41,15 @@
 							
 							<div class="mt-3"><strong>Or input your DNA sequence</strong><span class="badge badge-info ml-3">example</span></div>
 							<div class="form-group">
-								<textarea class="form-control" id="seq-dna" rows=5></textarea>
+								<textarea class="form-control" id="seq-dna" rows=3></textarea>
 								 <small class="form-text text-muted">Only support for fasta formatted sequence (size < 2.5M)</small>
+							</div>
+
+							<div class="mt-3"><strong>Or upload fasta file</strong></div>
+							<div class="custom-file">
+								<input type="file" id="upload-file" class="custom-file-input">
+								<label class="custom-file-label" for="upload-file">Choose file</label>
+								<small class="form-text text-muted">Support for gzipped fasta file (size < 100M)</small>
 							</div>
 
 							<div class="mt-3"><strong>Or provide a URL for fasta formatted file</strong><span class="badge badge-info ml-3">example</span></div>
@@ -180,6 +187,14 @@
 </div>
 
 <script type="text/javascript">
+$('#upload-file').change(function(){
+	var infile = $('#upload-file').val();
+	if(!infile){
+		infile = 'Choose file';
+	}
+	$(this).next().text(infile);
+});
+
 var input_message;
 var para_message;
 $('#step-one').click(function(){
@@ -196,6 +211,7 @@ $('#step-three').click(function(){
 	var species = $('#species-select option:selected').text();
 	var seqdna = $('#seq-dna').val();
 	var sequrl = $('#seq-url').val();
+	var upfile = $('#upload-file').val();
 
 	if(species){
 		input_message = 'Selected genome of <span class="text-success">' + species + '</span> as input';
@@ -203,7 +219,9 @@ $('#step-three').click(function(){
 		var seq_count = (seqdna.match(/>/g)||[]).length;
 		input_message = 'Manually input <span class="text-success">' + seq_count + '</span> sequence(s)';
 	} else if (sequrl){
-		input_message = '<span class="text-success">' + sequrl + '</span>';
+		input_message = 'Download file <span class="text-success">' + sequrl + '</span>';
+	} else if (upfile){
+		input_message = 'Upload file <span class="text-success">' + upfile + '</span>';
 	} else {
 		input_message = '<span class="text-danger">No input sequence</span>';
 	}
@@ -213,20 +231,20 @@ $('#step-three').click(function(){
 	var minreps = $('#min-repeats input').map(function(){
 		return $(this).val();
 	}).get().join(', ');
-	var perfect_message = 'Minimum repeats for Mono, Di, Tri, Tetra, Penta, Hexa: <span class="text-success">' + minreps + '</span>';
+	var perfect_message = '<li>Minimum repeats for Mono, Di, Tri, Tetra, Penta, Hexa: <span class="text-success">' + minreps + '</span></li>';
 
 	//compound
 	var compound_message = perfect_message;
-	compound_message += '<br>' + 'Maximum distance allowed between two microsatellites: ';
-	compound_message += '<span class="text-success">' + $('#dmax').val() + ' </span>bp';
+	compound_message += '<li>Maximum distance allowed between two microsatellites: ';
+	compound_message += '<span class="text-success">' + $('#dmax').val() + ' </span>bp</li>';
 
 	//imperfect
-	var imperfect_message = 'Minimum seed repeats: <span class="text-success">' + $('#min-seed-rep').val() + '</span>; ';
+	var imperfect_message = '<li>Minimum seed repeats: <span class="text-success">' + $('#min-seed-rep').val() + '</span>; ';
 	imperfect_message += 'minimum seed length: <span class="text-success">' + $('#min-seed-len').val() + '</span>; ';
 	imperfect_message += 'maximum consecutive edits: <span class="text-success">' + $('#max-edits').val() + '</span>; ';
 	imperfect_message += 'mismatch penalty: <span class="text-success">' + $('#mis-penalty').val() + '</span>; ';
 	imperfect_message += 'gap penalty: <span class="text-success">' + $('#gap-penalty').val() + '</span>; ';
-	imperfect_message += 'minimum score: <span class="text-success">' + $('#min-score').val() + '</span>';
+	imperfect_message += 'minimum score: <span class="text-success">' + $('#min-score').val() + '</span></li>';
 
 
 	var mode_message;
@@ -234,17 +252,17 @@ $('#step-three').click(function(){
 	if(ssrtype === 'ssr'){
 		mode_message = 'Search for <span class="text-success">perfect</span> microsatellites';
 		para_message = perfect_message;
-		para_message += '<br>Motif standardization level: <span class="text-success">' + $('#standard-level').val() + '</span>';
+		para_message += '<li>Motif standardization level: <span class="text-success">' + $('#standard-level').val() + '</span></li>';
 	}else if(ssrtype === 'cssr'){
 		mode_message = 'Search for <span class="text-success">compound</span> microsatellites';
 		para_message = compound_message;
 	}else if(ssrtype === 'issr'){
 		mode_message = 'Search for <span class="text-success">imperfect</span> microsatellites';
 		para_message = imperfect_message;
-		para_message += '<br>Motif standardization level: <span class="text-success">' + $('#standard-level').val() + '</span>';
+		para_message += '<li>Motif standardization level: <span class="text-success">' + $('#standard-level').val() + '</span></li>';
 	}
 	$('#search-mode').html(mode_message);
-	para_message += '<br>Flanking sequence length: <span class="text-success">' + $('#flank-len').val() + '</span> bp';
+	para_message += '<li>Flanking sequence length: <span class="text-success">' + $('#flank-len').val() + '</span> bp</li>';
 	$('#search-paras').html(para_message);
 
 	$('#wizard').carousel(2);
@@ -256,38 +274,42 @@ $('#start-search').click(function(){
 	var species = $('#species-select').val();
 	var seqdna = $('#seq-dna').val();
 	var sequrl = $('#seq-url').val();
-	var data = {};
+	var upfile = $('#upload-file').val();
+	var data = new FormData();
 	if(species){
-		data.input_type = 'select';
-		data.select_species = species;
+		data.append('input_type','select');
+		data.append('select_species', species);
 	} else if (seqdna){
-		data.input_type = 'input';
-		data.input_seqs = seqdna;
+		data.append('input_type', 'input');
+		data.append('input_seqs', seqdna);
 	} else if (sequrl){
-		data.input_type = 'url';
-		data.input_url = sequrl;
+		data.append('input_type', 'url');
+		data.append('input_url', sequrl);
+	} else if (upfile){
+		data.append('input_type', 'upload');
+		data.append('input_file', $('#upload-file')[0].files[0]);
 	} else {
-		data.input_type = null;
+		data.append('input_type', null);
 	}
 
-	data.ssr_type = $('input[name=ssrtype]:checked').val();
-	data.min_reps = $('#min-repeats input').map(function(){
+	data.append('ssr_type', $('input[name=ssrtype]:checked').val());
+	data.append('min_reps', $('#min-repeats input').map(function(){
 		return $(this).val();
-	}).get().join('-');
-	data.dmax = $('#dmax').val();
-	data.min_seed_rep = $('#min-seed-rep').val();
-	data.min_seed_len = $('#min-seed-len').val();
-	data.max_edits = $('#max-edits').val();
-	data.mis_penalty = $('#mis-penalty').val();
-	data.gap_penalty = $('#gap-penalty').val();
-	data.min_score = $('#min-score').val();
-	data.flank_len = $('#flank-len').val();
-	data.level = $('#standard-level').val();
-	data.email = $('#user-email').val();
-	data.input_message = input_message;
-	data.para_message = para_message;
+	}).get().join('-'));
+	data.append('dmax', $('#dmax').val());
+	data.append('min_seed_rep', $('#min-seed-rep').val());
+	data.append('min_seed_len', $('#min-seed-len').val());
+	data.append('max_edits', $('#max-edits').val());
+	data.append('mis_penalty', $('#mis-penalty').val());
+	data.append('gap_penalty', $('#gap-penalty').val());
+	data.append('min_score', $('#min-score').val());
+	data.append('flank_len', $('#flank-len').val());
+	data.append('level', $('#standard-level').val());
+	data.append('email', $('#user-email').val());
+	data.append('input_message', input_message);
+	data.append('para_message', para_message);
 
-	if (data.input_type === null) {
+	if (data.get('input_type') === null) {
 		alert('No input sequences');
 		return;
 	} else if (seqdna) {
@@ -298,12 +320,20 @@ $('#start-search').click(function(){
 		}
 	}
 
-	$.post('{{ url("krait") }}', data, function(res){
-		$('#task-id').text(res.task_id)
-		$('#task-id-box').show();
-		$('#start-search').attr('disabled', true);
-		$('.btn-group button').attr('disabled', true);
-	});	
+	$.ajax({
+		url: 'krait',
+		type: 'POST',
+		data: data,
+		processData: false,
+		contentType: false,
+		dataType: 'json',
+		success: function(res){
+			$('#task-id').text(res.task_id);
+			$('#task-id-box').show();
+			$('#start-search').attr('disabled', true);
+			$('.btn-group button').attr('disabled', true);
+		}
+	});
 });
 
 $('#task-id').click(function(){

@@ -10,6 +10,7 @@ from .models import *
 from .utils import *
 from .plots import *
 from .tasks import *
+from .display import *
 from .downloader import *
 
 import re
@@ -125,6 +126,8 @@ def species(request):
 
 @csrf_exempt
 def browse(request):
+	'''Browse perfect microsatellites
+	'''
 	gid = int(request.POST.get('species', 716))
 	
 	if 'draw' not in request.POST:
@@ -140,57 +143,13 @@ def browse(request):
 	
 	if request.method == 'POST':
 		db_config = get_ssr_db(gid)
-
-		#datatable paramers
-		draw = int(request.POST.get('draw'))
-		start = int(request.POST.get('start'))
-		length = int(request.POST.get('length'))
-		#order by
-		colidx = request.POST.get('order[0][column]')
-		colname = request.POST.get('columns[{}][name]'.format(colidx))
-		sortdir = request.POST.get('order[0][dir]')
-
-		filters = get_ssr_request_filters(request.POST)
-
-		with in_database(db_config):
-			ssrs = SSR.objects.select_related().all()
-			total = ssrs.count()
-
-			if filters:
-				ssrs = SSR.objects.select_related().filter(**filters)
-				filtered_total = ssrs.count()
-			else:
-				filtered_total = total
-			
-			if sortdir == 'asc':
-				ssrs = ssrs.order_by(colname)
-			else:
-				ssrs = ssrs.order_by('-{}'.format(colname))
-
-			def get_vals(ssr):
-				try:
-					location = ssr.ssrannot.get_location_display()
-				except:
-					location = 'N/A'
-
-				return (ssr.id, ssr.sequence.accession, ssr.sequence.name, ssr.start, \
-				 ssr.end, colored_seq(ssr.motif), colored_seq(ssr.standard_motif), \
-				 ssr.get_ssr_type_display(), ssr.repeats, ssr.length, location)
-
-			data = [get_vals(ssr) for ssr in ssrs[start:start+length]]
-
-		return JsonResponse({
-			'draw': draw,
-			'recordsTotal': total,
-			'recordsFiltered': filtered_total,
-			'data': data
-		})
+		display = SSRDisplay(db_config, request.POST)
+		return display.get_response()
 
 @csrf_exempt
-def cssrs_browse(request):
-	#if request.method == 'GET':
-	#	return render(request, 'psmd/cssrs.html')
-	
+def compound(request):
+	'''Browse compoud microsatellites
+	'''
 	if request.method == 'POST':
 		gid = int(request.POST.get('species', 0))
 
@@ -205,53 +164,8 @@ def cssrs_browse(request):
 			return render(request, 'psmd/compound.html', {'species':species})
 
 		db_config = get_ssr_db(gid)
-
-		#dataTables parameters
-		start = int(request.POST.get('start'))
-		length = int(request.POST.get('length'))
-		draw = int(request.POST.get('draw'))
-		#order by
-		colidx = request.POST.get('order[0][column]')
-		colname = request.POST.get('columns[{}][name]'.format(colidx))
-		sortdir = request.POST.get('order[0][dir]')
-
-		filters = get_cssr_request_filters(request.POST)
-
-		with in_database(db_config):
-			cssrs = CSSR.objects.select_related().all()
-			total = CSSR.objects.all().count()
-
-			if filters:
-				cssrs = CSSR.objects.select_related().filter(**filters)
-				filtered_total = CSSR.objects.filters(**filters).count()
-			else:
-				filtered_total = total
-
-			if sortdir == 'asc':
-				cssrs = cssrs.order_by(colname)
-			else:
-				cssrs = cssrs.order_by('-{}'.format(colname))
-
-			def get_vals(cssr):
-				try:
-					location = cssr.cssrannot.get_location_display()
-				except:
-					location = 'N/A'
-
-				pattern = colored_cssr_pattern(cssr.structure)
-				pattern = re.sub(r'(\d+)', lambda m: '<sub>'+m.group(0)+'</sub>', pattern)
-
-				return (cssr.id, cssr.sequence.accession, cssr.sequence.name, \
-					cssr.start, cssr.end, cssr.complexity, cssr.length, pattern, location)
-
-			data = [get_vals(cssr) for cssr in cssrs[start:start+length]]
-
-		return JsonResponse({
-			'draw': draw,
-			'recordsTotal': total,
-			'recordsFiltered': filtered_total,
-			'data': data
-		})
+		display = CSSRDisplay(db_config, request.POST)
+		return display.get_response()
 
 @csrf_exempt
 def download(request):
@@ -291,53 +205,42 @@ def download(request):
 	return download_ssrs(db_config, ssrs, mode, outfmt)
 
 @csrf_exempt
-def get_seq_id(request):
+def sequence(request):
+	'''Get sequence accession or name
+	'''
 	if request.method == 'POST':
 		term = request.POST.get('term', '')
 		page = int(request.POST.get('page', 1))
 		rows = int(request.POST.get('rows', 10))
-		label = request.POST.get('label')
-		gid = int(request.POST.get('species'))
+		label = request.POST.get('label', 'name')
+		gid = int(request.POST.get('species', 0))
+		tid = request.POST.get('task', None)
 
-		db_config = get_ssr_db(gid)
+		if gid:
+			db_config = get_ssr_db(gid)
+		elif tid:
+			db_config = get_task_db(tid)
 
-		with in_database(db_config) as db:
+		with in_database(db_config):
 			offset = (page-1)*rows
+			
+			seqs = Sequence.objects.all()
+			
 			if term:
-				if label == 'accession':
-					total = Sequence.objects.filter(accession__startswith=term).count()
-					seqs = Sequence.objects.filter(accession__startswith=term)[offset:offset+rows]
-					data = [{'id': seq.rowid, 'text': seq.accession} for seq in seqs]
-
-				elif label == 'name':
-					total = Sequence.objects.filter(name__startswith=term).count()
-					seqs = Sequence.objects.filter(name__startswith=term)[offset:offset+rows]
-					data = [{'id': seq.id, 'text': seq.name} for seq in seqs]
+				filters = {'{}__startswith'.format(label): term}
+				seqs = Sequence.objects.filter(**filters)
 				
-				#term = '{}*'.format(term)
-				#with connections[db.unique_db_id].cursor() as cursor:
-				#	cursor.execute("SELECT COUNT(*) FROM search WHERE search MATCH %s", (term,))
-				#	total = cursor.fetchone()[0]
-				
-				#seqs = Search.objects.raw("SELECT rowid,name,accession FROM search WHERE search MATCH %s LIMIT %s,%s", (term, offset, rows))
-
-				#if label == 'accession':
-				#	data = [{'id': seq.rowid, 'text': seq.accession} for seq in seqs]
-				#elif label == 'name':
-				#	data = [{'id': seq.rowid, 'text': seq.name} for seq in seqs]
-			else:
-				total = int(Summary.objects.get(option='seq_count').content)
-				seqs = Sequence.objects.all()[offset:offset+rows]
-
-				if label == 'accession':
-					data = [{'id': seq.id, 'text': seq.accession} for seq in seqs]
-				elif label == 'name':
-					data = [{'id': seq.id, 'text': seq.name} for seq in seqs]
+			total = seqs.count()
+			
+			if label == 'accession':
+				data = [{'id': seq.id, 'text': seq.accession} for seq in seqs[offset:offset+rows]]
+			elif label == 'name':
+				data = [{'id': seq.id, 'text': seq.name} for seq in seqs[offset:offset+rows]]
 
 		return JsonResponse({'results': data, 'total': total})
 
 @csrf_exempt
-def get_seq_flank(request):
+def flank(request):
 	if request.method == 'POST':
 		ssr_id = int(request.POST.get('ssrid'))
 		gid = int(request.POST.get('species'))
@@ -627,20 +530,29 @@ def krait(request):
 
 	if request.method == 'POST':
 		task_id = get_random_string(10)
-		params = request.POST
-
-		Job.objects.create(
-			job_id=task_id,
-			mode=params['ssr_type'],
-			fasta=params['input_message'],
-			parameter=params['para_message']
+		params = request.POST.dict()
+		
+		job_info = dict(
+			job_id = task_id,
+			mode = params['ssr_type'],
+			fasta = params['input_message'],
+			parameter = params['para_message']
 		)
+		
+		if params['input_type'] == 'upload':
+			try:
+				params['input_file'] = upload_fasta_file(task_id, request.FILES['input_file'])
+			except Exception as e:
+				job_info['status'] = 3
+				job_info['message'] = str(e)
+
+		Job.objects.create(**job_info)
 
 		#send task to celery
-		search_ssrs.apply_async((params,), task_id=task_id)
-		return JsonResponse(dict(
-			task_id = task_id
-		))
+		if job_info.get('status', None) is None:
+			search_ssrs.apply_async((params,), task_id=task_id)
+		
+		return JsonResponse({'task_id': task_id})
 
 @csrf_exempt
 def task(request, task_id):
@@ -656,4 +568,8 @@ def task(request, task_id):
 
 	elif request.method == 'POST':
 		db_config = get_task_db(task_id)
-		return get_ssrs(request.POST, db_config)
+		mode = request.POST.get('mode')
+
+		if mode == 'ssr':
+			display = SSRTaskDisplay(db_config, request.POST)
+			return display.get_response()

@@ -142,6 +142,21 @@ def make_fasta_file(tid, seqs):
 		fw.write(seqs)
 	return fa_file
 
+def upload_fasta_file(tid, infile):
+	if infile.name.endswith('.gz'):
+		destname = '{}.fa.gz'.format(tid)
+	else:
+		destname = '{}.fa'.format(tid)
+
+	fa_file = os.path.join(Config.TASK_FASTA_DIR, destname)
+
+	with open(fa_file, 'wb+') as fw:
+		for chunk in infile.chunks():
+			fw.write(chunk)
+
+	return fa_file
+
+
 def get_flank_seq(seq, start, end, flank):
 	s = start - flank - 1
 	if s < 0:
@@ -291,6 +306,9 @@ def search_ssrs(self, params):
 
 	elif params['input_type'] == 'input':
 		fasta_file = make_fasta_file(task_id, params['input_seqs'])
+
+	elif params['input_type'] == 'upload':
+		fasta_file = params['input_file']
 
 	elif params['input_type'] == 'url':
 		fasta_file = download_fasta_file(task_id, params['input_url'])
