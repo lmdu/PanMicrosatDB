@@ -289,7 +289,7 @@ $('#start-search').click(function(){
 		data.append('input_type', 'upload');
 		data.append('input_file', $('#upload-file')[0].files[0]);
 	} else {
-		data.append('input_type', null);
+		data.append('input_type', '');
 	}
 
 	data.append('ssr_type', $('input[name=ssrtype]:checked').val());
@@ -309,7 +309,7 @@ $('#start-search').click(function(){
 	data.append('input_message', input_message);
 	data.append('para_message', para_message);
 
-	if (data.get('input_type') === null) {
+	if (!data.get('input_type')) {
 		alert('No input sequences');
 		return;
 	} else if (seqdna) {

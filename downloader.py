@@ -10,8 +10,6 @@ class Echo:
 
 class BaseDownloader(object):
 	def __init__(self, db, ssrs, outfmt):
-		self.headers = None
-		self.base_sql = None
 		self.query = str(ssrs.query)
 		self.outfmt = outfmt
 		self.conn = sqlite3.connect(db['NAME'])
@@ -29,6 +27,14 @@ class BaseDownloader(object):
 
 		self.locations = {1: 'CDS', 2: 'exon', 3: '3UTR', 4: 'intron', 5: '5UTR'}
 		self.ssrtypes = {1: 'Mono', 2: 'Di', 3: 'Tri', 4: 'Tetra', 5: 'Penta', 6: 'Hexa'}
+
+	@property
+	def base_sql(self):
+		pass
+
+	@property
+	def headers(self):
+		pass
 
 	def get_location(self, lid):
 		return self.locations.get(lid, 'N/A')
@@ -69,12 +75,16 @@ class BaseDownloader(object):
 class SSRDownloader(BaseDownloader):
 	def __init__(self, db, ssrs, outfmt):
 		super(SSRDownloader, self).__init__(db, ssrs, outfmt)
-		self.base_sql = ("SELECT * FROM ssr INNER JOIN sequence AS s ON (s.id=ssr.sequence_id)"
+
+	@property
+	def base_sql(self):
+		return ("SELECT * FROM ssr INNER JOIN sequence AS s ON (s.id=ssr.sequence_id)"
 				" INNER JOIN ssrmeta AS m ON (m.ssr_id=ssr.id)"
 				" LEFT JOIN ssrannot AS a ON (a.ssr_id=ssr.id)")
-
-		self.headers = ['#ID', 'Seqname', 'Seqacc', 'Start', 'End', 'Motif', 'Standmotif', \
-						'Type', 'Repeats', 'Length', 'Location', 'Leftflank', 'Rightflank']
+	@property
+	def headers(self):
+		return ['#ID', 'Seqname', 'Seqacc', 'Start', 'End', 'Motif', 'Standmotif', \
+				'Type', 'Repeats', 'Length', 'Location', 'Leftflank', 'Rightflank']
 
 	def tab_format(self, row):
 		location = self.get_location(row[16])
@@ -89,15 +99,45 @@ class SSRDownloader(BaseDownloader):
 			row[4], row[5], stype, row[7],location)
 		return (row[11], 'PSMD', 'SSR', row[2], row[3], row[8], '.', '.', attrs)
 
+class SSRTaskDownloader(BaseDownloader):
+	def __init__(self, db, ssrs, outfmt):
+		super(SSRTaskDownloader, self).__init__(db, ssrs, outfmt)
+
+	@property
+	def base_sql(self):
+		return ("SELECT * FROM ssr INNER JOIN sequence AS s ON (s.id=ssr.sequence_id)"
+				" INNER JOIN ssrmeta AS m ON (m.ssr_id=ssr.id)")
+
+	@property
+	def headers(self):
+		return ['#ID', 'Seqname', 'Seqacc', 'Start', 'End', 'Motif', 'Standmotif', \
+				'Type', 'Repeats', 'Length', 'Leftflank', 'Rightflank']
+
+	def tab_format(self, row):
+		stype = self.get_ssr_type(row[6])
+		return (row[0], row[10], row[11], row[2], row[3], row[4], row[5], stype, row[7], \
+		 		row[8], row[13], row[14])
+
+	def gff_format(self, row):
+		stype = self.get_ssr_type(row[6])
+		attrs = 'ID={};Moitf={};Standardmotif={};Type={};Repeats={}'.format(row[0], \
+			row[4], row[5], stype, row[7])
+		return (row[11], 'PSMD', 'SSR', row[2], row[3], row[8], '.', '.', attrs)
+
+
 class CSSRDownloader(BaseDownloader):
 	def __init__(self, db, cssrs, outfmt):
 		super(CSSRDownloader, self).__init__(db, cssrs, outfmt)
-		self.base_sql = ("SELECT * FROM cssr INNER JOIN sequence AS s ON (s.id=cssr.sequence_id)"
+
+	@property
+	def base_sql(self):
+		return ("SELECT * FROM cssr INNER JOIN sequence AS s ON (s.id=cssr.sequence_id)"
 				" INNER JOIN cssrmeta AS m ON (m.cssr_id=cssr.id)"
 				" LEFT JOIN cssrannot AS a ON (a.cssr_id=cssr.id)")
-
-		self.headers = ['#ID', 'Seqname', 'Seqacc', 'Start', 'End', 'Complexity', 'Length', \
-						'Pattern', 'Location', 'Leftflank', 'Rightflank']
+	@property
+	def headers(self):
+		return ['#ID', 'Seqname', 'Seqacc', 'Start', 'End', 'Complexity', 'Length', \
+				'Pattern', 'Location', 'Leftflank', 'Rightflank']
 
 	def tab_format(self, row):
 		location = self.get_location(row[14])
@@ -109,14 +149,73 @@ class CSSRDownloader(BaseDownloader):
 		attrs = 'ID={};Complexity={};Pattern={};Location={}'.format(row[0], row[4], row[6], location)
 		return (row[9], 'PSMD', 'CSSR', row[2], row[3], row[5], '.', '.', attrs)
 
-def download_ssrs(db, ssrs, ssrtype, outfmt):
-	outfile = '{}s-{}.{}'.format(ssrtype.upper(), time.strftime("%Y%m%d-%H%M%S"), outfmt)
+class CSSRTaskDownloader(BaseDownloader):
+	def __init__(self, db, cssrs, outfmt):
+		super(CSSRTaskDownloader, self).__init__(db, cssrs, outfmt)
 
-	if ssrtype == 'ssr':
+	@property
+	def base_sql(self):
+		return ("SELECT * FROM cssr INNER JOIN sequence AS s ON (s.id=cssr.sequence_id)"
+				" INNER JOIN cssrmeta AS m ON (m.cssr_id=cssr.id)")
+
+	@property
+	def headers(self):
+		return ['#ID', 'Seqname', 'Seqacc', 'Start', 'End', 'Complexity', 'Length', \
+				'Pattern', 'Location', 'Leftflank', 'Rightflank']
+
+	def tab_format(self, row):
+		return (row[0], row[8], row[9], row[2], row[3], row[4], row[5], row[6], \
+				row[11], row[12])
+
+	def gff_format(self, row):
+		attrs = 'ID={};Complexity={};Pattern={}'.format(row[0], row[4], row[6])
+		return (row[9], 'PSMD', 'CSSR', row[2], row[3], row[5], '.', '.', attrs)
+
+class ISSRTaskDownloader(BaseDownloader):
+	def __init__(self, db, issrs, outfmt):
+		super(ISSRTaskDownloader, self).__init__(db, issrs, outfmt)
+
+	@property
+	def base_sql(self):
+		return ("SELECT * FROM issr INNER JOIN sequence AS s ON (s.id=issr.sequence_id)"
+				" INNER JOIN issrmeta AS m ON (m.issr_id=issr.id)")
+
+	@property
+	def headers(self):
+		return ['#ID', 'Seqname', 'Start', 'End', 'Motif', 'Standardmotif', 'Type', 'Length', \
+				'Match', 'Substitution', 'Insertion', 'Deletion', 'Score', 'Sequence', 'Leftflank', 'Rightflank']
+
+	def tab_format(self, row):
+		stype = self.get_ssr_type(row[6])
+		return (row[0], row[14], row[2], row[3], row[4], row[5], stype, row[7], row[8], \
+				row[9], row[10], row[11], row[12], row[19], row[17], row[18])
+
+	def gff_format(self, row):
+		stype = self.get_ssr_type(row[6])
+		attrs = 'ID={};Motif={};Standardmotif={};Type={};Match={};Substitution={};Insertion={};Deletion={}'.format(
+			row[0], row[4], row[5], stype, row[8], row[9], row[10], row[11])
+		return (row[14], 'PSMD', 'ISSR', row[2], row[3], row[12], '.', '.', attrs)
+
+def download_ssrs(db, ssrs, ssrtype, task_id, outfmt):
+	if task_id:
+		outfile = '{}s_{}_{}.{}'.format(ssrtype.upper(), task_id, time.strftime("%Y%m%d-%H%M%S"), outfmt)
+	else:
+		outfile = '{}s_{}.{}'.format(ssrtype.upper(), time.strftime("%Y%m%d-%H%M%S"), outfmt)
+
+	if task_id and ssrtype == 'ssr':
+		loader = SSRTaskDownloader(db, ssrs, outfmt)
+
+	if task_id and ssrtype == 'cssr':
+		loader = CSSRTaskDownloader(db, ssrs, outfmt)
+
+	elif ssrtype == 'ssr':
 		loader = SSRDownloader(db, ssrs, outfmt)
 
 	elif ssrtype == 'cssr':
 		loader = CSSRDownloader(db, ssrs, outfmt)
+
+	elif ssrtype == 'issr':
+		loader = ISSRTaskDownloader(db, ssrs, outfmt)
 
 	response = StreamingHttpResponse(
 		streaming_content = loader.iter(),

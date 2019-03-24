@@ -1,7 +1,9 @@
+import re
+import json
+
 from django.shortcuts import render
 from django.http import JsonResponse, Http404
 from django.db import connections
-
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.crypto import get_random_string
 
@@ -12,10 +14,6 @@ from .plots import *
 from .tasks import *
 from .display import *
 from .downloader import *
-
-import re
-import json
-import primer3
 
 # Create your views here.
 def index(request):
@@ -175,7 +173,7 @@ def download(request):
 	mode = request.POST.get('mode')
 	outfmt = request.POST.get('outfmt')
 	gid = int(request.POST.get('species', 0))
-	tid = request.POST.get('task_id', None)
+	tid = request.POST.get('task', None)
 
 	if gid:
 		db_config = get_ssr_db(gid)
@@ -199,10 +197,13 @@ def download(request):
 			ssrs = CSSR.objects.select_related().all()
 
 	elif mode == 'issr':
-		pass
+		filters = get_issr_request_filters(request.POST)
+		if filters:
+			ssrs = ISSR.objects.select_related().filters(**filters)
+		else:
+			ssrs = ISSR.objects.select_related().all()
 
-
-	return download_ssrs(db_config, ssrs, mode, outfmt)
+	return download_ssrs(db_config, ssrs, mode, tid, outfmt)
 
 @csrf_exempt
 def sequence(request):
@@ -242,286 +243,27 @@ def sequence(request):
 @csrf_exempt
 def flank(request):
 	if request.method == 'POST':
-		ssr_id = int(request.POST.get('ssrid'))
-		gid = int(request.POST.get('species'))
 		type_ = request.POST.get('type')
+		gid = int(request.POST.get('species', 0))
+		tid = request.POST.get('task', None)
+
+		if gid:
+			db_config = get_ssr_db(gid)
 		
-		db_config = get_ssr_db(gid)
-
-		with in_database(db_config):
-			if type_ == 'ssr':
-				ssr = SSR.objects.get(pk=ssr_id)
-				ssrmeta = ssr.ssrmeta
-				try:
-					ssrannot = ssr.ssrannot
-					gene = ssrannot.gene
-				except:
-					ssrannot = None
-					gene = None
-			
-			elif type_ == 'cssr':
-				ssr = CSSR.objects.get(pk=ssr_id)
-				ssrmeta = ssr.cssrmeta
-				try:
-					ssrannot = ssr.cssrannot
-					gene = ssrannot.gene
-				except:
-					ssrannot = None
-					gene = None
-
-			else:
-				return None
-
-		nucleotide = """
-		<div class="sequence-nucleotide">
-			<div class="base-row sequence-box">
-				<span class="nucleobase {0}">{0}</span>
-			</div>
-			<div class="meta-row sequence-box">
-				<span class="meta-info"></span>
-			</div>
-		</div>
-		"""
-
-		target = """
-		<div class="sequence-nucleotide">
-			<div class="base-row sequence-box">
-				<span class="nucleobase-target {0}">{0}</span>
-			</div>
-			<div class="meta-row sequence-box">
-				<span class="meta-info">{1}</span>
-			</div>
-		</div>
-		"""
-
-		html = []
-
-		for b in ssrmeta.left_flank:
-			html.append(nucleotide.format(b))
+		elif tid:
+			db_config = get_task_db(tid)
 
 		if type_ == 'ssr':
-			ssr_seq = "".join([ssr.motif]*ssr.repeats)
+			detail = SSRDetail(db_config, request.POST)
+
 		elif type_ == 'cssr':
-			ssr_seq = cssr_pattern_to_seq(ssr.structure)
+			detail = CSSRDetail(db_config, request.POST)
 
-		for i,b in enumerate(ssr_seq):
-			if i == 0:
-				html.append(target.format(b, ssr.start))
-			elif i + 1 == len(ssr_seq):
-				html.append(target.format(b, ssr.end))
-			else:
-				html.append(target.format(b, ''))
+		elif type_ == 'issr':
+			detail = ISSRDetail(db_config, request.POST)
 
-		for b in ssrmeta.right_flank:
-			html.append(nucleotide.format(b))
+		return detail.get_response()
 
-		#get ssr location
-		if ssrannot:
-			loc = ssrannot.get_location_display()
-			gid = gene.gid
-			name = gene.name
-			biotype = gene.biotype
-			dbxref = gene.dbxref
-			lochtml = "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>".format(gid, name, biotype, dbxref, loc)
-		else:
-			lochtml = '<tr><td class="text-center" colspan="4">N/A</td><td>Intergenic</td></tr>'
-
-		res = primer3.bindings.designPrimers({
-			'SEQUENCE_ID': ssr.id,
-			'SEQUENCE_TEMPLATE': "{}{}{}".format(ssrmeta.left_flank, ssr_seq, ssrmeta.right_flank),
-			'SEQUENCE_TARGET': [len(ssrmeta.left_flank), len(ssr_seq)],
-			'SEQUENCE_INTERNAL_EXCLUDED_REGION': [len(ssrmeta.left_flank), len(ssr_seq)]
-		},
-		{
-			'PRIMER_TASK': 'generic',
-			'PRIMER_PICK_LEFT_PRIMER': 1,
-			'PRIMER_PICK_INTERNAL_OLIGO': 0,
-			'PRIMER_PICK_RIGHT_PRIMER': 1,
-			'PRIMER_PRODUCT_SIZE_RANGE': [[100,300]],
-			'PRIMER_NUM_RETURN': 3,
-			'PRIMER_MIN_SIZE': 18,
-			'PRIMER_OPT_SIZE': 20,
-			'PRIMER_MAX_SIZE': 27,
-			'PRIMER_MIN_GC': 30,
-			'PRIMER_MAX_GC': 80,
-			'PRIMER_GC_CLAMP': 2,
-			'PRIMER_MIN_TM': 58,
-			'PRIMER_OPT_TM': 60,
-			'PRIMER_MAX_TM': 65,
-			'PRIMER_MAX_SELF_ANY_TH': 47,
-			'PRIMER_MAX_SELF_END_TH': 47,
-			'PRIMER_PAIR_MAX_COMPL_ANY_TH': 47,
-			'PRIMER_PAIR_MAX_COMPL_END_TH': 47,
-			'PRIMER_MAX_HAIRPIN_TH': 47,
-			'PRIMER_MAX_END_STABILITY': 99,
-			'PRIMER_MAX_NS_ACCEPTED': 5,
-			'PRIMER_MAX_POLY_X': 0,
-			'PRIMER_PAIR_MAX_DIFF_TM': 2
-		})
-
-		primer_count = res['PRIMER_PAIR_NUM_RETURNED']
-		primers = []
-		if primer_count:
-			for i in range(primer_count):
-				num = i + 1
-				product = res['PRIMER_PAIR_{}_PRODUCT_SIZE'.format(i)]
-				forward = colored_seq(res['PRIMER_LEFT_{}_SEQUENCE'.format(i)])
-				tm1 = round(res['PRIMER_LEFT_{}_TM'.format(i)], 2)
-				gc1 = round(res['PRIMER_LEFT_{}_GC_PERCENT'.format(i)], 2)
-				stab1 = round(res['PRIMER_LEFT_{}_END_STABILITY'.format(i)], 2)
-				reverse = colored_seq(res['PRIMER_RIGHT_{}_SEQUENCE'.format(i)])
-				tm2 = round(res['PRIMER_RIGHT_{}_TM'.format(i)], 2)
-				gc2 = round(res['PRIMER_RIGHT_{}_GC_PERCENT'.format(i)], 2)
-				stab2 = round(res['PRIMER_RIGHT_{}_END_STABILITY'.format(i)], 2)
-
-				html_str = """
-				<tr><td class="align-middle" rowspan="2">{}</td><td>Forward</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td class="align-middle" rowspan="2">{}</td></tr>
-				<tr><td>Reverse</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>
-				"""
-				primers.append(html_str.format(num, forward, tm1, gc1, stab1, product, reverse, tm2, gc2, stab2))
-
-			primers = "".join(primers)
-		else:
-			primers = '<tr><td class="text-center" colspan="7">N/A</td></tr>'
-
-		return JsonResponse(dict(
-			seq = "".join(html), 
-			location = lochtml,
-			primer = primers
-		))
-
-@csrf_exempt
-def get_cssr_detail(request):
-	if request.method == 'POST':
-		ssr_id = int(request.POST.get('ssrid'))
-		gid = int(request.POST.get('species'))
-		
-		db_config = get_ssr_db(gid)
-
-		with in_database(db_config):
-			cssr = CSSR.objects.get(pk=ssr_id)
-			cssrmeta = cssr.cssrmeta
-			try:
-				cssrannot = cssr.cssrannot
-				gene = cssrannot.gene
-			except:
-				cssrannot = None
-				gene = None
-
-		nucleotide = """
-		<div class="sequence-nucleotide">
-			<div class="base-row sequence-box">
-				<span class="nucleobase {0}">{0}</span>
-			</div>
-			<div class="meta-row sequence-box">
-				<span class="meta-info"></span>
-			</div>
-		</div>
-		"""
-
-		target = """
-		<div class="sequence-nucleotide">
-			<div class="base-row sequence-box">
-				<span class="nucleobase-target {0}">{0}</span>
-			</div>
-			<div class="meta-row sequence-box">
-				<span class="meta-info">{1}</span>
-			</div>
-		</div>
-		"""
-
-		html = []
-
-		for b in cssrmeta.left_flank:
-			html.append(nucleotide.format(b))
-
-		cssr_seq = cssr_pattern_to_seq(cssr.structure)
-
-		for i,b in enumerate(cssr_seq):
-			if i == 0:
-				html.append(target.format(b, cssr.start))
-			elif i + 1 == len(cssr_seq):
-				html.append(target.format(b, cssr.end))
-			else:
-				html.append(target.format(b, ''))
-
-		for b in cssrmeta.right_flank:
-			html.append(nucleotide.format(b))
-
-		#get ssr location
-		if cssrannot:
-			loc = cssrannot.get_location_display()
-			gid = gene.gid
-			name = gene.name
-			biotype = gene.biotype
-			dbxref = gene.dbxref
-			lochtml = "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>".format(gid, name, biotype, dbxref, loc)
-		else:
-			lochtml = '<tr><td class="text-center" colspan="4">N/A</td><td>Intergenic</td></tr>'
-
-		res = primer3.bindings.designPrimers({
-			'SEQUENCE_ID': cssr.id,
-			'SEQUENCE_TEMPLATE': "{}{}{}".format(cssrmeta.left_flank, cssr_seq, cssrmeta.right_flank),
-			'SEQUENCE_TARGET': [len(cssrmeta.left_flank), len(cssr_seq)],
-			'SEQUENCE_INTERNAL_EXCLUDED_REGION': [len(cssrmeta.left_flank), len(cssr_seq)]
-		},
-		{
-			'PRIMER_TASK': 'generic',
-			'PRIMER_PICK_LEFT_PRIMER': 1,
-			'PRIMER_PICK_INTERNAL_OLIGO': 0,
-			'PRIMER_PICK_RIGHT_PRIMER': 1,
-			'PRIMER_PRODUCT_SIZE_RANGE': [[100,300]],
-			'PRIMER_NUM_RETURN': 3,
-			'PRIMER_MIN_SIZE': 18,
-			'PRIMER_OPT_SIZE': 20,
-			'PRIMER_MAX_SIZE': 27,
-			'PRIMER_MIN_GC': 30,
-			'PRIMER_MAX_GC': 80,
-			'PRIMER_GC_CLAMP': 2,
-			'PRIMER_MIN_TM': 58,
-			'PRIMER_OPT_TM': 60,
-			'PRIMER_MAX_TM': 65,
-			'PRIMER_MAX_SELF_ANY_TH': 47,
-			'PRIMER_MAX_SELF_END_TH': 47,
-			'PRIMER_PAIR_MAX_COMPL_ANY_TH': 47,
-			'PRIMER_PAIR_MAX_COMPL_END_TH': 47,
-			'PRIMER_MAX_HAIRPIN_TH': 47,
-			'PRIMER_MAX_END_STABILITY': 99,
-			'PRIMER_MAX_NS_ACCEPTED': 5,
-			'PRIMER_MAX_POLY_X': 0,
-			'PRIMER_PAIR_MAX_DIFF_TM': 2
-		})
-
-		primer_count = res['PRIMER_PAIR_NUM_RETURNED']
-		primers = []
-		if primer_count:
-			for i in range(primer_count):
-				num = i + 1
-				product = res['PRIMER_PAIR_{}_PRODUCT_SIZE'.format(i)]
-				forward = colored_seq(res['PRIMER_LEFT_{}_SEQUENCE'.format(i)])
-				tm1 = round(res['PRIMER_LEFT_{}_TM'.format(i)], 2)
-				gc1 = round(res['PRIMER_LEFT_{}_GC_PERCENT'.format(i)], 2)
-				stab1 = round(res['PRIMER_LEFT_{}_END_STABILITY'.format(i)], 2)
-				reverse = colored_seq(res['PRIMER_RIGHT_{}_SEQUENCE'.format(i)])
-				tm2 = round(res['PRIMER_RIGHT_{}_TM'.format(i)], 2)
-				gc2 = round(res['PRIMER_RIGHT_{}_GC_PERCENT'.format(i)], 2)
-				stab2 = round(res['PRIMER_RIGHT_{}_END_STABILITY'.format(i)], 2)
-
-				html_str = """
-				<tr><td class="align-middle" rowspan="2">{}</td><td>Forward</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td class="align-middle" rowspan="2">{}</td></tr>
-				<tr><td>Reverse</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>
-				"""
-				primers.append(html_str.format(num, forward, tm1, gc1, stab1, product, reverse, tm2, gc2, stab2))
-
-			primers = "".join(primers)
-		else:
-			primers = '<tr><td colspan="7">N/A</td></tr>'
-
-		return JsonResponse(dict(
-			seq = "".join(html), 
-			location = lochtml,
-			primer = primers
-		))
 
 @csrf_exempt
 def krait(request):
@@ -573,3 +315,14 @@ def task(request, task_id):
 		if mode == 'ssr':
 			display = SSRTaskDisplay(db_config, request.POST)
 			return display.get_response()
+
+		elif mode == 'cssr':
+			display = CSSRTaskDisplay(db_config, request.POST)
+			return display.get_response()
+
+		elif mode == 'issr':
+			display = ISSRTaskDisplay(db_config, request.POST)
+			return display.get_response()
+
+def analysis(request):
+	return render(request, 'psmd/analysis.html')

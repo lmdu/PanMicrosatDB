@@ -207,43 +207,8 @@
 	</div>
 </div>
 
-<!-- download dialog -->
-<div class="modal fade" id="download-dialog" tabindex="-1" role="dialog" aria-hidden="true">
-	<div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5>Download as file</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		        	<span aria-hidden="true">&times;</span>
-		        </button>
-			</div>
-			<div class="modal-body">
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<label class="input-group-text">Output format</label>
-					</div>
-					<select class="custom-select" id="dl-format">
-						<option value="csv">CSV</option>
-						<option value="tsv">TSV</option>
-						<option value="gff">GFF</option>
-					</select>
-				</div>
-				<div class="input-group mt-3">
-					<div class="input-group-prepend">
-						<label class="input-group-text">Output rows</label>
-					</div>
-					<select class="custom-select" id="dl-rows">
-						<option value="all">All rows</option>
-						<option value="filtered">Filtered rows</option>
-					</select>
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-primary" id="dl-ok">Ok</button>
-			</div>
-		</div>
-	</div>
-</div>
+{% include "psmd/download.html" %}
+{% include "psmd/primer.html" %}
 
 <script type="text/javascript">
 $('#view-option-select').prop('disabled', false);
@@ -263,8 +228,11 @@ var table = $('table#ssrview').DataTable({
 			}
 		},
 		{
-			text: 'primer3 settings',
+			text: 'Primer3',
 			className: 'btn-sm btn-dark',
+			action: function(){
+				$('#primer3-dialog').modal('show');
+			}
 		},
 		{
 			text: 'Download',
@@ -318,10 +286,15 @@ var table = $('table#ssrview').DataTable({
 table.on('draw.dt', function(){
 	$('#ssrview tbody tr').dblclick(function(){
 		var row = table.row(this).data();
+		var params = {ssrid: row[0], type: 'ssr', species: $('#species-select').val()};
+		$('#primer3-dialog input').each(function(){
+			params[$(this).attr('name')] = $(this).val();
+		});
+
 		$.ajax({
 			url: "{{ url('flank') }}",
 			method: 'POST',
-			data: {ssrid: row[0], type: 'ssr', species: $('#species-select').val()},
+			data: params,
 			dataType: 'json'
 		}).done(function(data){
 			$('#ssr-seq-dialog #sequence-table').html(data.seq);
@@ -384,7 +357,7 @@ $('#apply-filter-btn').click(function(){
 });
 
 $('#select-len-sign').change(function(){
-	if($(this).val() == 'in'){
+	if($(this).val() == 'range'){
 		$('#max-length').attr('type', 'number');
 	} else {
 		$('#max-length').attr('type', 'hidden');
@@ -392,7 +365,7 @@ $('#select-len-sign').change(function(){
 });
 
 $('#select-repeat-sign').change(function(){
-	if($(this).val() == 'in'){
+	if($(this).val() == 'range'){
 		$('#max-repeats').attr('type', 'number');
 	} else {
 		$('#max-repeats').attr('type', 'hidden');

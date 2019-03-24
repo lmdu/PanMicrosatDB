@@ -1,56 +1,12 @@
-{% extends "psmd/base.html" %}
-
-{% block title %} Browse - PanMicroSatDB {% endblock %}
-
-{% block main %}
-<div class="row mt-5">
-	<div class="col">
-		<div class="form-row">
-			<div class="form-group col-md-2">
-				<label>Kingdom</label>
-				<select name="kingdom" class="form-control" id="kingdom-select">
-					<option value="{{ species.kingdom[0] }}">{{ species.kingdom[1] }}</option>
-				</select>
-			</div>
-			<div class="form-group col-md-2">
-				<label>Group</label>
-				<select name="group" class="form-control" id="group-select">
-					<option value="{{ species.group[0] }}">{{ species.group[1] }}</option>
-				</select>
-			</div>
-			<div class="form-group col-md-2">
-				<label>Subgroup</label>
-				<select name="subgroup" class="form-control" id="subgroup-select">
-					<option value="{{ species.subgroup[0] }}">{{ species.subgroup[1] }}</option>
-				</select>
-			</div>
-			<div class="form-group col-md-4">
-				<label>Species</label>
-				<select name="species" class="form-control" id="species-select">
-					<option value="{{ species.species[0] }}">{{ species.species[1] }}</option>
-				</select>
-			</div>
-			<div class="form-group col-md-2">
-				<label>Option</label>
-				<select name="species" class="form-control" id="view-option-select">
-					<option value="summary">Summary statistics</option>
-					<option value="ssr">Perfect microsatellite</option>
-					<option value="cssr" selected="selected">Compound microsatellite</option>
-				</select>
-			</div>
-		</div>
-	</div>
-</div>
-
 <div class="row mt-4">
 	<div class="col">
-		<table id="cssrview" class="table table-bordered table-hover" width="100%">
+		<table id="viewer" class="table table-bordered table-hover" width="100%">
 		</table>
 	</div>
 </div>
 
 <!-- sequence view dialog -->
-<div class="modal fade" id="cssr-seq-dialog" role="dialog" aria-hidden="true">
+<div class="modal fade" id="ssr-seq-dialog" role="dialog" aria-hidden="true">
 	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -90,7 +46,7 @@
 	</div>
 </div>
 
-<!-- SSR filter dialog -->
+<!-- cSSR filter dialog -->
 <div class="modal fade" id="ssr-filter-dialog" role="dialog" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
@@ -154,20 +110,6 @@
 						<input type="number" id="input-length" name="length" class="form-control">
 						<input type="hidden" id="max-length" name="maxlength" class="form-control">
 					</div>
-
-					<div class="form-group col-12 input-group">
-						<div class="input-group-prepend">
-							<label class="input-group-text">Location</label>
-						</div>
-						<select class="custom-select" id="select-location" name="location">
-							<option value="0">All</option>
-							<option value="1">CDS</option>
-							<option value="2">exon</option>
-							<option value="3">3'UTR</option>
-							<option value="4">intron</option>
-							<option value="5">5'UTR</option>
-						</select>
-					</div>
 				</div>
 			</div>
 			<div class="modal-footer">
@@ -183,12 +125,12 @@
 
 <script type="text/javascript">
 var apply_filter = false;
-var table = $('table#cssrview').DataTable({
+var table = $('table#viewer').DataTable({
 	scrollX: true,
 	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-right'B>>" +
 		 "<'row'<'col-sm-12'tr>>" +
 		 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-	buttons: [
+	buttons:[
 		{
 			text: 'Filters',
 			className: 'btn-sm btn-info',
@@ -213,24 +155,22 @@ var table = $('table#cssrview').DataTable({
 	],
 	columns: [
 		{name: 'id', title: 'ID'},
-		{name: 'sequence__accession', title: 'Sequence Accession'},
 		{name: 'sequence__name', title: 'Sequence Name'},
 		{name: 'start', title: 'Start'},
 		{name: 'end', title: 'End'},
 		{name: 'complexity', title: 'Complexity'},
 		{name: 'length', title: 'Length'},
 		{name: 'structure', title: 'Pattern', orderable: false},
-		{name: 'location', title: 'Location'}
 	],
 	searching: true,
 	processing: true,
 	serverSide: true,
 	//select: true,
 	ajax: {
-		url: "{{ url('cssrs') }}",
+		url: "{{ url('task', kwargs={'task_id': task.job_id}) }}",
 		type: 'POST',
 		data: function(d){
-			d.species = $('#species-select').val() || '0';
+			d.mode = 'cssr';
 			if(apply_filter){
 				d.sequence = $('#select-sequence').val() || '0';
 				d.begin = $('#input-start').val() || '0';
@@ -248,9 +188,9 @@ var table = $('table#cssrview').DataTable({
 });
 
 table.on('draw.dt', function(){
-	$('#cssrview tbody tr').dblclick(function(){
+	$('#viewer tbody tr').dblclick(function(){
 		var row = table.row(this).data();
-		var params = {ssrid: row[0], type: 'cssr', species: $('#species-select').val()};
+		var params = {ssrid: row[0], type: 'cssr', task:'{{ task.job_id }}'};
 		$('#primer3-dialog input').each(function(){
 			params[$(this).attr('name')] = $(this).val();
 		});
@@ -261,10 +201,10 @@ table.on('draw.dt', function(){
 			data: params,
 			dataType: 'json'
 		}).done(function(data){
-			$('#cssr-seq-dialog #sequence-table').html(data.seq);
-			$('#cssr-seq-dialog #gannot-table tbody').html(data.location);
-			$('#cssr-seq-dialog #primer-table tbody').html(data.primer);
-			$('#cssr-seq-dialog').modal('show');
+			$('#ssr-seq-dialog #sequence-table').html(data.seq);
+			$('#ssr-seq-dialog #gannot-table tbody').html(data.location);
+			$('#ssr-seq-dialog #primer-table tbody').html(data.primer);
+			$('#ssr-seq-dialog').modal('show');
 		});
 	});
 });
@@ -282,8 +222,7 @@ $('select#select-sequence').select2({
 			return {
 				term: params.term,
 				page: params.page,
-				label: $('select#select-seqtype').val(),
-				species: $('#species-select').val(),
+				task: '{{ task.job_id }}',
 				rows: 10
 			};
 		},
@@ -337,7 +276,7 @@ $('#dl-ok').click(function(){
 	var data = {
 		'mode': 'cssr',
 		'outfmt': $('#dl-format').val(),
-		'species': $('#species-select').val()
+		'task': '{{ task.job_id }}'
 	};
 	if(apply_filter && $('#dl-rows').val() == 'filtered'){
 		data.sequence = $('#select-sequence').val() || '0';
@@ -355,10 +294,4 @@ $('#dl-ok').click(function(){
 	$('#download-dialog').modal('hide');
 });
 
-$('#species-select').change(function(){
-	if(parseInt($(this).val())){
-		table.ajax.reload();
-	}
-});
 </script>
-{% endblock %}

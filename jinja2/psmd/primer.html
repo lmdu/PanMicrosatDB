@@ -1,0 +1,120 @@
+<div class="modal fade" id="primer3-dialog" tabindex="-1" role='dialog' aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Primer3 settings</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		        	<span aria-hidden="true">&times;</span>
+		        </button>
+			</div>
+			<div class="modal-body">
+				<table class="table table-sm">
+					<tr>
+						<th colspan="2">General settings</th>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_PRODUCT_SIZE_RANGE</td>
+						<td><input type="text" value="100-300" class="form-control" name="PRIMER_PRODUCT_SIZE_RANGE"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_NUM_RETURN</td>
+						<td><input type="number" value="3" class="form-control" name="PRIMER_NUM_RETURN"></td>
+					</tr>
+					<tr>
+						<th colspan="2">Primer size</th>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MIN_SIZE</td>
+						<td><input type="number" value="18" class="form-control" name="PRIMER_MIN_SIZE"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_OPT_SIZE</td>
+						<td><input type="number" value="20" class="form-control" name="PRIMER_OPT_SIZE"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_SIZE</td>
+						<td><input type="number" value="27" class="form-control" name="PRIMER_MAX_SIZE"></td>
+					</tr>
+					<tr>
+						<th colspan="2">Primer GC content</th>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MIN_GC</td>
+						<td><input type="number" value="20.0" step="0.5" class="form-control" name="PRIMER_MIN_GC"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_GC</td>
+						<td><input type="number" value="80.0" step="0.5" class="form-control" name="PRIMER_MAX_GC"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_GC_CLAMP</td>
+						<td><input type="number" value="2" class="form-control" name="PRIMER_OPT_GC"></td>
+					</tr>
+					<tr>
+						<th colspan="2">Primer melting temperature</th>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MIN_TM</td>
+						<td><input type="number" value="57.0" step="0.5" class="form-control" name="PRIMER_MIN_TM"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_OPT_TM</td>
+						<td><input type="number" value="60.0" step="0.5" class="form-control" name="PRIMER_OPT_TM"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_TM</td>
+						<td><input type="number" value="63.0" step="0.5" class="form-control" name="PRIMER_MAX_TM"></td>
+					</tr>
+					<tr>
+						<th colspan="2">Self-binding (primer-dimer and hairpins)</th>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_SELF_ANY_TH</td>
+						<td><input type="number" value="47.00" step="0.5" class="form-control" name="PRIMER_MAX_SELF_ANY_TH"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_SELF_END_TH</td>
+						<td><input type="number" value="47.00" step="0.5" class="form-control" name="PRIMER_MAX_SELF_END_TH"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_PAIR_MAX_COMPL_ANY_TH</td>
+						<td><input type="number" value="47.00" step="0.5" class="form-control" name="PRIMER_PAIR_MAX_COMPL_ANY_TH"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_PAIR_MAX_COMPL_END_TH</td>
+						<td><input type="number" value="47.00" step="0.5" class="form-control" name="PRIMER_PAIR_MAX_COMPL_END_TH"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_HAIRPIN_TH</td>
+						<td><input type="number" value="47.0" class="form-control" name="PRIMER_MAX_HAIRPIN_TH"></td>
+					</tr>
+					<tr>
+						<th colspan="2">PolyX and others</th>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_END_STABILITY</td>
+						<td><input type="number" value="100.0" step="0.5" class="form-control" name="PRIMER_MAX_END_STABILITY"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_POLY_X</td>
+						<td><input type="number" value="5" class="form-control" name="PRIMER_MAX_POLY_X"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_MAX_NS_ACCEPTED</td>
+						<td><input type="number" value="0" class="form-control" name="PRIMER_MAX_NS_ACCEPTED"></td>
+					</tr>
+					<tr>
+						<td class="align-middle">PRIMER_PAIR_MAX_DIFF_TM</td>
+						<td><input type="number" value="100.0" step="0.5" class="form-control" name="PRIMER_PAIR_MAX_DIFF_TM"></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+$('#primer3-dialog table td.align-middle').click(function(){
+	window.open('http://primer3.org/manual.html#'+$(this).text(), '_blank');
+});
+</script>

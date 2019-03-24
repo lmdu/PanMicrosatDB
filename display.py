@@ -1,7 +1,10 @@
 import re
+import primer3
 
 from .utils import *
+from .models import Job
 from .router import in_database
+from .thirds.issr import generate_alignment
 
 from django.http import JsonResponse
 
@@ -115,10 +118,39 @@ class CSSRDisplay(BaseDisplay):
 		return (cssr.id, cssr.sequence.accession, cssr.sequence.name, \
 			cssr.start, cssr.end, cssr.complexity, cssr.length, pattern, location)
 
-class BaseDetail(objects):
+class CSSRTaskDisplay(CSSRDisplay):
+	def __init__(self, db, post):
+		super(CSSRTaskDisplay, self).__init__(db, post)
+
+	def format_row(self, cssr):
+		pattern = colored_cssr_pattern(cssr.structure)
+		pattern = re.sub(r'(\d+)', lambda m: '<sub>'+m.group(0)+'</sub>', pattern)
+
+		return (cssr.id, cssr.sequence.name, cssr.start, cssr.end, cssr.complexity, \
+		 cssr.length, pattern)
+
+class ISSRTaskDisplay(BaseDisplay):
+	def __init__(self, db, post):
+		super(ISSRTaskDisplay, self).__init__(db, post)
+
+	@property
+	def model(self):
+		return ISSR.objects.select_related()
+
+	@property
+	def filters(self):
+		return get_ssr_request_filters(self.post)
+
+	def format_row(self, ssr):
+		return (ssr.id, ssr.sequence.name, ssr.start, ssr.end, colored_seq(ssr.motif), \
+				colored_seq(ssr.standard_motif), ssr.get_ssr_type_display(), ssr.length, \
+				ssr.match, ssr.substitution, ssr.insertion, ssr.deletion, ssr.score)
+
+
+class BaseDetail(object):
 	def __init__(self, db, post):
 		self.db = db
-		self.ssr_id = int(post.get('ssr_id'))
+		self.ssr_id = int(post.get('ssrid'))
 		self.primer_settings = get_primer_setttings(post)
 		#get detailed information
 		self.get_detail()
@@ -131,18 +163,24 @@ class BaseDetail(objects):
 	def seq(self):
 		return "".join([self.ssr.motif]*self.ssr.repeats)
 
+	def get_flank(self):
+		return self.ssr.ssrmeta
+
+	def get_annotation(self):
+		return self.ssr.ssrannot
+
 	def get_detail(self):
 		with in_database(self.db):
 			self.ssr = self.model.get(id=self.ssr_id)
-			self.flank = self.ssr.ssrmeta
+			self.flank = self.get_flank()
 			try:
-				self.annot = self.ssr.ssrannot
+				self.annot = self.get_annotation()
 				self.gene = self.annot.gene
 			except:
 				self.annot = None
 				self.gene = None
 
-	def format_nucleotide(base):
+	def format_nucleotide(self, base):
 		return """<div class="sequence-nucleotide">
 					<div class="base-row sequence-box">
 						<span class="nucleobase {0}">{0}</span>
@@ -152,7 +190,7 @@ class BaseDetail(objects):
 					</div>
 				</div>""".format(base)
 
-	def format_target(base):
+	def format_target(self, base, meta):
 		return """<div class="sequence-nucleotide">
 					<div class="base-row sequence-box">
 						<span class="nucleobase-target {0}">{0}</span>
@@ -160,7 +198,7 @@ class BaseDetail(objects):
 					<div class="meta-row sequence-box">
 						<span class="meta-info">{1}</span>
 					</div>
-				</div>""".format(base)
+				</div>""".format(base, meta)
 
 	def get_sequence(self):
 		html = []
@@ -168,16 +206,11 @@ class BaseDetail(objects):
 		for b in self.flank.left_flank:
 			html.append(self.format_nucleotide(b))
 
-		#if type_ == 'ssr':
-		#	ssr_seq = "".join([ssr.motif]*ssr.repeats)
-		#elif type_ == 'cssr':
-		#	ssr_seq = cssr_pattern_to_seq(ssr.structure)
-
 		for i,b in enumerate(self.seq):
 			if i == 0:
-				html.append(self.format_target(b, ssr.start))
+				html.append(self.format_target(b, self.ssr.start))
 			elif i + 1 == len(self.seq):
-				html.append(self.format_target(b, ssr.end))
+				html.append(self.format_target(b, self.ssr.end))
 			else:
 				html.append(self.format_target(b, ''))
 
@@ -242,3 +275,50 @@ class BaseDetail(objects):
 			primer = self.get_primer()
 		))
 
+class SSRDetail(BaseDetail):
+	pass
+
+class CSSRDetail(BaseDetail):
+	@property
+	def model(self):
+		return CSSR.objects
+
+	@property
+	def seq(self):
+		return cssr_pattern_to_seq(self.ssr.structure)
+
+	def get_flank(self):
+		return self.ssr.cssrmeta
+
+	def get_annotation(self):
+		return self.ssr.cssrannot
+
+class ISSRDetail(BaseDetail):
+	@property
+	def model(self):
+		return ISSR.objects
+
+	@property
+	def seq(self):
+		return self.ssr.issrmeta.self_seq
+
+	def get_flank(self):
+		return self.ssr.issrmeta
+
+	def get_location(self):
+		tid = self.db['NAME'].split('/')[-1].replace('.db', '')
+		task = Job.objects.get(job_id=tid)
+		r = re.findall(r'(\d+)', task.parameter)[0:3]
+		seed_rep, seed_len, max_err = tuple(map(int, r))
+
+		origin, copy = generate_alignment(self.seq, seed_rep, seed_len, max_err, 500)
+
+		alignment = ['<div class="B mr-3"><span>Imperfect</span><br><span></span><br><span>Perfect</span></div>']
+		for i in range(len(origin)):
+			if origin[i] == copy[i]:
+				align = '|'
+			else:
+				align = ''
+			alignment.append('<div class="B"><span class="{0}">{0}</span><br><span>{1}<span><br><span>{2}<span></div>'.format(origin[i], align, copy[i]))
+		
+		return "".join(alignment)

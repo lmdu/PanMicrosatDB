@@ -47,7 +47,7 @@ $('#group-select').select2({
 			return {
 				term: params.term,
 				page: params.page,
-				parent: $('#kingdom-select').val(),
+				parent: $('#kingdom-select').val() || 0,
 				level: 2,
 				rows: 10
 			};
@@ -79,7 +79,7 @@ $('#subgroup-select').select2({
 			return {
 				term: params.term,
 				page: params.page,
-				parent: $('#group-select').val(),
+				parent: $('#group-select').val() || 0,
 				level: 3,
 				rows: 10
 			};
@@ -111,7 +111,7 @@ $('#species-select').select2({
 			return {
 				term: params.term,
 				page: params.page,
-				parent: $('#subgroup-select').val(),
+				parent: $('#subgroup-select').val() || 0,
 				level: 4,
 				rows: 10
 			};
@@ -169,7 +169,5 @@ $('#species-select').on('change', function(){
 		$('#view-option-select').prop('disabled', true);
 	}
 });
-
-
 
 });

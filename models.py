@@ -161,10 +161,10 @@ class ISSR(models.Model):
 	standard_motif = models.CharField(max_length=6)
 	ssr_type = models.SmallIntegerField(choices=ISSR_TYPES)
 	length = models.IntegerField()
-	match = models.IntegerField(),
-	substitution = models.IntegerField(),
-	insertion = models.IntegerField(),
-	deletion = models.IntegerField(),
+	match = models.IntegerField()
+	substitution = models.IntegerField()
+	insertion = models.IntegerField()
+	deletion = models.IntegerField()
 	score = models.IntegerField()
 
 	class Meta:
@@ -174,6 +174,7 @@ class ISSRMeta(models.Model):
 	issr = models.OneToOneField(ISSR, on_delete=models.CASCADE, primary_key=True)
 	left_flank = models.CharField(max_length=100)
 	right_flank = models.CharField(max_length=100)
+	self_seq = models.TextField()
 	
 	class Meta:
 		db_table = 'issrmeta'

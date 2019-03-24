@@ -10,9 +10,9 @@ urlpatterns = [
 	path('browse', views.browse, name='browse'),
 	path('compound', views.compound, name='cssrs'),
 	path('download', views.download, name='download'),
+	path('analysis', views.analysis, name='analysis'),
 	path('seqid', views.sequence, name='seqid'),
 	path('flank', views.flank, name='flank'),
-	path('cssrdetail', views.get_cssr_detail, name='cssr_detail'),
 	path('krait', views.krait, name='krait'),
 	path('task/<task_id>', views.task, name='task'),
 ]

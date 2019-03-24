@@ -33,7 +33,6 @@ CREATE TABLE ssrmeta(
 	left_flank TEXT,
 	right_flank TEXT
 );
-
 CREATE TABLE cssr(
 	id INTEGER PRIMARY KEY,
 	sequence_id INTEGER,
@@ -49,7 +48,6 @@ CREATE TABLE cssrmeta(
 	left_flank TEXT,
 	right_flank TEXT
 );
-
 CREATE TABLE issr(
 	id INTEGER PRIMARY KEY,
 	sequence_id INTEGER,
@@ -68,7 +66,8 @@ CREATE TABLE issr(
 CREATE TABLE issrmeta(
 	issr_id INTEGER PRIMARY KEY,
 	left_flank TEXT,
-	right_flank TEXT
+	right_flank TEXT,
+	self_seq TEXT
 );
 """
 
@@ -242,16 +241,17 @@ def search_for_cssr(db, fasta_file, min_repeats, dmax, flank_len):
 			cm[0] = cm_num
 			cms.append(cm)
 			
-		cm_sql = "INSERT INTO ssr VALUES (?,?,?,?,?,?,?)"
+		cm_sql = "INSERT INTO cssr VALUES (?,?,?,?,?,?,?)"
 		db.cursor().executemany(cm_sql, cms)
 
 		def extract_flank(cm):
 			left, right = get_flank_seq(seq, cm[2], cm[3], flank_len)
 			return (cm[0], left, right)
-		flank_sql = "INSERT INTO ssrmeta VALUES (?,?,?)"
+		flank_sql = "INSERT INTO cssrmeta VALUES (?,?,?)"
 		db.cursor().executemany(flank_sql, map(extract_flank, cms))
 
-def search_for_issr(db, fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, gap_penalty, min_score, standard_level, flank_len):
+def search_for_issr(db, fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, \
+					gap_penalty, min_score, standard_level, flank_len):
 	standard_motifs = StandardMotif(standard_level)
 	seq_num = 0
 	issr_num = 1
@@ -260,19 +260,22 @@ def search_for_issr(db, fasta_file, seed_repeat, seed_len, max_edits, mis_penalt
 		seq_num += 1
 		db.cursor().execute(seq_sql, (seq_num, seqid, seqid))
 
-		issrs = tandem.search_issr(seq, seed_repeat, seed_len, max_edits, mis_penalty, gap_penalty, min_score, 500)
+		issrs = tandem.search_issr(seq, seed_repeat, seed_len, max_edits, mis_penalty, \
+									gap_penalty, min_score, 500)
 		if not issrs:
 			continue
 
-		issrs = [(issr_num+idx, seq_num, issr[2], issr[3], issr[0], standard_motifs.standard(issr[0]), issr[4], issr[5], issr[6], issr[7], issr[8], issr[9]) for idx,issr in enumerat(issrs)]
+		issrs = [(issr_num+idx, seq_num, issr[2], issr[3], issr[0], standard_motifs.standard(issr[0]), issr[1], \
+				 issr[4], issr[5], issr[6], issr[7], issr[8], issr[9]) for idx,issr in enumerate(issrs)]
 		issr_num += len(issrs)
-		issr_sql = "INSERT INTO issr VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+		issr_sql = "INSERT INTO issr VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 		db.cursor().executemany(issr_sql, issrs)
 
 		def extract_flank(issr):
-			letf, right = get_flank_seq(seq, issr[2], issr[3], flank_len)
-			return (issr[0], left, right)
-		flank_sql = "INSERT INTO ssrmeta VALUES (?,?,?)"
+			left, right = get_flank_seq(seq, issr[2], issr[3], flank_len)
+			return (issr[0], left, right, seq[issr[2]-1:issr[3]])
+
+		flank_sql = "INSERT INTO issrmeta VALUES (?,?,?,?)"
 		db.cursor().executemany(flank_sql, map(extract_flank, issrs))
 
 class BaseTask(Task):
@@ -324,7 +327,7 @@ def search_ssrs(self, params):
 	elif params['ssr_type'] == 'cssr':
 		min_repeats = [int(rep) for rep in params['min_reps'].split('-')]
 		dmax = int(params['dmax'])
-		search_for_cssr(fasta_file, min_repeats, dmax, flank_length)
+		search_for_cssr(self.db, fasta_file, min_repeats, dmax, flank_length)
 
 	elif params['ssr_type'] == 'issr':
 		seed_repeat = int(params['min_seed_rep'])
@@ -334,5 +337,5 @@ def search_ssrs(self, params):
 		gap_penalty = int(params['gap_penalty'])
 		min_score = int(params['min_score'])
 		standard_level = int(params['level'])
-		search_for_issr(fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, \
-		 gap_penalty, min_score, standard_level, flank_len)
+		search_for_issr(self.db, fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, \
+		 gap_penalty, min_score, standard_level, flank_length)

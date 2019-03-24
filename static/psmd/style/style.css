@@ -63,6 +63,11 @@ nav.navbar{
 	margin-right: 1.5rem;
 }
 
+#primer3-dialog table td.align-middle{
+	color: #32a1cf;
+	cursor: pointer;
+}
+
 footer{
 	background: #343b44;
 	color: #fff;
@@ -88,14 +93,14 @@ footer{
 }
 
 .sequence-table .sequence-nucleotide {
-	font-size: 12px;
+	font-size: 13px;
 	padding: 0;
 	display: flex;
 	flex-direction: column;
 }
 
 .sequence-table .sequence-nucleotide .base-row {
-	font-size: 12px;
+	font-size: 13px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -216,18 +221,18 @@ footer{
 	font-family: "RobotoMono";
 	margin-right: 2px;
 }
-.B.A{
+.A{
 	color:#5050ff;
 }
-.B.T{
+.T{
 	color: #FFA500;
 }
-.B.G{
+.G{
 	color:#00c000;
 }
-.B.C{
+.C{
 	color:#e00000;
 }
-.B.N{
+.N{
 	color:#bbb;
 }

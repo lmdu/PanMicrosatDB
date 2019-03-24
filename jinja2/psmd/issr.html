@@ -1,56 +1,12 @@
-{% extends "psmd/base.html" %}
-
-{% block title %} Browse - PanMicroSatDB {% endblock %}
-
-{% block main %}
-<div class="row mt-5">
-	<div class="col">
-		<div class="form-row">
-			<div class="form-group col-md-2">
-				<label>Kingdom</label>
-				<select name="kingdom" class="form-control" id="kingdom-select">
-					<option value="{{ species.kingdom[0] }}">{{ species.kingdom[1] }}</option>
-				</select>
-			</div>
-			<div class="form-group col-md-2">
-				<label>Group</label>
-				<select name="group" class="form-control" id="group-select">
-					<option value="{{ species.group[0] }}">{{ species.group[1] }}</option>
-				</select>
-			</div>
-			<div class="form-group col-md-2">
-				<label>Subgroup</label>
-				<select name="subgroup" class="form-control" id="subgroup-select">
-					<option value="{{ species.subgroup[0] }}">{{ species.subgroup[1] }}</option>
-				</select>
-			</div>
-			<div class="form-group col-md-4">
-				<label>Species</label>
-				<select name="species" class="form-control" id="species-select">
-					<option value="{{ species.species[0] }}">{{ species.species[1] }}</option>
-				</select>
-			</div>
-			<div class="form-group col-md-2">
-				<label>Option</label>
-				<select name="species" class="form-control" id="view-option-select">
-					<option value="summary">Summary statistics</option>
-					<option value="ssr">Perfect microsatellite</option>
-					<option value="cssr" selected="selected">Compound microsatellite</option>
-				</select>
-			</div>
-		</div>
-	</div>
-</div>
-
 <div class="row mt-4">
 	<div class="col">
-		<table id="cssrview" class="table table-bordered table-hover" width="100%">
+		<table id="viewer" class="table table-bordered table-hover" width="100%">
 		</table>
 	</div>
 </div>
 
 <!-- sequence view dialog -->
-<div class="modal fade" id="cssr-seq-dialog" role="dialog" aria-hidden="true">
+<div class="modal fade" id="ssr-seq-dialog" role="dialog" aria-hidden="true">
 	<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -62,17 +18,8 @@
 			<div class="modal-body">
 				<h6>Sequence</h6>
 				<div class="sequence-table sequence-box" id="sequence-table"></div>
-				<h6>Genic location</h6>
-				<table class="table table-bordered table-sm" id="gannot-table">
-					<thead>
-						<th>Gene ID</th>
-						<th>Gene Name</th>
-						<th>Biotype</th>
-						<th>Dbxref</th>
-						<th>Location</th>
-					</thead>
-					<tbody></tbody>
-				</table>
+				<h6>Alignment</h6>
+				<div class="mb-3" id="alignment"></div>
 				<h6>Primers</h6>
 				<table class="table table-bordered table-sm" id="primer-table">
 					<thead>
@@ -95,7 +42,7 @@
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Set Compound SSR filters</h5>
+				<h5 class="modal-title">Set SSR filters</h5>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 		        	<span aria-hidden="true">&times;</span>
 		        </button>
@@ -104,10 +51,7 @@
 				<div class="form-row">
 					<div class="form-group col-12 input-group">
 						<div class="input-group-prepend">
-							<select class="input-group-text" id="select-seqtype">
-								<option value="name">Name</option>
-								<option value="accession">Accession</option>
-							</select>
+							<label class="input-group-text">Sequence name</label>
 						</div>
 						<select class="custom-select" name="sequence" id="select-sequence"></select>
 					</div>
@@ -123,20 +67,34 @@
 						<input type="number" id="input-end" name="end" class="form-control">
 					</div>
 
+					<div class="form-group col-5 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Motif</label>
+						</div>
+						<input type="text" id="input-motif" name="motif" class="form-control">
+					</div>
+
+					<div class="form-group col-7 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Standard Motif</label>
+						</div>
+						<input type="text" id="input-smotif" name="smotif" class="form-control">
+					</div>
+
 					<div class="form-group col-12 input-group">
 						<div class="input-group-prepend">
-							<label class="input-group-text">Complexity</label>
-							<select class="custom-select input-group-text" id="select-complex-sign" name="complexsign">
+							<label class="input-group-text">Repeats</label>
+							<select class="custom-select input-group-text" id="select-repeat-sign" name="repeatsign">
 								<option value="gt">></option>
 								<option value="gte">>=</option>
 								<option value="eq">=</option>
 								<option value="lt"><</option>
 								<option value="lte"><=</option>
-								<option value="range">between</option>
+								<option value="in">between</option>
 							</select>
 						</div>
-						<input type="number" id="input-complex" name="complex" class="form-control">
-						<input type="hidden" id="max-complex" name="maxcopmplex" class="form-control">
+						<input type="number" id="input-repeats" name="repeats" class="form-control">
+						<input type="hidden" id="max-repeats" name="maxrepeats" class="form-control">
 					</div>
 
 					<div class="form-group col-12 input-group">
@@ -148,24 +106,25 @@
 								<option value="eq">=</option>
 								<option value="lt"><</option>
 								<option value="lte"><=</option>
-								<option value="range">between</option>
+								<option value="in">between</option>
 							</select>
 						</div>
 						<input type="number" id="input-length" name="length" class="form-control">
 						<input type="hidden" id="max-length" name="maxlength" class="form-control">
 					</div>
 
-					<div class="form-group col-12 input-group">
+					<div class="form-group col-6 input-group">
 						<div class="input-group-prepend">
-							<label class="input-group-text">Location</label>
+							<label class="input-group-text">Type</label>
 						</div>
-						<select class="custom-select" id="select-location" name="location">
+						<select class="custom-select" id="select-ssrtype" name="ssrtype">
 							<option value="0">All</option>
-							<option value="1">CDS</option>
-							<option value="2">exon</option>
-							<option value="3">3'UTR</option>
-							<option value="4">intron</option>
-							<option value="5">5'UTR</option>
+							<option value="1">Mono</option>
+							<option value="2">Di</option>
+							<option value="3">Tri</option>
+							<option value="4">Tetra</option>
+							<option value="5">Penta</option>
+							<option value="6">Hexa</option>
 						</select>
 					</div>
 				</div>
@@ -183,12 +142,12 @@
 
 <script type="text/javascript">
 var apply_filter = false;
-var table = $('table#cssrview').DataTable({
+var table = $('table#viewer').DataTable({
 	scrollX: true,
 	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-right'B>>" +
 		 "<'row'<'col-sm-12'tr>>" +
 		 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-	buttons: [
+	buttons:[
 		{
 			text: 'Filters',
 			className: 'btn-sm btn-info',
@@ -213,31 +172,38 @@ var table = $('table#cssrview').DataTable({
 	],
 	columns: [
 		{name: 'id', title: 'ID'},
-		{name: 'sequence__accession', title: 'Sequence Accession'},
 		{name: 'sequence__name', title: 'Sequence Name'},
 		{name: 'start', title: 'Start'},
 		{name: 'end', title: 'End'},
-		{name: 'complexity', title: 'Complexity'},
+		{name: 'motif', title: 'Motif'},
+		{name: 'standard_motif', title: 'Standard Motif'},
+		{name: 'ssr_type', title: 'Type'},
 		{name: 'length', title: 'Length'},
-		{name: 'structure', title: 'Pattern', orderable: false},
-		{name: 'location', title: 'Location'}
+		{name: 'match', title: 'Match'},
+		{name: 'substitution', title: 'Substitution'},
+		{name: 'insertion', title: 'Insertion'},
+		{name: 'deletion', title: 'Deletion'},
+		{name: 'score', title: 'Score'}
 	],
 	searching: true,
 	processing: true,
 	serverSide: true,
 	//select: true,
 	ajax: {
-		url: "{{ url('cssrs') }}",
+		url: "{{ url('task', kwargs={'task_id': task.job_id}) }}",
 		type: 'POST',
 		data: function(d){
-			d.species = $('#species-select').val() || '0';
+			d.mode = 'issr';
 			if(apply_filter){
 				d.sequence = $('#select-sequence').val() || '0';
 				d.begin = $('#input-start').val() || '0';
 				d.end = $('#input-end').val() || '0';
-				d.cpxsign = $('#select-complex-sign').val();
-				d.complex = $('#input-complex').val() || '0';
-				d.maxcpx = $('#max-complex').val() || '0';
+				d.motif = $('#input-motif').val();
+				d.smotif = $('#input-smotif').val();
+				d.ssrtype = $('#select-ssrtype').val();
+				d.repsign = $('#select-repeat-sign').val();
+				d.repeats = $('#input-repeats').val() || '0';
+				d.maxrep = $('#max-repeats').val() || '0';
 				d.lensign = $('#select-len-sign').val();
 				d.ssrlen = $('#input-length').val() || '0';
 				d.maxlen = $('#max-length').val() || '0';
@@ -248,9 +214,9 @@ var table = $('table#cssrview').DataTable({
 });
 
 table.on('draw.dt', function(){
-	$('#cssrview tbody tr').dblclick(function(){
+	$('#viewer tbody tr').dblclick(function(){
 		var row = table.row(this).data();
-		var params = {ssrid: row[0], type: 'cssr', species: $('#species-select').val()};
+		var params = {ssrid: row[0], type: 'issr', task:'{{ task.job_id }}'};
 		$('#primer3-dialog input').each(function(){
 			params[$(this).attr('name')] = $(this).val();
 		});
@@ -261,10 +227,10 @@ table.on('draw.dt', function(){
 			data: params,
 			dataType: 'json'
 		}).done(function(data){
-			$('#cssr-seq-dialog #sequence-table').html(data.seq);
-			$('#cssr-seq-dialog #gannot-table tbody').html(data.location);
-			$('#cssr-seq-dialog #primer-table tbody').html(data.primer);
-			$('#cssr-seq-dialog').modal('show');
+			$('#ssr-seq-dialog #sequence-table').html(data.seq);
+			$('#ssr-seq-dialog #alignment').html(data.location);
+			$('#ssr-seq-dialog #primer-table tbody').html(data.primer);
+			$('#ssr-seq-dialog').modal('show');
 		});
 	});
 });
@@ -282,8 +248,7 @@ $('select#select-sequence').select2({
 			return {
 				term: params.term,
 				page: params.page,
-				label: $('select#select-seqtype').val(),
-				species: $('#species-select').val(),
+				task: '{{ task.job_id }}',
 				rows: 10
 			};
 		},
@@ -307,7 +272,9 @@ $('#reset-filter-btn').click(function(){
 	apply_filter = false;
 	$('#ssr-filter-dialog input').val('');
 	$('#ssr-filter-dialog select').val('').trigger('change');
-	$('#select-complex-sign').val('gt').trigger('change');
+	$('#select-ssrtype').val('0').trigger('change');
+	$('#select-location').val('0').trigger('change');
+	$('#select-repeat-sign').val('gt').trigger('change');
 	$('#select-len-sign').val('gt').trigger('change');
 	table.ajax.reload();
 });
@@ -318,34 +285,37 @@ $('#apply-filter-btn').click(function(){
 });
 
 $('#select-len-sign').change(function(){
-	if($(this).val() == 'range'){
+	if($(this).val() == 'in'){
 		$('#max-length').attr('type', 'number');
 	} else {
 		$('#max-length').attr('type', 'hidden');
 	}
 });
 
-$('#select-complex-sign').change(function(){
-	if($(this).val() == 'range'){
-		$('#max-complex').attr('type', 'number');
+$('#select-repeat-sign').change(function(){
+	if($(this).val() == 'in'){
+		$('#max-repeats').attr('type', 'number');
 	} else {
-		$('#max-complex').attr('type', 'hidden');
+		$('#max-repeats').attr('type', 'hidden');
 	}
 });
 
 $('#dl-ok').click(function(){
 	var data = {
-		'mode': 'cssr',
+		'mode': 'issr',
 		'outfmt': $('#dl-format').val(),
-		'species': $('#species-select').val()
+		'task': '{{ task.job_id }}'
 	};
 	if(apply_filter && $('#dl-rows').val() == 'filtered'){
 		data.sequence = $('#select-sequence').val() || '0';
 		data.begin = $('#input-start').val() || '0';
 		data.end = $('#input-end').val() || '0';
-		data.cpxsign = $('#select-complex-sign').val();
-		data.complex = $('#input-complex').val() || '0';
-		data.maxcpx = $('#max-complex').val() || '0';
+		data.motif = $('#input-motif').val();
+		data.smotif = $('#input-smotif').val();
+		data.ssrtype = $('#select-ssrtype').val();
+		data.repsign = $('#select-repeat-sign').val();
+		data.repeats = $('#input-repeats').val() || '0';
+		data.maxrep = $('#max-repeats').val() || '0';
 		data.lensign = $('#select-len-sign').val();
 		data.ssrlen = $('#input-length').val() || '0';
 		data.maxlen = $('#max-length').val() || '0';
@@ -355,10 +325,4 @@ $('#dl-ok').click(function(){
 	$('#download-dialog').modal('hide');
 });
 
-$('#species-select').change(function(){
-	if(parseInt($(this).val())){
-		table.ajax.reload();
-	}
-});
 </script>
-{% endblock %}
