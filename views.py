@@ -1,5 +1,6 @@
 import re
 import json
+import datetime
 
 from django.shortcuts import render
 from django.http import JsonResponse, Http404
@@ -18,9 +19,14 @@ from .downloader import *
 
 # Create your views here.
 def index(request):
-	v = News.objects.filter(category=1).latest('created')
-	version = v.title.split()[1]
-	release = v.created
+	try:
+		v = News.objects.filter(category=1).latest('created')
+	except News.DoesNotExist:
+		version = '0.1'
+		release = datetime.datetime.now()
+	else:
+		version = v.title.split()[1]
+		release = v.created
 
 	posts = News.objects.order_by('-id')[:10]
 
