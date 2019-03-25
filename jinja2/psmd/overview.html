@@ -20,17 +20,11 @@
 			<option value="0"></option>
 		</select>
 	</div>
-	<div class="form-group col-md-5">
+	<div class="form-group col-md-6">
 		<label>Species</label>
 		<select name="species" class="form-control form-control-lg" id="species-select">
 			<option value="0" selected="selected"></option>
 		</select>
-	</div>
-	<div class="form-group col-md-1 align-self-end text-right">
-		<div class="btn-group btn-group-sm">
-			<button class="btn btn-secondary" type="button" id="reset-category">Reset</button>
-			<button class="btn btn-primary" type="button">Download</button>
-		</div>
 	</div>
 </div>
 
@@ -39,6 +33,7 @@
 		<table id="summary" class="table table-bordered table-hover" width="100%">
 			<thead>
 				<tr>
+					<th rowspan="2" class="align-middle">ID</th>
 					<th rowspan="2" class="align-middle">Taxonomy</th>
 					<th rowspan="2" class="align-middle">Species</th>
 					<th rowspan="2" class="align-middle">Accession</th>
@@ -64,6 +59,23 @@
 </div>
 <script type="text/javascript">
 var table = $('#summary').DataTable({
+	scrollX: true,
+	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-right'B>>" +
+		 "<'row'<'col-sm-12'tr>>" +
+		 "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+	buttons:[
+		{
+			text: 'Reset taxonomy',
+			className: 'btn-sm btn-info',
+			action: function(){
+				$('#kingdom-select').val(0).trigger('change');
+				$('#group-select').val(0).trigger('change');
+				$('#subgroup-select').val(0).trigger('change');
+				$('#species-select').val(0).trigger('change');
+				table.ajax.reload();
+			}
+		}
+	],
 	searching: true,
 	processing: true,
 	serverSide: true,
@@ -77,6 +89,13 @@ var table = $('#summary').DataTable({
 			d.species = $('#species-select').val();
 		}
 	}
+});
+
+table.on('draw.dt', function(){
+	$('#summary tbody tr').dblclick(function(){
+		var row = table.row(this).data();
+		$.redirect("{{ url('species') }}", {species: row[0]}, 'POST', '_blank');
+	});
 });
 
 $('#kingdom-select').change(function(){
@@ -98,13 +117,6 @@ $('#species-select').change(function(){
 	if($(this).val()){
 		table.ajax.reload();
 	}
-});
-$('#reset-category').click(function(){
-	$('#kingdom-select').val(0).trigger('change');
-	$('#group-select').val(0).trigger('change');
-	$('#subgroup-select').val(0).trigger('change');
-	$('#species-select').val(0).trigger('change');
-	table.ajax.reload();
 });
 </script>
 {% endblock %}

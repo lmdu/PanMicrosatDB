@@ -46,7 +46,7 @@
 					<div class="col text-center">
 						<a href="">
 							<figure>
-								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/human.png') }}">
+								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/human.png') }}">
 								<figcaption>Human</figcaption>
 							</figure>
 						</a>
@@ -54,7 +54,7 @@
 					<div class="col text-center">
 						<a href="">
 							<figure>
-								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/mouse.png') }}">
+								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/mouse.png') }}">
 								<figcaption>Mouse</figcaption>
 							</figure>
 						</a>
@@ -62,7 +62,7 @@
 					<div class="col text-center">
 						<a href="">
 							<figure>
-								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/chicken.png') }}">
+								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/chicken.png') }}">
 								<figcaption>Chicken</figcaption>
 							</figure>
 						</a>
@@ -70,7 +70,7 @@
 					<div class="col text-center">
 						<a href="">
 							<figure>
-								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/zebrafish.png') }}">
+								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/zebrafish.png') }}">
 								<figcaption>Zebrafish</figcaption>
 							</figure>
 						</a>
@@ -78,7 +78,7 @@
 					<div class="col text-center">
 						<a href="">
 							<figure>
-								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/fruitfly.png') }}">
+								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/fruitfly.png') }}">
 								<figcaption>Fruitfly</figcaption>
 							</figure>
 						</a>
@@ -86,7 +86,7 @@
 					<div class="col text-center">
 						<a href="">
 							<figure>
-								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/nematode.png') }}">
+								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/nematode.png') }}">
 								<figcaption>Nematode</figcaption>
 							</figure>
 						</a>
@@ -94,7 +94,7 @@
 					<div class="col text-center">
 						<a href="">
 							<figure>
-								<img class="rounded-circle img-thumbnail" src="{{ static('panmicrosatdb/img/arabidopsis.png') }}">
+								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/arabidopsis.png') }}">
 								<figcaption>Arabidopsis</figcaption>
 							</figure>
 						</a>
@@ -110,13 +110,13 @@
 				<h4>Related Database</h4>
 				<ul class="list-inline">
 					<li class="list-inline-item">
-						<img src="{{ static('panmicrosatdb/img/msdb.png') }}">
+						<img src="{{ static('psmd/img/msdb.png') }}">
 					</li>
 					<li class="list-inline-item ml-3">
-						<img src="{{ static('panmicrosatdb/img/pmdbase.png') }}">
+						<img src="{{ static('psmd/img/pmdbase.png') }}">
 					</li>
 					<li class="list-inline-item ml-3">
-						<img src="{{ static('panmicrosatdb/img/fishmicrosat.jpg') }}">
+						<img src="{{ static('psmd/img/fishmicrosat.jpg') }}">
 					</li>
 				</ul>
 			</div>
@@ -130,12 +130,12 @@
 					<ul class="list-group list-group-flush">
 						<li class="list-group-item d-flex justify-content-between align-items-center">
 							Current Version
-							<span class="badge badge-info badge-pill">1.0</span>
+							<span class="badge badge-info badge-pill">{{ version }}</span>
 						</li>
 						<li class="list-group-item d-flex justify-content-between align-items-center
 						">
 							Last Updated
-							<span class="badge badge-info badge-pill">Oct 18, 2018</span>
+							<span class="badge badge-info badge-pill">{{ release|date('M j, Y') }}</span>
 						</li>
 						
 					</ul>
@@ -143,41 +143,15 @@
 				<div class="card mt-3">
 					<h4 class="card-header">News</h4>
 					<div class="list-group list-group-flush">
+						{% for post in posts %}
 						<div class="list-group-item align-items-center">
 							<div class="d-flex justify-content-between">
-								<h5>Version 1</h5>
-								<small>Dec 12, 2018</small>
+								<h5><a href="">{{ post.title }}</a></h5>
+								<small>{{ post.created|date('M j, Y') }}</small>
 							</div>
-							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
+							<p>{{ post.abstract }}</p>
 						</div>
-						<div class="list-group-item align-items-center">
-							<div class="d-flex justify-content-between">
-								<h5>Version 2</h5>
-								<small>Dec 20, 2018</small>
-							</div>
-							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
-						</div>
-						<div class="list-group-item align-items-center">
-							<div class="d-flex justify-content-between">
-								<h5>Version 1</h5>
-								<small>Dec 12, 2018</small>
-							</div>
-							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
-						</div>
-						<div class="list-group-item align-items-center">
-							<div class="d-flex justify-content-between">
-								<h5>Version 4</h5>
-								<small>Dec 12, 2018</small>
-							</div>
-							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
-						</div>
-						<div class="list-group-item align-items-center">
-							<div class="d-flex justify-content-between">
-								<h5>Version 4</h5>
-								<small>Dec 12, 2018</small>
-							</div>
-							<p>Add nearly any HTML within, even for linked list groups like the one below, with the help of flexbox utilities.</p>
-						</div>
+						{% endfor %}
 					</div>
 				</div>
 			</div>

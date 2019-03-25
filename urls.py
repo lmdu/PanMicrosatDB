@@ -11,6 +11,7 @@ urlpatterns = [
 	path('compound', views.compound, name='cssrs'),
 	path('download', views.download, name='download'),
 	path('analysis', views.analysis, name='analysis'),
+	path('search', views.search, name='search'),
 	path('seqid', views.sequence, name='seqid'),
 	path('flank', views.flank, name='flank'),
 	path('krait', views.krait, name='krait'),

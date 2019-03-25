@@ -41,14 +41,17 @@
 				<li class="nav-item"><a href="{{ url('krait') }}" class="nav-link">Krait</a></li>
 				<li class="nav-item"><a href="" class="nav-link">Help</a></li>
 			</ul>
-			<form class="form-inline">
-				<div class="input-group">
-					<input type="text" class="form-control" id="search-bar" name="search" placeholder="Species name, common name, assembly accession, taxonomy ID">
-					<div class="input-group-append">
-						<button class="btn btn-base" type="submit">Search</button>
+			<div class="form-inline">
+				<div class="dropdown" id="search-bar">
+					<input type="text" class="form-control" placeholder="name, taxonomy accession" title="Species name, common name, assembly accession, taxonomy ID">
+					<div class="dropdown-menu">
+						<table class="table table-sm">
+							<thead><th>Taxonomy</th><th>Species</th><th>Common name</th><th>Accession</th></thead>
+							<tbody></tbody>
+						</table>
 					</div>
 				</div>
-			</form>	
+			</div>	
 		</div>
 	</div>
 </nav>
@@ -73,6 +76,33 @@
 		</div>
 	</div>
 </footer>
+
+<script type="text/javascript">
+$('#search-bar input').keyup(function(){
+	var term = $(this).val().trim();
+	if(!term){
+		$('#search-bar input').css('width', '300px');
+		$('#search-bar table tbody').html('');
+		$('#search-bar .dropdown-menu').hide();
+	} else {
+		$('#search-bar input').css('width', '600px');
+		$.post('{{ url("search") }}', {term: term}, function(r){
+			if(r.data){
+				$('#search-bar table tbody').html(r.data);
+				$('#search-bar .dropdown-menu').show();
+
+				$('#search-bar table tbody tr').css('cursor', 'pointer').click(function(){
+					var gid = $(this).data('id');
+					$.redirect('species', {species: gid}, 'POST', '_blank');
+				})
+
+			} else {
+				$('#search-bar .dropdown-menu').hide();
+			}
+		});
+	}
+});
+</script>
 
 </body>
 </html>

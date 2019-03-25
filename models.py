@@ -205,3 +205,17 @@ class Job(models.Model):
 	class Meta:
 		db_table = 'job'
 
+class News(models.Model):
+	CATEGORIES = (
+		(1, 'version'),
+		(2, 'news')
+	)
+	title = models.CharField(max_length=255)
+	abstract = models.TextField()
+	content = models.TextField()
+	category = models.SmallIntegerField(choices=CATEGORIES)
+	created = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		db_table = 'news'
+

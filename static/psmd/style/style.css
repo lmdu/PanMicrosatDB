@@ -37,13 +37,17 @@ select{
 	border-color: #32a1cf !important;
 }*/
 
-#search-bar{
+/*
+#search-bar input{
 	width: 300px;
 	border-color: white !important;
 	transition:width 0.5s;
 }
-#search-bar:hover{
-	width: 500px;
+#search-bar input:focus{
+	width: 600px;
+}*/
+#search-bar .dropdown-menu{
+	right: 0;
 }
 
 nav.navbar{

@@ -4,6 +4,7 @@ import json
 from django.shortcuts import render
 from django.http import JsonResponse, Http404
 from django.db import connections
+from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.crypto import get_random_string
 
@@ -17,7 +18,36 @@ from .downloader import *
 
 # Create your views here.
 def index(request):
-	return render(request, 'psmd/index.html')
+	v = News.objects.filter(category=1).latest('created')
+	version = v.title.split()[1]
+	release = v.created
+
+	posts = News.objects.order_by('-id')[:10]
+
+	return render(request, 'psmd/index.html', {
+		'version': version,
+		'release': release,
+		'posts': posts
+	})
+
+@csrf_exempt
+def search(request):
+	if request.method == 'POST':
+		term = request.POST.get('term')
+		genomes = Genome.objects.filter(Q(taxonomy__icontains=term) | Q(species_name__icontains=term) \
+			| Q(common_name__icontains=term) | Q(download_accession__icontains=term))[:10]
+
+		def format_val(*items):
+			res = ['<tr data-id="{}">'.format(items[0])]
+			for item in items[1:]:
+				res.append('<td>{}</td>'.format(re.sub(r'(?i)({})'.format(term), r'<b>\1</b>', item)))
+			res.append('</tr>')
+			return ''.join(res)
+
+		res = [format_val(g.id, g.taxonomy, g.species_name, g.common_name, g.download_accession) for g in genomes]
+
+
+		return JsonResponse({'data': ''.join(res)})
 
 @csrf_exempt
 def category(request):
@@ -59,41 +89,53 @@ def overview(request):
 	subgroup = int(request.POST.get('subgroup', 0))
 	species = int(request.POST.get('species', 0))
 
+	fields = ['id', 'taxonomy', 'species_name', 'download_accession', 'size', 'gc_content',
+			  'ssr_count', 'ssr_frequency', 'ssr_density', 'cover', 'cm_count', 'cm_frequency',
+			  'cm_density', 'cssr_percent']
+
 	genomes = Genome.objects.all()
-
-	if species:
-		genomes = genomes.filter(pk=species)
-
-	elif subgroup:
-		genomes = genomes.filter(category=subgroup)
-
-	elif group:
-		genomes = genomes.filter(category__parent=group)
-
-	elif kingdom:
-		genomes = genomes.filter(category__parent__parent=kingdom)
-
 	total = genomes.count()
+	filters = Filters()
+	filters.add('id', species)
+	filters.add('category', subgroup)
+	filters.add('category__parent', group)
+	filters.add('category__parent__parent', kingdom)
+
+	#filter
+	if filters:
+		genomes = Genome.objects.filter(**filters)
+		filtered_count = genomes.count()
+	else:
+		filtered_count = total
+
+	#sort order
+	colidx = int(request.POST.get('order[0][column]'))
+	sortdir = request.POST.get('order[0][dir]')
+
+	if sortdir == 'asc':
+		genomes = genomes.order_by(fields[colidx])
+	else:
+		genomes = genomes.order_by('-{}'.format(fields[colidx]))
 
 	data = []
 	for g in genomes[start:start+length]:
-		data.append((g.taxonomy, g.species_name,  g.download_accession, g.size, g.gc_content, \
+		data.append((g.id, g.taxonomy, g.species_name,  g.download_accession, g.size, g.gc_content, \
 		g.ssr_count, g.ssr_frequency, g.ssr_density, g.cover, g.cm_count, g.cm_frequency, \
 		g.cm_density, g.cssr_percent))
 
 	return JsonResponse({
 		'draw': draw,
 		'recordsTotal': total,
-		'recordsFiltered': total,
+		'recordsFiltered': filtered_count,
 		'data': data
 	})
 
 
 @csrf_exempt
 def species(request):
-	#if request.method == 'POST':
-	if request.method in ['GET', 'POST']:
-		gid = int(request.POST.get('species', 716))
+	if request.method == 'POST':
+	#if request.method in ['GET', 'POST']:
+		gid = int(request.POST.get('species', 0))
 		
 		genome = Genome.objects.get(pk=gid)
 		data = {
