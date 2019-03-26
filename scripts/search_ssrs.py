@@ -13,7 +13,7 @@ import collections
 import multiprocessing
 
 from ..thirds import kseq, ncls, tandem
-from ..thirds.motif import StandardMotif
+from ..thirds.motifs import StandardMotif
 from ..config import Config
 
 def make_folder(folder):
@@ -663,6 +663,7 @@ def worker(event, queue, lock, logfile):
 
 ## main process started ##
 genome_accession_list_file, progress_log_file, cpu_count = sys.argv[1:]
+cpu_count = int(cpu_count)
 
 #breakpoint resume
 finished = {}
@@ -685,6 +686,7 @@ lock = multiprocessing.Lock()
 
 for i in range(cpu_count):
 	pool.apply_async(worker, (event, queue, lock, progress_log_file))
+	print('worker %s started'.format(i))
 
 for acc, info in genomes.items():
 	if acc in finished:
