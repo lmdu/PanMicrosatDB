@@ -234,7 +234,7 @@ CREATE INDEX cssr_annot_cssr_gene_loc ON cssrannot (cssr_id, gene_id, location);
 """
 
 WORK_DIR = Config.ROOT_DIR
-DB_DIR = os.path.join(WORK_DIR, 'dbs')
+DB_DIR = os.path.join(WORK_DIR, 'pros')
 FA_DIR = os.path.join(WORK_DIR, 'fastas')
 AR_DIR = os.path.join(WORK_DIR, 'assemblyreports')
 GFF_DIR = os.path.join(WORK_DIR, 'gffs')
@@ -672,7 +672,7 @@ if os.path.exists(progress_log_file):
 
 genomes = {}
 with open(genome_accession_list_file) as fh:
-	rows = csv.reader(fh)
+	rows = csv.reader(fh, delimiter='\t')
 	for row in rows:
 		#accession of genomes list in column 15
 		genomes[row[15]] = row
