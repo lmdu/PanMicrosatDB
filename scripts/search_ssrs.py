@@ -5,6 +5,7 @@ import gzip
 import time
 import json
 import numpy
+import signal
 import shutil
 import sqlite3
 import itertools
@@ -636,20 +637,38 @@ def search_for_ssrs(acc, info):
 	conn.commit()
 	conn.close()
 
-def worker(queue)
+def worker(event, queue, lock, logfile):
+	while 1:
+		if event.is_set():
+			break
 
+		if queue.empty():
+			time.sleep(0.1)
+			continue
+
+		acc, info = queue.get()
+
+		try:
+			search_for_ssrs(acc, info)
+		except Exception as e:
+			print(e)
+			os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
+
+		print(acc)
+
+		lock.acquire()
+		with open(logfile, 'a') as fh:
+			fh.write('{}\n'.format(acc))
+		lock.release()
 
 ## main process started ##
-
-genome_accession_list_file, progress_log_file = sys.argv[1:]
+genome_accession_list_file, progress_log_file, cpu_count = sys.argv[1:]
 
 #breakpoint resume
 finished = {}
 if os.path.exists(progress_log_file):
 	with open(progress_log_file) as fh:
 		finished = {line.strip() for line in fh}
-
-LOGGER = open(progress_log_file, 'a')
 
 genomes = {}
 with open(genome_accession_list_file) as fh:
@@ -659,13 +678,25 @@ with open(genome_accession_list_file) as fh:
 		genomes[row[15]] = row
 
 
-pool = multiprocessing.Pool(10)
+pool = multiprocessing.Pool(cpu_count)
+event = multiprocessing.Event()
+queue = multiprocessing.Queue(2)
+lock = multiprocessing.Lock()
+
+for i in range(cpu_count):
+	pool.apply_async(worker, (event, queue, lock, progress_log_file))
 
 for acc, info in genomes.items():
 	if acc in finished:
 		continue
 
-	search_for_ssrs(acc, info)
-	LOGGER.write('{}\n'.format(acc))
+	while 1:
+		if not queue.full():
+			queue.put((acc, info))
 
-LOGGER.close()
+		else:
+			time.sleep(0.1)
+
+event.set()
+pool.close()
+pool.join()
