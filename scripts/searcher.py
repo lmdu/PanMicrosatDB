@@ -253,6 +253,9 @@ def search_for_ssrs(acc, info):
 	ar_file = os.path.join(AR_DIR, sub_dir, '{}.assembly_report.txt'.format(acc))
 	gff_file = os.path.join(GFF_DIR, sub_dir, '{}.gff.gz'.format(acc))
 
+	if not os.path.exists(fa_file):
+		raise Exception('{} does not exists'.format(fa_file))
+
 	#if database file exists, remove and redo search for SSRs
 	if os.path.exists(db_file):
 		os.remove(db_file)
