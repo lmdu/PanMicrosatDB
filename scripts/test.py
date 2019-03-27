@@ -1,5 +1,35 @@
-from ..thirds import kseq
+import multiprocessing as mp
+import time
 
-import sys
+def testme(q, e):
+	name = mp.current_process().name
+	while 1:
+		if e.is_set() and q.empty():
+			break
 
-print(sys.argv[1:])
+		if q.empty():
+			time.sleep(0.1)
+			continue
+
+		x = q.get_nowait()
+		print('{} get {}'.format(name, x))
+		time.sleep(x)
+
+	print('{} stopped'.format(name))
+	return
+
+if __name__ == '__main__':
+	m = mp.Manager()
+	pool = mp.Pool(2)
+	q = m.Queue()
+	e = m.Event()
+
+	for i in range(2):
+		pool.apply_async(testme, (q,e))
+
+	for i in range(10):
+		q.put(i)
+
+	e.set()
+	pool.close()
+	pool.join()

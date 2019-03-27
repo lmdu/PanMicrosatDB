@@ -640,18 +640,17 @@ def search_for_ssrs(acc, info):
 	conn.commit()
 	conn.close()
 
-def worker(event, queue, lock, logfile):
+def worker(queue, event, lock, logfile):
 	while 1:
-		if event.is_set():
+		if event.is_set() and queue.empty():
 			break
 
 		if queue.empty():
 			time.sleep(0.1)
 			continue
 
-		acc, info = queue.get()
-
 		try:
+			acc, info = queue.get_nowait()
 			search_for_ssrs(acc, info)
 		except Exception as e:
 			print(e)
@@ -664,44 +663,46 @@ def worker(event, queue, lock, logfile):
 			fh.write('{}\n'.format(acc))
 		lock.release()
 
-## main process started ##
-genome_accession_list_file, progress_log_file, cpu_count = sys.argv[1:]
-cpu_count = int(cpu_count)
+	return
 
-#breakpoint resume
-finished = {}
-if os.path.exists(progress_log_file):
-	with open(progress_log_file) as fh:
-		finished = {line.strip() for line in fh}
+if __name__ == '__main__':
+	## main process started ##
+	genome_accession_list_file, progress_log_file, cpu_count = sys.argv[1:]
+	cpu_count = int(cpu_count)
 
-genomes = {}
-with open(genome_accession_list_file) as fh:
-	rows = csv.reader(fh, delimiter='\t')
-	for row in rows:
-		#accession of genomes list in column 15
-		genomes[row[15]] = row
+	#breakpoint resume
+	finished = {}
+	if os.path.exists(progress_log_file):
+		with open(progress_log_file) as fh:
+			finished = {line.strip() for line in fh}
+
+	genomes = {}
+	with open(genome_accession_list_file) as fh:
+		rows = csv.reader(fh, delimiter='\t')
+		for row in rows:
+			#accession of genomes list in column 15
+			genomes[row[15]] = row
 
 
-pool = multiprocessing.Pool(cpu_count)
-event = multiprocessing.Event()
-queue = multiprocessing.Queue(2)
-lock = multiprocessing.Lock()
+	pool = multiprocessing.Pool(cpu_count)
+	manager = multiprocessing.Manager()
+	event = manager.Event()
+	queue = manager.Queue(2)
+	lock = manager.Lock()
 
-for i in range(cpu_count):
-	pool.apply_async(worker, (event, queue, lock, progress_log_file))
-	print('worker %s started'.format(i))
+	for i in range(cpu_count):
+		pool.apply_async(worker, (queue, event, lock, progress_log_file))
 
-for acc, info in genomes.items():
-	if acc in finished:
-		continue
+	for acc, info in genomes.items():
+		if acc in finished:
+			continue
 
-	while 1:
-		if not queue.full():
-			queue.put((acc, info))
+		while 1:
+			if not queue.full():
+				queue.put((acc, info))
+			else:
+				time.sleep(0.1)
 
-		else:
-			time.sleep(0.1)
-
-event.set()
-pool.close()
-pool.join()
+	event.set()
+	pool.close()
+	pool.join()

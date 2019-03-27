@@ -1,5 +1,77 @@
 {% extends "psmd/base.html" %}
 
 {% block main %}
-<h3>Comparative analysis</h3>
+<h3 class="mt-5">Comparative analysis <small class="text-muted">select at least two species</small></h3>
+<div class="row mt-3">
+	<div class="form-group col-md-2">
+		<label>Kingdom</label>
+		<select name="kingdom" class="form-control" id="kingdom-select">
+			<option value="0"></option>
+		</select>
+	</div>
+	<div class="form-group col-md-2">
+		<label>Group</label>
+		<select name="group" class="form-control" id="group-select">
+			<option value="0"></option>
+		</select>
+	</div>
+	<div class="form-group col-md-2">
+		<label>Subgroup</label>
+		<select name="subgroup" class="form-control" id="subgroup-select">
+			<option value="0"></option>
+		</select>
+	</div>
+	<div class="form-group col-md-6">
+		<label>Species</label>
+		<select name="species" class="form-control form-control-lg" id="species-select">
+			<option value="0" selected="selected"></option>
+		</select>
+	</div>
+</div>
+
+<div class="row mt-3">
+	<div class="col-10" id="selected-species">
+	</div>
+	<div class="col-2 text-right">
+		<button class="btn btn-sm btn-primary" id="compare-btn">Compare</button>
+	</div>
+</div>
+
+<script type="text/javascript">
+var colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
+$('#species-select').on('change', function(){
+	var label = $(this).find('option:selected').text();
+	var sid = parseInt($(this).val());
+
+	if(!sid){
+		return;
+	}
+
+	var color = colors[Math.floor(Math.random()*colors.length)];
+	var badge_ele = $('<span></span>').addClass('mr-2 badge badge-pill badge-' + color)
+		.text(label)
+		.data('id', sid);
+
+	var close_ele = $('<span></span>').addClass('ml-2')
+		.html('&times;')
+		.css('cursor', 'pointer')
+		.click(function(){
+			$(this).parent().remove();
+		})
+		.appendTo(badge_ele);
+
+	$('#selected-species').append(badge_ele);
+});
+
+$('#compare-btn').click(function(){
+	var species = $('#selected-species span').map(function(){
+		return $(this).data('id');
+	}).get();
+
+	$.post('analysis', {species: species}, function(res){
+		alert(res.data);
+	});
+
+});
+</script>
 {% endblock %}

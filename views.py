@@ -372,5 +372,13 @@ def task(request, task_id):
 			display = ISSRTaskDisplay(db_config, request.POST)
 			return display.get_response()
 
+@csrf_exempt
 def analysis(request):
-	return render(request, 'psmd/analysis.html')
+	if request.method == 'GET':
+		return render(request, 'psmd/analysis.html')
+
+	if request.method == 'POST':
+		species = request.POST.getlist('species[]', [])
+		
+
+		return JsonResponse({'data':''.join(species)})
