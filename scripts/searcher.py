@@ -5,9 +5,11 @@ import gzip
 import time
 import json
 import numpy
+import queue
 import signal
 import shutil
 import sqlite3
+import traceback
 import itertools
 import collections
 import multiprocessing
@@ -244,7 +246,7 @@ def search_for_ssrs(acc, info):
 	#standard motif
 	motifs = StandardMotif(3)
 
-	sub_dir = os.path.join(*info[3:6]).replace(' ', '_')
+	sub_dir = os.path.join(*info[3:6]).replace(' ', '_').replace(',', '')
 	out_dir = os.path.join(DB_DIR, sub_dir)
 	make_folder(out_dir)
 
@@ -269,7 +271,7 @@ def search_for_ssrs(acc, info):
 	cursor.execute("PRAGMA synchronous = OFF")
 	cursor.execute("PRAGMA journal_mode = MEMORY")
 	cursor.execute("PRAGMA cache_size = 10000")
-	cursor.execute("BEGIN TRANSACTION")
+	#cursor.execute("BEGIN")
 
 	##parse assembly report
 	#specifiy accession column
@@ -352,7 +354,6 @@ def search_for_ssrs(acc, info):
 
 
 	cursor.executemany("INSERT INTO sequence VALUES (?,?,?)", rows)
-	cursor.executemany("INSERT INTO search(rowid,name,accession) VALUES (?,?,?)", rows)
 
 	##Search for microsatellites and extract flanking sequence
 	base_count = 0
@@ -560,54 +561,55 @@ def search_for_ssrs(acc, info):
 
 	#SSR Statistics
 	ssr_count = get_one("SELECT COUNT(*) FROM ssr LIMIT 1")
-	set_option('ssr_count', ssr_count)
-	ssr_length = get_one("SELECT SUM(length) FROM ssr LIMIT 1")
-	set_option('ssr_length', ssr_length)
-	ssr_average = round(ssr_length/ssr_count, 2)
-	set_option('ssr_average', ssr_average)
-	ssr_frequency = round(ssr_count/(atgc_count/1000000), 2)
-	set_option('ssr_frequency', ssr_frequency)
-	ssr_density = round(ssr_length/(atgc_count/1000000), 2)
-	set_option('ssr_density', ssr_density)
-	genome_cover= round(ssr_length/atgc_count*100, 2)
-	set_option('genome_cover', genome_cover)
-	set_option('ssr_perseq', round(ssr_count/seq_count, 2))
+	if ssr_count > 0:
+		set_option('ssr_count', ssr_count)
+		ssr_length = get_one("SELECT SUM(length) FROM ssr LIMIT 1")
+		set_option('ssr_length', ssr_length)
+		ssr_average = round(ssr_length/ssr_count, 2)
+		set_option('ssr_average', ssr_average)
+		ssr_frequency = round(ssr_count/(atgc_count/1000000), 2)
+		set_option('ssr_frequency', ssr_frequency)
+		ssr_density = round(ssr_length/(atgc_count/1000000), 2)
+		set_option('ssr_density', ssr_density)
+		genome_cover= round(ssr_length/atgc_count*100, 2)
+		set_option('genome_cover', genome_cover)
+		set_option('ssr_perseq', round(ssr_count/seq_count, 2))
 
-	ssr_category = 0
-	for row in cursor.execute("SELECT COUNT(DISTINCT standard_motif) FROM ssr"):
-		ssr_category = row[0]
-	set_option('ssr_category', ssr_category)
+		ssr_category = 0
+		for row in cursor.execute("SELECT COUNT(DISTINCT standard_motif) FROM ssr"):
+			ssr_category = row[0]
+		set_option('ssr_category', ssr_category)
 
-	ssr_maxrep = ''
-	for row in cursor.execute("SELECT motif, max(repeats) FROM ssr"):
-		ssr_maxrep = '{} / {}'.format(row[1], row[0])
-	set_option('ssr_maxrep', ssr_maxrep)
+		ssr_maxrep = ''
+		for row in cursor.execute("SELECT motif, max(repeats) FROM ssr"):
+			ssr_maxrep = '{} / {}'.format(row[1], row[0])
+		set_option('ssr_maxrep', ssr_maxrep)
 
-	ssr_maxlen = ''
-	for row in cursor.execute("SELECT motif, max(length) FROM ssr"):
-		ssr_maxlen = '{} / {}'.format(row[1], row[0])
-	set_option('ssr_maxlen', ssr_maxlen)
+		ssr_maxlen = ''
+		for row in cursor.execute("SELECT motif, max(length) FROM ssr"):
+			ssr_maxlen = '{} / {}'.format(row[1], row[0])
+		set_option('ssr_maxlen', ssr_maxlen)
 
-	types = {1: 'Mono', 2: 'Di', 3: 'Tri', 4: 'Tetra', 5: 'Penta', 6: 'Hexa'}
-	res = {types[row[0]]: row[1] for row in cursor.execute("SELECT ssr_type, count(*) FROM ssr GROUP BY ssr_type")}
-	set_option('ssr_types', json.dumps(res))
+		types = {1: 'Mono', 2: 'Di', 3: 'Tri', 4: 'Tetra', 5: 'Penta', 6: 'Hexa'}
+		res = {types[row[0]]: row[1] for row in cursor.execute("SELECT ssr_type, count(*) FROM ssr GROUP BY ssr_type")}
+		set_option('ssr_types', json.dumps(res))
 
-	feats = {1: 'CDS', 2: 'exon', 3: '3UTR', 4: 'intron', 5: '5UTR'}
-	res = {feats[row[0]]: row[1]  for row in cursor.execute("SELECT location, COUNT(*) FROM ssrannot GROUP BY location")}
-	set_option('ssr_location', json.dumps(res))
+		feats = {1: 'CDS', 2: 'exon', 3: '3UTR', 4: 'intron', 5: '5UTR'}
+		res = {feats[row[0]]: row[1]  for row in cursor.execute("SELECT location, COUNT(*) FROM ssrannot GROUP BY location")}
+		set_option('ssr_location', json.dumps(res))
 
-	res = {row[0]: row[1] for row in cursor.execute("SELECT standard_motif, COUNT(*) FROM ssr GROUP BY standard_motif")}
-	set_option('ssr_motif', json.dumps(res))
+		res = {row[0]: row[1] for row in cursor.execute("SELECT standard_motif, COUNT(*) FROM ssr GROUP BY standard_motif")}
+		set_option('ssr_motif', json.dumps(res))
 
-	res = {}
-	for i in range(1, 7):
-		res[types[i]] = {row[0]: row[1] for row in cursor.execute("SELECT repeats, COUNT(*) FROM ssr WHERE ssr_type=? GROUP BY repeats", (i,))}
-	set_option('ssr_repdis', json.dumps(res))
+		res = {}
+		for i in range(1, 7):
+			res[types[i]] = {row[0]: row[1] for row in cursor.execute("SELECT repeats, COUNT(*) FROM ssr WHERE ssr_type=? GROUP BY repeats", (i,))}
+		set_option('ssr_repdis', json.dumps(res))
 
-	res = {}
-	for i in range(1, 7):
-		res[types[i]] = {row[0]: row[1] for row in cursor.execute("SELECT length, COUNT(*) FROM ssr WHERE ssr_type=? GROUP BY length", (i,))}
-	set_option('ssr_lendis', json.dumps(res))
+		res = {}
+		for i in range(1, 7):
+			res[types[i]] = {row[0]: row[1] for row in cursor.execute("SELECT length, COUNT(*) FROM ssr WHERE ssr_type=? GROUP BY length", (i,))}
+		set_option('ssr_lendis', json.dumps(res))
 
 	#Compound microsatellite statistics
 	cm_count = get_one("SELECT COUNT(*) FROM cssr LIMIT 1")
@@ -636,27 +638,37 @@ def search_for_ssrs(acc, info):
 		res = {row[0]: row[1] for row in cursor.execute("SELECT length, COUNT(*) FROM cssr GROUP BY length")}
 		set_option('cssr_lendis', json.dumps(res))
 
-	conn.cursor().executescript(INDEX_SQL)
+	cursor.executescript(INDEX_SQL)
 	conn.commit()
 	conn.close()
 
-def worker(queue, event, lock, logfile):
-	while 1:
-		if event.is_set() and queue.empty():
-			break
+manager = multiprocessing.Manager()
+event = manager.Event()
+tasks = manager.Queue(10)
+lock = manager.Lock()
 
-		if queue.empty():
+def worker(logfile):
+	while 1:
+		if event.is_set() and tasks.empty():
+			break
+		
+		if tasks.empty():
 			time.sleep(0.1)
 			continue
 
 		try:
-			acc, info = queue.get_nowait()
+			try:
+				acc, info = tasks.get_nowait()
+			except queue.Empty:
+				time.sleep(0.1)
+				continue
 			search_for_ssrs(acc, info)
-		except Exception as e:
-			print(e)
+		except:
+			print('{}\tFailure'.format(acc))
+			print(traceback.print_exc())
 			os.killpg(os.getpgid(os.getpid()), signal.SIGKILL)
 
-		print(acc)
+		print('{}\tSuccess'.format(acc))
 
 		lock.acquire()
 		with open(logfile, 'a') as fh:
@@ -685,23 +697,20 @@ if __name__ == '__main__':
 
 
 	pool = multiprocessing.Pool(cpu_count)
-	manager = multiprocessing.Manager()
-	event = manager.Event()
-	queue = manager.Queue(2)
-	lock = manager.Lock()
 
 	for i in range(cpu_count):
-		pool.apply_async(worker, (queue, event, lock, progress_log_file))
+		pool.apply_async(worker, (progress_log_file,))
 
 	for acc, info in genomes.items():
 		if acc in finished:
 			continue
 
 		while 1:
-			if not queue.full():
-				queue.put((acc, info))
-			else:
-				time.sleep(0.1)
+			try:
+				tasks.put_nowait((acc, info))
+				break
+			except queue.Full:
+				time.sleep(1)
 
 	event.set()
 	pool.close()

@@ -11,8 +11,8 @@ def testme(q, e):
 			time.sleep(0.1)
 			continue
 
-		x = q.get_nowait()
-		print('{} get {}'.format(name, x))
+		x, y = q.get_nowait()
+		print('{} get {} * {}'.format(name, x, ''.join(y)))
 		time.sleep(x)
 
 	print('{} stopped'.format(name))
@@ -21,14 +21,14 @@ def testme(q, e):
 if __name__ == '__main__':
 	m = mp.Manager()
 	pool = mp.Pool(2)
-	q = m.Queue()
+	q = m.Queue(2)
 	e = m.Event()
 
 	for i in range(2):
 		pool.apply_async(testme, (q,e))
 
 	for i in range(10):
-		q.put(i)
+		q.put((i,[str(i),str(i)]))
 
 	e.set()
 	pool.close()

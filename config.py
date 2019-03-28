@@ -1,7 +1,7 @@
 import os
 
 class Config:
-	ROOT_DIR = '/mnt/d/research/PSMD/'
+	ROOT_DIR = '/home/ming/PSMD'
 	DB_DIR = os.path.join(ROOT_DIR, 'dbs')
 	FASTA_DIR = os.path.join(ROOT_DIR, 'fastas')
 	TASK_FASTA_DIR = os.path.join(ROOT_DIR, 'tasks/fastas')
