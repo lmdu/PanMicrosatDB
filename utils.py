@@ -14,6 +14,25 @@ class AttributedDict(dict):
 	def __setattr__(self, key, val):
 		self[key] = val
 
+def humanized_genome_size(size, unit):
+	size = int(size)
+	if unit == 'GB':
+		size = size / 1000000000
+
+	elif unit == 'MB':
+		size = size / 1000000
+
+	elif unit == 'KB':
+		size = size / 1000
+
+	else:
+		return size
+
+	return '{:.3f}'.format(size)
+
+def humanized_round(num):
+	return '{:.3f}'.format(float(num))
+
 def colored_sequence(seq, start, end):
 	pass
 

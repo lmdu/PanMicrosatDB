@@ -58,6 +58,8 @@
 	</div>
 </div>
 <script type="text/javascript">
+var size_unit = 'GB';
+
 var table = $('#summary').DataTable({
 	scrollX: true,
 	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-right'B>>" +
@@ -65,13 +67,46 @@ var table = $('#summary').DataTable({
 		 "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
 	buttons:[
 		{
-			text: 'Reset Group',
+			text: 'Genome size',
+			className: 'btn-sm btn-outline-info'
+		},
+		{
+			text: 'GB',
+			className: 'btn-sm btn-info active',
+			action: function(e, dt, node){
+				size_unit = 'GB';
+				node.siblings().removeClass('active');
+				node.addClass('active');
+				table.ajax.reload();
+			}
+		},
+		{
+			text: 'MB',
 			className: 'btn-sm btn-info',
-			action: function(){
-				$('#kingdom-select').val(0).trigger('change');
-				$('#group-select').val(0).trigger('change');
-				$('#subgroup-select').val(0).trigger('change');
-				$('#species-select').val(0).trigger('change');
+			action: function(e, dt, node){
+				size_unit = 'MB';
+				node.siblings().removeClass('active');
+				node.addClass('active');
+				table.ajax.reload();
+			}
+		},
+		{
+			text: 'KB',
+			className: 'btn-sm btn-info',
+			action: function(e, dt, node){
+				size_unit = 'KB';
+				node.siblings().removeClass('active');
+				node.addClass('active');
+				table.ajax.reload();
+			}
+		},
+		{
+			text: 'BP',
+			className: 'btn-sm btn-info',
+			action: function(e, dt, node){
+				size_unit = 'BP';
+				node.siblings().removeClass('active');
+				node.addClass('active');
 				table.ajax.reload();
 			}
 		}
@@ -87,6 +122,7 @@ var table = $('#summary').DataTable({
 			d.group = $('#group-select').val();
 			d.subgroup = $('#subgroup-select').val();
 			d.species = $('#species-select').val();
+			d.unit = size_unit;
 		}
 	}
 });

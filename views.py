@@ -94,6 +94,7 @@ def overview(request):
 	group = int(request.POST.get('group', 0))
 	subgroup = int(request.POST.get('subgroup', 0))
 	species = int(request.POST.get('species', 0))
+	unit = request.POST.get('unit', 'GB')
 
 	fields = ['id', 'taxonomy', 'species_name', 'download_accession', 'size', 'gc_content',
 			  'ssr_count', 'ssr_frequency', 'ssr_density', 'cover', 'cm_count', 'cm_frequency',
@@ -118,16 +119,31 @@ def overview(request):
 	colidx = int(request.POST.get('order[0][column]'))
 	sortdir = request.POST.get('order[0][dir]')
 
-	if sortdir == 'asc':
-		genomes = genomes.order_by(fields[colidx])
+	if fields[colidx] == 'taxonomy':
+		if sortdir == 'asc':
+			genomes = genomes.extra({'taxon': "CAST(taxonomy as UNSIGNED)"}).order_by('taxon')
+		else:
+			genomes = genomes.extra({'taxon': "CAST(taxonomy as UNSIGNED)"}).order_by('-taxon')
 	else:
-		genomes = genomes.order_by('-{}'.format(fields[colidx]))
+		if sortdir == 'asc':
+			genomes = genomes.order_by(fields[colidx])
+		else:
+			genomes = genomes.order_by('-{}'.format(fields[colidx]))
 
 	data = []
 	for g in genomes[start:start+length]:
-		data.append((g.id, g.taxonomy, g.species_name,  g.download_accession, g.size, g.gc_content, \
-		g.ssr_count, g.ssr_frequency, g.ssr_density, g.cover, g.cm_count, g.cm_frequency, \
-		g.cm_density, g.cssr_percent))
+		data.append((g.id, g.taxonomy, g.species_name,  g.download_accession,
+			humanized_genome_size(g.size, unit), 
+			humanized_round(g.gc_content),
+			g.ssr_count,
+			humanized_round(g.ssr_frequency),
+			humanized_round(g.ssr_density),
+			humanized_round(g.cover),
+			g.cm_count,
+			humanized_round(g.cm_frequency),
+			humanized_round(g.cm_density),
+			humanized_round(g.cssr_percent)
+		))
 
 	return JsonResponse({
 		'draw': draw,
