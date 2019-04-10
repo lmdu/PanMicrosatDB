@@ -40,7 +40,10 @@ with open(os.path.join(INFO_DIR, infile), 'rt') as fh:
 		gff_url = row[17]
 		asr_url = fas_url.replace('genomic.fna.gz', 'assembly_report.txt')
 
-		sub_dir = os.path.join(*row[3:6]).replace(' ', '_').replace(',', '')
+		if ',' in row[4]:
+			row[4] = row[4].split(',')[0]
+
+		sub_dir = os.path.join(*row[3:6]).replace(' ', '_')
 		fas_dir = get_dir(FASTA_DIR, sub_dir)
 		gff_dir = get_dir(GFF_DIR, sub_dir)
 		asr_dir = get_dir(ASSEMBLY_REPORT_DIR, sub_dir)

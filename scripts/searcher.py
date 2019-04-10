@@ -18,6 +18,10 @@ from ..thirds import kseq, ncls, tandem
 from ..thirds.motifs import StandardMotif
 from ..config import Config
 
+#minimum tandem repeats
+#min_tandem_repeats = [12, 7, 5, 4, 4, 4]
+min_tandem_repeats = [6, 3, 3, 3, 3, 3]
+
 def make_folder(folder):
 	if not os.path.exists(folder):
 		os.makedirs(folder)
@@ -82,8 +86,13 @@ def get_gff_coordinate(gff_file):
 			continue
 
 		elif r.feature == 'GENE':
-			parents[r.attrs.ID] = r.attrs.ID
-			continue
+			if 'ID' in r.attrs:
+				parents[r.attrs.ID] = r.attrs.ID
+			elif 'GENE' in r.attrs:
+				parents[r.attrs.GENE] = r.attrs.GENE
+				parents['gene-{}'.format(r.attrs.GENE)] = r.attrs.GENE
+			elif 'NAME' in r.attrs:
+				parents[r.attrs.NAME] = r.attrs.NAME
 
 		elif r.feature == 'CDS':
 			if 'PARENT' in r.attrs:
@@ -236,19 +245,17 @@ CREATE INDEX cssr_annot_cssr_gene_loc ON cssrannot (cssr_id, gene_id, location);
 """
 
 WORK_DIR = Config.ROOT_DIR
-DB_DIR = os.path.join(WORK_DIR, 'pros')
+DB_DIR = os.path.join(WORK_DIR, 'dbs')
 FA_DIR = os.path.join(WORK_DIR, 'fastas')
 AR_DIR = os.path.join(WORK_DIR, 'assemblyreports')
 GFF_DIR = os.path.join(WORK_DIR, 'gffs')
 
 
-def search_for_ssrs(acc, info):
+def search_for_ssrs(acc, sub_dir):
 	#standard motif
 	motifs = StandardMotif(3)
 
-	sub_dir = os.path.join(*info[3:6]).replace(' ', '_').replace(',', '')
 	out_dir = os.path.join(DB_DIR, sub_dir)
-	make_folder(out_dir)
 
 	db_file = os.path.join(out_dir, '{}.db'.format(acc))
 	fa_file = os.path.join(FA_DIR, sub_dir, '{}.fna.gz'.format(acc))
@@ -268,10 +275,10 @@ def search_for_ssrs(acc, info):
 	cursor.executescript(TABLE_SQL)
 
 	#write speedup
-	cursor.execute("PRAGMA synchronous = OFF")
-	cursor.execute("PRAGMA journal_mode = MEMORY")
-	cursor.execute("PRAGMA cache_size = 10000")
-	#cursor.execute("BEGIN")
+	cursor.execute("PRAGMA synchronous = OFF;")
+	cursor.execute("PRAGMA journal_mode = MEMORY;")
+	cursor.execute("PRAGMA cache_size = 10000;")
+	cursor.execute("BEGIN;")
 
 	##parse assembly report
 	#specifiy accession column
@@ -373,7 +380,7 @@ def search_for_ssrs(acc, info):
 		atgc_count += bases['G'] + bases['C'] + bases['A'] + bases['T']
 
 		#Search for perfect microsatellites
-		ssrs = tandem.search_ssr(seq, [12, 7, 5, 4, 4, 4])
+		ssrs = tandem.search_ssr(seq, min_tandem_repeats)
 
 		if not ssrs:
 			continue
@@ -429,7 +436,7 @@ def search_for_ssrs(acc, info):
 		#extract all genes from gff annotation file
 		gene_mapping = {}
 		def iter_gene():
-			gene_count = 0
+			gene_num = 0
 			for row in gff_parser(gff_file):
 				if row.feature == 'REGION':
 					continue
@@ -438,22 +445,45 @@ def search_for_ssrs(acc, info):
 					if 'PARENT' in row.attrs:
 						continue
 
-				gene_count += 1
+				gene_num += 1
 
-				gene_mapping[row.attrs.ID] = gene_count
+				if 'ID' in row.attrs:
+					gid = row.attrs.ID
+				
+				elif 'GENE' in row.attrs:
+					gid = row.attrs.GENE
+				
+				elif 'NAME' in row.attrs:
+					gid = row.attrs.NAME
+				
+				else:
+					raise Exception(row)
+
+				gene_mapping[gid] = gene_num
+
+				if row.seqid not in seqs_mapping:
+					continue
+
 				seqid = seqs_mapping[row.seqid]
-				gid = row.attrs.ID
 
 				if 'NAME' in row.attrs:
 					gname = row.attrs.NAME
+				
 				elif 'PRODUCT' in row.attrs:
 					gname = row.attrs.PRODUCT
-				else:
+				
+				elif 'GENE' in row.attrs:
+					gname = row.attrs.GENE
+
+				elif 'ID' in row.attrs:
 					gname = row.attrs.ID
+				
+				else:
+					raise Exception(row)
 
 				biotype = row.attrs.get('GENE_BIOTYPE', row.feature)
 				dbxref = row.attrs.get('DBXREF', '')
-				yield (gene_count, seqid, row.start, row.end, gid, gname, biotype, dbxref)
+				yield (gene_num, seqid, row.start, row.end, gid, gname, biotype, dbxref)
 		conn.cursor().executemany("INSERT INTO gene VALUES (?,?,?,?,?,?,?,?)", iter_gene())
 
 		#do mapping
@@ -565,15 +595,15 @@ def search_for_ssrs(acc, info):
 		set_option('ssr_count', ssr_count)
 		ssr_length = get_one("SELECT SUM(length) FROM ssr LIMIT 1")
 		set_option('ssr_length', ssr_length)
-		ssr_average = round(ssr_length/ssr_count, 2)
+		ssr_average = ssr_length/ssr_count
 		set_option('ssr_average', ssr_average)
-		ssr_frequency = round(ssr_count/(atgc_count/1000000), 2)
+		ssr_frequency = ssr_count/(atgc_count/1000000)
 		set_option('ssr_frequency', ssr_frequency)
-		ssr_density = round(ssr_length/(atgc_count/1000000), 2)
+		ssr_density = ssr_length/(atgc_count/1000000)
 		set_option('ssr_density', ssr_density)
-		genome_cover= round(ssr_length/atgc_count*100, 2)
+		genome_cover= ssr_length/atgc_count*100
 		set_option('genome_cover', genome_cover)
-		set_option('ssr_perseq', round(ssr_count/seq_count, 2))
+		set_option('ssr_perseq', ssr_count/seq_count)
 
 		ssr_category = 0
 		for row in cursor.execute("SELECT COUNT(DISTINCT standard_motif) FROM ssr"):
@@ -619,15 +649,15 @@ def search_for_ssrs(acc, info):
 		set_option('cssr_count', cssr_count)
 		cssr_length = get_one("SELECT SUM(length) FROM cssr LIMIT 1")
 		set_option('cssr_length', cssr_length)
-		cssr_average = round(cssr_length/cm_count, 2)
+		cssr_average = cssr_length/cm_count
 		set_option('cssr_average', cssr_average)
-		cssr_percent = round(cssr_count/ssr_count*100, 2)
+		cssr_percent = cssr_count/ssr_count*100
 		set_option('cssr_percent', cssr_percent)
-		cssr_frequency = round(cm_count/(atgc_count/1000000), 2)
+		cssr_frequency = cm_count/(atgc_count/1000000)
 		set_option('cssr_frequency', cssr_frequency)
-		cssr_density = round(cssr_length/(atgc_count/100000), 2)
+		cssr_density = cssr_length/(atgc_count/100000)
 		set_option('cssr_density', cssr_density)
-		cssr_perseq = round(cm_count/seq_count*100, 2)
+		cssr_perseq = cm_count/seq_count*100
 		set_option('cssr_perseq', cssr_perseq)
 		cssr_maxlen = get_one("SELECT MAX(length) FROM cssr")
 		set_option('cssr_maxlen', cssr_maxlen)
@@ -644,7 +674,7 @@ def search_for_ssrs(acc, info):
 
 manager = multiprocessing.Manager()
 event = manager.Event()
-tasks = manager.Queue(10)
+tasks = manager.Queue(150)
 lock = manager.Lock()
 
 def worker(logfile):
@@ -653,16 +683,16 @@ def worker(logfile):
 			break
 		
 		if tasks.empty():
-			time.sleep(0.1)
+			time.sleep(0.01)
 			continue
 
 		try:
 			try:
-				acc, info = tasks.get_nowait()
+				acc, sub_dir = tasks.get_nowait()
 			except queue.Empty:
-				time.sleep(0.1)
+				time.sleep(0.01)
 				continue
-			search_for_ssrs(acc, info)
+			search_for_ssrs(acc, sub_dir)
 		except:
 			print('{}\tFailure'.format(acc))
 			print(traceback.print_exc())
@@ -705,13 +735,20 @@ if __name__ == '__main__':
 		if acc in finished:
 			continue
 
+		if ',' in info[4]:
+			info[4] = info[4].split(',')[0]
+
+		sub_dir = os.path.join(*info[3:6]).replace(' ', '_')
+		out_dir = os.path.join(DB_DIR, sub_dir)
+		make_folder(out_dir)
+		
 		while 1:
 			try:
-				tasks.put_nowait((acc, info))
+				tasks.put_nowait((acc, sub_dir))
 				break
 			except queue.Full:
-				time.sleep(1)
-
+				time.sleep(0.01)
+		
 	event.set()
 	pool.close()
 	pool.join()
