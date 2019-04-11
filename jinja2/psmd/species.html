@@ -55,8 +55,8 @@ table.table{
 				<tbody>
 					<tr><td>Species name</td><td><i>{{ summary.species[1] }}</i></td></tr>
 					<tr><td>Common name</td><td>{{ summary.common_name }}</td></tr>
-					<tr><td>NCBI taxonomy</td><td><a href="#">{{ summary.taxonomy }}</a></td></tr>
-					<tr><td>NCBI accession</td><td>{{ summary.accession }}</td></tr>
+					<tr><td>NCBI taxonomy</td><td><a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{ summary.taxonomy }}" target="_blank">{{ summary.taxonomy }}</a></td></tr>
+					<tr><td>NCBI accession</td><td><a href="https://www.ncbi.nlm.nih.gov/assembly/{{ summary.accession }}" target="_blank">{{ summary.accession }}</a></td></tr>
 					<tr><td>Genome size (bp)</td><td>{{ summary.genome_size }}</td></tr>
 					<tr><td>Unkown bases (bp)</td><td>{{ summary.ns_count }}</td></tr>
 					<tr><td>GC content (%)</td><td>{{ summary.gc_content }}</td></tr>

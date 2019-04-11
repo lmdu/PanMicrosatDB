@@ -113,7 +113,7 @@
 						<input type="hidden" id="max-length" name="maxlength" class="form-control">
 					</div>
 
-					<div class="form-group col-6 input-group">
+					<div class="form-group col-12 input-group">
 						<div class="input-group-prepend">
 							<label class="input-group-text">Type</label>
 						</div>
@@ -126,6 +126,86 @@
 							<option value="5">Penta</option>
 							<option value="6">Hexa</option>
 						</select>
+					</div>
+
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Match</label>
+							<select class="custom-select input-group-text" id="select-match-sign">
+								<option value="gt">></option>
+								<option value="gte">>=</option>
+								<option value="eq">=</option>
+								<option value="lt"><</option>
+								<option value="lte"><=</option>
+								<option value="in">between</option>
+							</select>
+						</div>
+						<input type="number" id="input-match" name="match" class="form-control">
+						<input type="hidden" id="max-match" name="maxmatch" class="form-control">
+					</div>
+
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Substitution</label>
+							<select class="custom-select input-group-text" id="select-sub-sign">
+								<option value="gt">></option>
+								<option value="gte">>=</option>
+								<option value="eq">=</option>
+								<option value="lt"><</option>
+								<option value="lte"><=</option>
+								<option value="in">between</option>
+							</select>
+						</div>
+						<input type="number" id="input-substitution" name="substitution" class="form-control">
+						<input type="hidden" id="max-substitution" name="maxsubstitution" class="form-control">
+					</div>
+
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Insertion</label>
+							<select class="custom-select input-group-text" id="select-insert-sign">
+								<option value="gt">></option>
+								<option value="gte">>=</option>
+								<option value="eq">=</option>
+								<option value="lt"><</option>
+								<option value="lte"><=</option>
+								<option value="in">between</option>
+							</select>
+						</div>
+						<input type="number" id="input-insertion" name="insertion" class="form-control">
+						<input type="hidden" id="max-insertion" name="maxinsertion" class="form-control">
+					</div>
+
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Deletion</label>
+							<select class="custom-select input-group-text" id="select-delete-sign">
+								<option value="gt">></option>
+								<option value="gte">>=</option>
+								<option value="eq">=</option>
+								<option value="lt"><</option>
+								<option value="lte"><=</option>
+								<option value="in">between</option>
+							</select>
+						</div>
+						<input type="number" id="input-deletion" name="deletion" class="form-control">
+						<input type="hidden" id="max-deletion" name="maxdeletion" class="form-control">
+					</div>
+
+					<div class="form-group col-12 input-group">
+						<div class="input-group-prepend">
+							<label class="input-group-text">Score</label>
+							<select class="custom-select input-group-text" id="select-score-sign">
+								<option value="gt">></option>
+								<option value="gte">>=</option>
+								<option value="eq">=</option>
+								<option value="lt"><</option>
+								<option value="lte"><=</option>
+								<option value="in">between</option>
+							</select>
+						</div>
+						<input type="number" id="input-score" name="score" class="form-control">
+						<input type="hidden" id="max-score" name="maxscore" class="form-control">
 					</div>
 				</div>
 			</div>
@@ -284,19 +364,11 @@ $('#apply-filter-btn').click(function(){
 	table.ajax.reload();
 });
 
-$('#select-len-sign').change(function(){
+$('select').change(function(){
 	if($(this).val() == 'in'){
-		$('#max-length').attr('type', 'number');
+		$(this).parent().next().next().attr('type', 'number');
 	} else {
-		$('#max-length').attr('type', 'hidden');
-	}
-});
-
-$('#select-repeat-sign').change(function(){
-	if($(this).val() == 'in'){
-		$('#max-repeats').attr('type', 'number');
-	} else {
-		$('#max-repeats').attr('type', 'hidden');
+		$(this).parent().next().next().attr('type', 'hidden');
 	}
 });
 
