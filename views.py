@@ -395,6 +395,25 @@ def analysis(request):
 
 	if request.method == 'POST':
 		species = request.POST.getlist('species[]', [])
-		
+		species_names = [g.species_name for g in Genome.objects.filter(id__in=species)]
+		species_datas = []
+		for sid in species:
+			db_config = get_ssr_db(sid)
+			with in_database(db_config):
+				species_datas.append({stat.option:stat.content for stat in Summary.objects.all()})
 
-		return JsonResponse({'data':''.join(species)})
+		charts = {}
+		#ssr type distribution
+		charts['ssr_types'] = species_names
+		
+		types = ['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa']
+		items = [{'name':t, 'data': []} for t in types]
+		for sp in species_datas:
+			print(sp['ssr_types'])
+			d = json.loads(sp['ssr_types'])
+			for t, c in d.items():
+				items[types.index(t)]['data'].append(c)
+
+		charts['ssr_type_dis'] = items
+		
+		return JsonResponse(charts)

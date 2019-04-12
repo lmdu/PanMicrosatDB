@@ -83,22 +83,6 @@
 
 					<div class="form-group col-12 input-group">
 						<div class="input-group-prepend">
-							<label class="input-group-text">Repeats</label>
-							<select class="custom-select input-group-text" id="select-repeat-sign" name="repeatsign">
-								<option value="gt">></option>
-								<option value="gte">>=</option>
-								<option value="eq">=</option>
-								<option value="lt"><</option>
-								<option value="lte"><=</option>
-								<option value="in">between</option>
-							</select>
-						</div>
-						<input type="number" id="input-repeats" name="repeats" class="form-control">
-						<input type="hidden" id="max-repeats" name="maxrepeats" class="form-control">
-					</div>
-
-					<div class="form-group col-12 input-group">
-						<div class="input-group-prepend">
 							<label class="input-group-text">Length</label>
 							<select class="custom-select input-group-text" id="select-len-sign" name="lensign">
 								<option value="gt">></option>
@@ -281,13 +265,24 @@ var table = $('table#viewer').DataTable({
 				d.motif = $('#input-motif').val();
 				d.smotif = $('#input-smotif').val();
 				d.ssrtype = $('#select-ssrtype').val();
-				d.repsign = $('#select-repeat-sign').val();
-				d.repeats = $('#input-repeats').val() || '0';
-				d.maxrep = $('#max-repeats').val() || '0';
 				d.lensign = $('#select-len-sign').val();
 				d.ssrlen = $('#input-length').val() || '0';
 				d.maxlen = $('#max-length').val() || '0';
-				d.location = $('#select-location').val();
+				d.matchsign = $('#select-match-sign').val();
+				d.match = $('#input-match').val() || '0';
+				d.maxmatch = $('#max-match').val() || '0';
+				d.subsign = $('#select-sub-sign').val();
+				d.sub = $('#input-substitution').val() || '0';
+				d.maxsub = $('#max-substitution').val() || '0';
+				d.insertsign = $('#select-insert-sign').val();
+				d.insert = $('#input-insertion').val() || '0';
+				d.maxinsert = $('#max-insertion').val() || '0';
+				d.deletesign = $('#select-delete-sign').val();
+				d.delete = $('#input-deletion').val() || '0';
+				d.maxdelete = $('#max-deletion').val() || '0';
+				d.scoresign = $('#select-score-sign').val();
+				d.score = $('#input-score').val() || '0';
+				d.maxscore = $('#max-score').val() || '0';
 			}
 		}
 	}
@@ -351,11 +346,8 @@ $('select#select-sequence').select2({
 $('#reset-filter-btn').click(function(){
 	apply_filter = false;
 	$('#ssr-filter-dialog input').val('');
-	$('#ssr-filter-dialog select').val('').trigger('change');
-	$('#select-ssrtype').val('0').trigger('change');
-	$('#select-location').val('0').trigger('change');
-	$('#select-repeat-sign').val('gt').trigger('change');
-	$('#select-len-sign').val('gt').trigger('change');
+	$('#ssr-filter-dialog #select-sequence').val('').trigger('change');
+	$('#ssr-filter-dialog #select-ssrtype').val(0).trigger('change');
 	table.ajax.reload();
 });
 
@@ -379,19 +371,30 @@ $('#dl-ok').click(function(){
 		'task': '{{ task.job_id }}'
 	};
 	if(apply_filter && $('#dl-rows').val() == 'filtered'){
-		data.sequence = $('#select-sequence').val() || '0';
-		data.begin = $('#input-start').val() || '0';
-		data.end = $('#input-end').val() || '0';
-		data.motif = $('#input-motif').val();
-		data.smotif = $('#input-smotif').val();
-		data.ssrtype = $('#select-ssrtype').val();
-		data.repsign = $('#select-repeat-sign').val();
-		data.repeats = $('#input-repeats').val() || '0';
-		data.maxrep = $('#max-repeats').val() || '0';
-		data.lensign = $('#select-len-sign').val();
-		data.ssrlen = $('#input-length').val() || '0';
-		data.maxlen = $('#max-length').val() || '0';
-		data.location = $('#select-location').val();
+		d.sequence = $('#select-sequence').val() || '0';
+		d.begin = $('#input-start').val() || '0';
+		d.end = $('#input-end').val() || '0';
+		d.motif = $('#input-motif').val();
+		d.smotif = $('#input-smotif').val();
+		d.ssrtype = $('#select-ssrtype').val();
+		d.lensign = $('#select-len-sign').val();
+		d.ssrlen = $('#input-length').val() || '0';
+		d.maxlen = $('#max-length').val() || '0';
+		d.matchsign = $('#select-match-sign').val();
+		d.match = $('#input-match').val() || '0';
+		d.maxmatch = $('#max-match').val() || '0';
+		d.subsign = $('#select-sub-sign').val();
+		d.sub = $('#input-substitution').val() || '0';
+		d.maxsub = $('#max-substitution').val() || '0';
+		d.insertsign = $('#select-insert-sign').val();
+		d.insert = $('#input-insertion').val() || '0';
+		d.maxinsert = $('#max-insertion').val() || '0';
+		d.deletesign = $('#select-delete-sign').val();
+		d.delete = $('#input-deletion').val() || '0';
+		d.maxdelete = $('#max-deletion').val() || '0';
+		d.scoresign = $('#select-score-sign').val();
+		d.score = $('#input-score').val() || '0';
+		d.maxscore = $('#max-score').val() || '0';
 	}
 	$.redirect("{{ url('download') }}", data, 'POST', '_blank');
 	$('#download-dialog').modal('hide');

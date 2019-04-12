@@ -4,6 +4,7 @@ import time
 import sqlite3
 import requests
 
+from django.core.mail import send_mail
 from celery import shared_task, Task
 
 from .models import Genome, Job
@@ -281,6 +282,12 @@ def search_for_issr(db, fasta_file, seed_repeat, seed_len, max_edits, mis_penalt
 class BaseTask(Task):
 	_db = None
 	def after_return(self, status, retval, task_id, args, kwargs, einfo):
+		email = args[0]['email']
+		if email:
+			title = 'Task completed'
+			content = 'View task results: http://big.cdu.edu.cn/psmd/task/{}'.format(task_id)
+			send_mail(title, content, 'lmdu@foxmail.com', [email])
+
 		self.db.commit()
 
 	def on_failure(self, exc, task_id, args, kwargs, einfo):

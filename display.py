@@ -139,7 +139,7 @@ class ISSRTaskDisplay(BaseDisplay):
 
 	@property
 	def filters(self):
-		return get_ssr_request_filters(self.post)
+		return get_issr_request_filters(self.post)
 
 	def format_row(self, ssr):
 		return (ssr.id, ssr.sequence.name, ssr.start, ssr.end, colored_seq(ssr.motif), \

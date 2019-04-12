@@ -111,14 +111,31 @@ table.table{
 	<div class="col-lg-4">
 		<div class="card">
 			<div class="card-body">
-				<div id="chart1"></div>
+				<div id="ssr-type-pie-chart"></div>
 			</div>
 		</div>
 	</div>
-	<div class="col-lg-8">
+	<div class="col-lg-4">
 		<div class="card">
 			<div class="card-body">
-				<div id="chart2"></div>
+				<div id="ssr-len-pie-chart"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-4">
+		<div class="card">
+			<div class="card-body">
+				<div id="ssr-coding-pie-chart"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row mt-3">
+	<div class="col">
+		<div class="card">
+			<div class="card-body">
+				<div id="ssr-motif-bar-chart"></div>
 			</div>
 		</div>
 	</div>
@@ -128,14 +145,14 @@ table.table{
 	<div class="col-lg-6">
 		<div class="card">
 			<div class="card-body">
-				<div id="chart3"></div>
+				<div id="ssr-repeat-line-chart"></div>
 			</div>
 		</div>
 	</div>
 	<div class="col-lg-6">
 		<div class="card">
 			<div class="card-body">
-				<div id="chart4"></div>
+				<div id="ssr-len-line-chart"></div>
 			</div>
 		</div>
 	</div>
@@ -145,14 +162,14 @@ table.table{
 	<div class="col-lg-6">
 		<div class="card">
 			<div class="card-body">
-				<div id="chart5"></div>
+				<div id="cssr-complex-line-chart"></div>
 			</div>
 		</div>
 	</div>
 	<div class="col-lg-6">
 		<div class="card">
 			<div class="card-body">
-				<div id="chart6"></div>
+				<div id="cssr-len-line-chart"></div>
 			</div>
 		</div>
 	</div>
@@ -161,15 +178,8 @@ table.table{
 <script>
 $('#view-option-select').prop('disabled', false);
 
-//highchart global setting
-Highcharts.setOptions({
-	credits: {
-		enabled: false
-	}
-});
-
 //ssr type distribution
-Highcharts.chart('chart1',{
+Highcharts.chart('ssr-type-pie-chart',{
 	chart:{
 		type: 'pie'
 	},
@@ -196,8 +206,67 @@ Highcharts.chart('chart1',{
 	}]
 });
 
+//ssr length of each type distribution
+Highcharts.chart('ssr-len-pie-chart',{
+	chart:{
+		type: 'pie'
+	},
+	title: {
+		text: 'Length distribution of each SSR type'
+	},
+	plotOptions: {
+		pie: {
+			allowPointSelect: true,
+			cursor: 'pointer',
+			dataLabels: {
+                enabled: true,
+                format: '<b>{point.name}</b>: {point.percentage:.2f} %',
+                style: {
+                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                }
+            }
+		}
+	},
+	series: [{
+		name: 'SSR length',
+		colorByPoint: true,
+		data: {{ summary.ssr_types_len|safe }},
+		tooltip: {
+			valueSuffix: ' bp'
+		}
+	}]
+});
+
+//ssr length of each type distribution
+Highcharts.chart('ssr-coding-pie-chart',{
+	chart:{
+		type: 'pie'
+	},
+	title: {
+		text: 'SSR distribution in different regions'
+	},
+	plotOptions: {
+		pie: {
+			allowPointSelect: true,
+			cursor: 'pointer',
+			dataLabels: {
+                enabled: true,
+                format: '<b>{point.name}</b>: {point.percentage:.2f} %',
+                style: {
+                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                }
+            }
+		}
+	},
+	series: [{
+		name: 'SSR counts',
+		colorByPoint: true,
+		data: {{ summary.ssr_location|safe }}
+	}]
+});
+
 //ssr motif distribution
-Highcharts.chart('chart2', {
+Highcharts.chart('ssr-motif-bar-chart', {
 	chart: {
 		type: 'column'
 	},
@@ -226,7 +295,7 @@ Highcharts.chart('chart2', {
 });
 
 //SSR repeat distribution
-Highcharts.chart('chart3', {
+Highcharts.chart('ssr-repeat-line-chart', {
 	title: {
 		text: 'SSR repeat distribution'
 	},
@@ -245,7 +314,7 @@ Highcharts.chart('chart3', {
 });
 
 //SSR length distribution
-Highcharts.chart('chart4', {
+Highcharts.chart('ssr-len-line-chart', {
 	title: {
 		text: 'SSR length distribution'
 	},
@@ -269,7 +338,7 @@ Highcharts.chart('chart4', {
 });
 
 //compound complexity distribution
-Highcharts.chart('chart5', {
+Highcharts.chart('cssr-complex-line-chart', {
 	chart: {
 		type: 'areaspline'
 	},
@@ -298,7 +367,7 @@ Highcharts.chart('chart5', {
 });
 
 //compound length distribution
-Highcharts.chart('chart6', {
+Highcharts.chart('cssr-len-line-chart', {
 	chart: {
 		type: 'areaspline'
 	},

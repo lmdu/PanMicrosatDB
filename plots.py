@@ -4,9 +4,20 @@ def make_ssr_type_plot(data):
 	items = [{'name':k, 'y': v} for k, v in data.items()]
 	return json.dumps(items)
 
+def make_ssr_type_len_plot(data):
+	type_mapping = {'Mono': 1, 'Di': 2, 'Tri': 3, 'Tetra': 4, 'Penta': 5, 'Hexa': 6}
+	items = [{'name':k, 'y': v*type_mapping[k]} for k, v in data.items()]
+	return json.dumps(items)
+
+def make_ssr_location_plot(data, total):
+	integenic = int(total) - sum(int(data[k]) for k in data)
+	items = [{'name':k, 'y': v} for k, v in data.items()]
+	items.append({'name': 'Integenic', 'y': integenic})
+	return json.dumps(items)
+
 def make_ssr_motif_plot(data):
 	data = sorted(data.items(), key=lambda d: d[1], reverse=True)
-	items = [[k, v] for k, v in data[:40]]
+	items = [[k, v] for k, v in data[:70]]
 	return json.dumps(items)
 
 def make_ssr_repeat_plot(data):
@@ -47,6 +58,10 @@ def make_plot(parent, data, option):
 
 	if option == 'ssr_types':
 		parent[option] = make_ssr_type_plot(data)
+		parent['ssr_types_len'] = make_ssr_type_len_plot(data)
+
+	elif option == 'ssr_location':
+		parent[option] = make_ssr_location_plot(data, parent['ssr_count'])
 	
 	elif option == 'ssr_motif':
 		parent[option] = make_ssr_motif_plot(data)

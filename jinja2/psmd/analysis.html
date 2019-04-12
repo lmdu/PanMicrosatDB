@@ -37,13 +37,21 @@
 	</div>
 </div>
 
+<div class="row mt-3">
+	<div class="col-6 card">
+		<div id="ssr-type-bar-chart"></div>
+	</div>
+</div>
+
 <script type="text/javascript">
+var species_list = [];
+
 var colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
 $('#species-select').on('change', function(){
 	var label = $(this).find('option:selected').text();
 	var sid = parseInt($(this).val());
 
-	if(!sid){
+	if(!sid || species_list.includes(sid)){
 		return;
 	}
 
@@ -57,21 +65,47 @@ $('#species-select').on('change', function(){
 		.css('cursor', 'pointer')
 		.click(function(){
 			$(this).parent().remove();
+			var i = $(this).data('id');
+			species_list.splice(species_list.indexOf(i), 1);
 		})
 		.appendTo(badge_ele);
 
 	$('#selected-species').append(badge_ele);
+	species_list.push(sid);
 });
 
 $('#compare-btn').click(function(){
-	var species = $('#selected-species span').map(function(){
-		return $(this).data('id');
-	}).get();
+	//var species = $('#selected-species span').map(function(){
+	//	return $(this).data('id');
+	//}).get();
 
-	$.post('analysis', {species: species}, function(res){
-		alert(res.data);
+	$.post('analysis', {species: species_list}, function(res){		
+		Highcharts.chart('ssr-type-bar-chart', {
+			chart: {
+				type: 'column'
+			},
+			title: {
+				text: 'SSR type distribution'
+			},
+			xAxis: {
+				categories: res.ssr_types
+			},
+			tooltip: {
+				pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+				shared: true
+			},
+			plotOptions: {
+				column: {
+					stacking: 'percent'
+				}
+			},
+			series: res.ssr_type_dis
+		});
+
 	});
 
 });
+
+
 </script>
 {% endblock %}

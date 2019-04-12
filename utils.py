@@ -183,8 +183,21 @@ def get_cssr_request_filters(params):
 
 	return filters
 
-def get_issr_request_filters(post):
+def get_issr_request_filters(params):
 	filters = Filters()
+	filters.add('sequence', int(params.get('sequence', 0)))
+	filters.add('start', int(params.get('begin', 0)), 'gte')
+	filters.add('end', int(params.get('end', 0)), 'lte')
+	filters.add('motif', params.get('motif'))
+	filters.add('standard_motif', params.get('smotif'))
+	filters.add('ssr_type', int(params.get('ssrtype', 0)))
+	filters.add('length', (int(params.get('ssrlen', 0)), int(params.get('maxlen', 0))), params.get('lensign'))
+	filters.add('match', (int(params.get('match', 0)), int(params.get('maxmatch', 0))), params.get('matchsign'))
+	filters.add('substitution', (int(params.get('sub', 0)), int(params.get('maxsub', 0))), params.get('subsign'))
+	filters.add('insertion', (int(params.get('insert', 0)), int(params.get('maxinsert', 0))), params.get('insertsign'))
+	filters.add('deletion', (int(params.get('delete', 0)), int(params.get('maxdelete', 0))), params.get('deletesign'))
+	filters.add('score', (int(params.get('score', 0)), int(params.get('maxscore', 0))), params.get('scoresign'))
+
 	return filters
 
 
