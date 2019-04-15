@@ -1,5 +1,6 @@
 import re
 import json
+import math
 import datetime
 
 from django.shortcuts import render
@@ -9,13 +10,14 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.crypto import get_random_string
 
-from .router import in_database
 from .models import *
 from .utils import *
 from .plots import *
 from .tasks import *
 from .display import *
 from .downloader import *
+from .router import in_database
+from .thirds.motifs import motif_to_number
 
 # Create your views here.
 def index(request):
@@ -402,18 +404,48 @@ def analysis(request):
 			with in_database(db_config):
 				species_datas.append({stat.option:stat.content for stat in Summary.objects.all()})
 
-		charts = {}
-		#ssr type distribution
-		charts['ssr_types'] = species_names
-		
+		charts = {'species_categories': species_names}
+		#ssr frequency and density plot
+		charts['ssr_freq_dens_line'] = {
+			'frequency': [float(sp['ssr_frequency']) for sp in species_datas],
+			'density': [float(sp['ssr_density']) for sp in species_datas]
+		}
+
+		charts['cssr_freq_dens_line'] = {
+			'frequency': [float(sp['cssr_frequency']) for sp in species_datas],
+			'density': [float(sp['cssr_density']) for sp in species_datas]
+		}
+
+		charts['ssr_cover_cssrp_line'] = {
+			'cover': [float(sp['genome_cover']) for sp in species_datas],
+			'cssrp': [float(sp['cssr_percent']) for sp in species_datas]
+		}
+
+		#ssr motif heatmap plot
+		items = ["species,motif,counts"]
+		motif_datas = [json.loads(sp['ssr_motif']) for sp in species_datas]
+		motif_types = sorted({m for d in motif_datas for m in d}, key=motif_to_number)
+
+		for i, counts in enumerate(motif_datas):
+			for j, motif in enumerate(motif_types):
+				v = int(counts.get(motif, 0))
+				if v > 0:
+					v = math.log(v, 10)
+				items.append("{},{},{}".format(i, j, v))
+
+		charts['ssr_motif_heatmap'] = {
+			'motifs': motif_types,
+			'counts': "\n".join(items)
+		}
+
+		#ssr type distribution plot
 		types = ['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa']
 		items = [{'name':t, 'data': []} for t in types]
 		for sp in species_datas:
-			print(sp['ssr_types'])
 			d = json.loads(sp['ssr_types'])
 			for t, c in d.items():
 				items[types.index(t)]['data'].append(c)
 
-		charts['ssr_type_dis'] = items
+		charts['ssr_type_stack_bar'] = items
 		
 		return JsonResponse(charts)

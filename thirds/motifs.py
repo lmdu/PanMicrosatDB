@@ -1,3 +1,4 @@
+import itertools
 def is_motif(motif):
 	'''
 	check the motif length is weather or not minimal length,
@@ -138,5 +139,19 @@ class StandardMotif:
 
 				if motif not in motifs[smotif]:
 					motifs[smotif].append(motif)
+
+		return motifs
+
+	@staticmethod
+	def generate_motif():
+		bases = ['A', 'T', 'C', 'G']
+		motifs = []
+		for i in range(6):
+			for motif in itertools.product(bases, repeat=i+1):
+				motif = "".join(list(motif))
+				if not is_motif(motif):
+					continue
+				
+				motifs.append(motif)
 
 		return motifs

@@ -30,19 +30,47 @@
 </div>
 
 <div class="row mt-3">
-	<div class="col-10" id="selected-species">
+	<div class="col-md-10" id="selected-species">
 	</div>
-	<div class="col-2 text-right">
+	<div class="col-md-2 text-right">
 		<button class="btn btn-sm btn-primary" id="compare-btn">Compare</button>
 	</div>
 </div>
 
 <div class="row mt-3">
-	<div class="col-6 card">
-		<div id="ssr-type-bar-chart"></div>
+	<div class="col-md-6">
+		<div class="card">
+			<div id="ssr-freq-dens-line"></div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card">
+			<div id="cssr-freq-dens-line"></div>
+		</div>
+	</div>
+</div>
+<div class="row mt-3">
+	<div class="col-md-6">
+		<div class="card">
+			<div id="ssr-cover-cssrp-line"></div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="card">
+			<div id="ssr-type-stack-bar"></div>
+		</div>
 	</div>
 </div>
 
+<div class="row mt-3">
+	<div class="col-md-6">
+		<div class="card">
+			<div id="ssr-motif-heatmap"></div>
+		</div>
+	</div>
+</div>
+
+<script src="{{ static('psmd/script/heatmap.js') }}"></script>
 <script type="text/javascript">
 var species_list = [];
 
@@ -75,12 +103,143 @@ $('#species-select').on('change', function(){
 });
 
 $('#compare-btn').click(function(){
-	//var species = $('#selected-species span').map(function(){
-	//	return $(this).data('id');
-	//}).get();
+	//console.log(species_list);
 
-	$.post('analysis', {species: species_list}, function(res){		
-		Highcharts.chart('ssr-type-bar-chart', {
+	species_list = [646, 658, 716];
+
+	$.post('analysis', {species: species_list}, function(res){
+		
+		//ssr frequency and density line plot
+		Highcharts.chart('ssr-freq-dens-line', {
+			chart: {
+				zoomType: 'xy'
+			},
+			title: {
+				text: 'SSR frequency and density'
+			},
+			xAxis: [{
+				categories: res.species_categories,
+				crosshair: true
+			}],
+			yAxis: [{
+				title: {
+					text: 'Frequency (loci/Mb)'
+				}
+			}, {
+				title: {
+					text: 'Density (bp/Mb)'
+				},
+				opposite: true
+			}],
+			tooltip: {
+				pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:.2f}</b><br/>'
+			},
+			series: [{
+				name: 'Frequency',
+				type: 'spline',
+				data: res.ssr_freq_dens_line.frequency,
+				tooltip: {
+					valueSuffix: ' loci/Mb'
+				}
+			}, {
+				name: 'Desnity',
+				type: 'spline',
+				yAxis: 1,
+				data: res.ssr_freq_dens_line.density,
+				tooltip: {
+					valueSuffix: ' bp/Mb'
+				}
+			}]
+		});
+
+		//ssr frequency and density line plot
+		Highcharts.chart('cssr-freq-dens-line', {
+			chart: {
+				zoomType: 'xy'
+			},
+			title: {
+				text: 'Compound SSR frequency and density'
+			},
+			xAxis: [{
+				categories: res.species_categories,
+				crosshair: true
+			}],
+			yAxis: [{
+				title: {
+					text: 'Frequency (loci/Mb)'
+				}
+			}, {
+				title: {
+					text: 'Density (bp/Mb)'
+				},
+				opposite: true
+			}],
+			tooltip: {
+				pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:.2f}</b><br/>'
+			},
+			series: [{
+				name: 'Frequency',
+				type: 'spline',
+				data: res.cssr_freq_dens_line.frequency,
+				tooltip: {
+					valueSuffix: ' loci/Mb'
+				}
+			}, {
+				name: 'Desnity',
+				type: 'spline',
+				yAxis: 1,
+				data: res.cssr_freq_dens_line.density,
+				tooltip: {
+					valueSuffix: ' bp/Mb'
+				}
+			}]
+		});
+
+		//ssr frequency and density line plot
+		Highcharts.chart('ssr-cover-cssrp-line', {
+			chart: {
+				zoomType: 'xy'
+			},
+			title: {
+				text: 'Percentage of genome covered by SSRs and percentage of cSSRs'
+			},
+			xAxis: [{
+				categories: res.species_categories,
+				crosshair: true
+			}],
+			yAxis: [{
+				title: {
+					text: 'Genome covered (%)'
+				}
+			}, {
+				title: {
+					text: 'cSSRs percentage (%)'
+				},
+				opposite: true
+			}],
+			tooltip: {
+				pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:.2f}</b><br/>'
+			},
+			series: [{
+				name: 'Cover',
+				type: 'spline',
+				data: res.ssr_cover_cssrp_line.cover,
+				tooltip: {
+					valueSuffix: ' %'
+				}
+			}, {
+				name: 'cSSRs%',
+				type: 'spline',
+				yAxis: 1,
+				data: res.ssr_cover_cssrp_line.cssrp,
+				tooltip: {
+					valueSuffix: ' %'
+				}
+			}]
+		});
+		
+		//ssr type distribution stacking bar
+		Highcharts.chart('ssr-type-stack-bar', {
 			chart: {
 				type: 'column'
 			},
@@ -88,10 +247,10 @@ $('#compare-btn').click(function(){
 				text: 'SSR type distribution'
 			},
 			xAxis: {
-				categories: res.ssr_types
+				categories: res.species_categories
 			},
 			tooltip: {
-				pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+				pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.2f}%)<br/>',
 				shared: true
 			},
 			plotOptions: {
@@ -99,7 +258,60 @@ $('#compare-btn').click(function(){
 					stacking: 'percent'
 				}
 			},
-			series: res.ssr_type_dis
+			series: res.ssr_type_stack_bar
+		});
+
+		//ssr motif heatmap plot
+		Highcharts.chart('ssr-motif-heatmap', {
+		   	data: {
+		   		csv: res.ssr_motif_heatmap.counts
+		   	},
+		   	chart: {
+		        type: 'heatmap',
+		    },
+		     boost: {
+		        useGPUTranslations: true
+		    },
+		    title: {
+		        text: 'SSR motif distribution'
+		    },
+		    xAxis: {
+		        categories: res.species_categories
+		    },
+		    yAxis: {
+		        categories: res.ssr_motif_heatmap.motifs,
+		        title: null,
+		        labels: {
+		        	enabled: false
+		        }
+		    },
+		    tooltip: {
+		        formatter: function () {
+		            return '<b>Species: </b> ' + this.series.xAxis.categories[this.point.x] + '<br><b>Motif: </b>' +
+		                this.series.yAxis.categories[this.point.y] + '<br><b>Log10 counts: </b>' + this.point.value.toFixed(2);
+		        }
+		    },
+		    colorAxis: {
+		        stops: [
+		            [0, '#3060cf'],
+		            [0.5, '#fffbbc'],
+		            [0.9, '#c4463a'],
+		            [1, '#c4463a']
+		        ],
+		        startOnTick: false,
+		        endOnTick: false
+		    },
+		    legend: {
+		    	align: 'right',
+		    	layout: 'vertical'
+		    },
+		    series: [{
+		       boostThreshold: 400,
+		       borderWidth: 0,
+		       nullColor: '#EFEFEF',
+		       turboThreshold: 5356
+		    }]
+
 		});
 
 	});
