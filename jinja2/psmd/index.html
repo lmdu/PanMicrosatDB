@@ -42,25 +42,25 @@
 				</form>
 				
 				<p class="mt-5">Quickly jump to human and model organisms</p>
-				<div class="row">
-					<div class="col text-center">
-						<a href="">
+				<div class="row" id="quick-links">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="716">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/human.png') }}">
 								<figcaption>Human</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="741">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/mouse.png') }}">
 								<figcaption>Mouse</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="794">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/rat.png') }}">
 								<figcaption>Rat</figcaption>
@@ -68,64 +68,72 @@
 						</a>
 					</div>
 
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="62">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/chicken.png') }}">
 								<figcaption>Chicken</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="167">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/zebrafish.png') }}">
 								<figcaption>Zebrafish</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="447">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/fruitfly.png') }}">
 								<figcaption>Fruitfly</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="5">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/frog.png') }}">
 								<figcaption>Frog</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="991">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/roundworm.png') }}">
 								<figcaption>Roundworm</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="2670">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/arabidopsis.png') }}">
 								<figcaption>Arabidopsis</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="2971">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/maize.png') }}">
 								<figcaption>Maize</figcaption>
 							</figure>
 						</a>
 					</div>
-					<div class="col text-center">
-						<a href="">
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="2871">
+							<figure>
+								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/rice.png') }}">
+								<figcaption>Rice</figcaption>
+							</figure>
+						</a>
+					</div>
+					<div class="col-md-2 col-sm-4 col-xs-6 text-center">
+						<a href="1889">
 							<figure>
 								<img class="rounded-circle img-thumbnail" src="{{ static('psmd/img/yeast.png') }}">
 								<figcaption>Yeast</figcaption>
@@ -137,6 +145,20 @@
 
 			<div class="mt-5">
 				<h4>Statistics</h4>
+				<div class="table-responsive">
+					<table class="table table-bordered">
+						<tr><th>Species</th><th>Perfect Microsatellites (SSRs)</th><th>Compound Microsatellites (CMs)</th><th>Genic SSRs</th><th>Genic CMs</th><th>Coding SSRs</th><th>Coding CMs</th></tr>
+						<tr><td>18,433</td><td>678,106,741</td><td>43,848,943</td><td>175,311,695</td><td>9,765,018</td><td>87,329,511</td><td>4,210,890</td></tr>
+					</table>
+				</div>
+
+				<div class="table-responsive">
+					<table class="table table-bordered">
+						<tr><th colspan="5">Eukaryota</th><th rowspan="2" class="align-middle">Archaea</th><th rowspan="2" class="align-middle">Bacteria</th><th rowspan="2" class="align-middle">Viruses</th><th rowspan="2" class="align-middle">Viroids</th></tr>
+						<tr><th>Animals</th><th>Plants</th><th>Fungi</th><th>Protists</th><th>Other</th></tr>
+						<tr><td>1,074</td><td>371</td><td>1,513</td><td>293</td><td>21</td><td>632</td><td>12,044</td><td>2,466</td><td>29</td></tr>
+					</table>
+				</div>
 			</div>
 
 			<div class="mt-5">
@@ -196,6 +218,25 @@
 						{% endfor %}
 					</div>
 				</div>
+				<div class="card mt-3">
+					<h4 class="card-header">Contact</h4>
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item d-flex justify-content-between align-items-center">
+							Lianming Du <small>Chengdu University</small>
+							<span class="badge badge-info badge-pill">dulianming@cdu.edu.cn</span>
+						</li>
+						<li class="list-group-item d-flex justify-content-between align-items-center
+						">
+							Zhenxin Fan <small>Sichuan University</small>
+							<span class="badge badge-info badge-pill">zxfan@scu.edu.cn</span>
+						</li>
+						<li class="list-group-item d-flex justify-content-between align-items-center
+						">
+							Bisong Yue <small>Sichuan University</small>
+							<span class="badge badge-info badge-pill">bsyue@scu.edu.cn</span>
+						</li>
+					</ul>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -203,10 +244,16 @@
 
 <script type="text/javascript">
 $('#species-select').change(function(){
-	var species = parseInt($('#species-select').val());
-	if(species){
-		$.redirect('species', {gid: species}, 'POST');
+	var species_id = parseInt($('#species-select').val());
+	if(species_id){
+		$.redirect('species', {species: species_id}, 'POST', '_blank');
 	}
+});
+
+$('#quick-links a').click(function(event){
+	event.preventDefault();
+	var species_id = $(this).attr('href');
+	$.redirect('species', {species: species_id}, 'POST', '_blank');
 });
 </script>
 {% endblock %}
