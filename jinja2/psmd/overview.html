@@ -62,7 +62,7 @@ var size_unit = 'GB';
 
 var table = $('#summary').DataTable({
 	scrollX: true,
-	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-right'B>>" +
+	dom: "<'row'<'col-sm-12 col-md-2'l><'col-md-4 tipinfo'><'col-sm-12 col-md-6 text-right'B>>" +
 		 "<'row'<'col-sm-12'tr>>" +
 		 "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
 	buttons:[
@@ -126,6 +126,8 @@ var table = $('#summary').DataTable({
 		}
 	}
 });
+
+$("div.tipinfo").html('<small class="text-danger">Double click a row to view detailed species information</small>');
 
 table.on('draw.dt', function(){
 	$('#summary tbody tr').dblclick(function(){

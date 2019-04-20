@@ -68,6 +68,11 @@
 			<div id="ssr-motif-heatmap"></div>
 		</div>
 	</div>
+	<div class="col-md-6">
+		<div class="card">
+			<div id="ssr-repeat-heatmap"></div>
+		</div>
+	</div>
 </div>
 
 <script src="{{ static('psmd/script/heatmap.js') }}"></script>
@@ -110,6 +115,9 @@ $('#compare-btn').click(function(){
 		
 		//ssr frequency and density line plot
 		Highcharts.chart('ssr-freq-dens-line', {
+			credits: {
+				enabled: false
+			},
 			chart: {
 				zoomType: 'xy'
 			},
@@ -153,6 +161,9 @@ $('#compare-btn').click(function(){
 
 		//ssr frequency and density line plot
 		Highcharts.chart('cssr-freq-dens-line', {
+			credits: {
+				enabled: false
+			},
 			chart: {
 				zoomType: 'xy'
 			},
@@ -196,6 +207,9 @@ $('#compare-btn').click(function(){
 
 		//ssr frequency and density line plot
 		Highcharts.chart('ssr-cover-cssrp-line', {
+			credits: {
+				enabled: false
+			},
 			chart: {
 				zoomType: 'xy'
 			},
@@ -239,6 +253,9 @@ $('#compare-btn').click(function(){
 		
 		//ssr type distribution stacking bar
 		Highcharts.chart('ssr-type-stack-bar', {
+			credits: {
+				enabled: false
+			},
 			chart: {
 				type: 'column'
 			},
@@ -262,6 +279,9 @@ $('#compare-btn').click(function(){
 
 		//ssr motif heatmap plot
 		Highcharts.chart('ssr-motif-heatmap', {
+			credits: {
+				enabled: false
+			},
 		   	data: {
 		   		csv: res.ssr_motif_heatmap.counts
 		   	},
@@ -287,12 +307,70 @@ $('#compare-btn').click(function(){
 		    tooltip: {
 		        formatter: function () {
 		            return '<b>Species: </b> ' + this.series.xAxis.categories[this.point.x] + '<br><b>Motif: </b>' +
-		                this.series.yAxis.categories[this.point.y] + '<br><b>Log10 counts: </b>' + this.point.value.toFixed(2);
+		                this.series.yAxis.categories[this.point.y] + '<br><b>Log10 counts: </b>' + this.point.value.toFixed(5);
 		        }
 		    },
 		    colorAxis: {
 		        stops: [
 		            [0, '#3060cf'],
+		            [0.5, '#fffbbc'],
+		            [0.9, '#c4463a'],
+		            [1, '#c4463a']
+		        ],
+		        startOnTick: false,
+		        endOnTick: false
+		    },
+		    legend: {
+		    	align: 'right',
+		    	layout: 'vertical'
+		    },
+		    series: [{
+		       boostThreshold: 1000000,
+		       borderWidth: 0,
+		       nullColor: '#EFEFEF',
+		       turboThreshold: 1000000
+		    }]
+
+		});
+
+		//ssr repeat heatmap plot
+		Highcharts.chart('ssr-repeat-heatmap', {
+			credits: {
+				enabled: false
+			},
+		   	data: {
+		   		csv: res.ssr_repeat_heatmap.counts
+		   	},
+		   	chart: {
+		        type: 'heatmap',
+		    },
+		     boost: {
+		        useGPUTranslations: true
+		    },
+		    title: {
+		        text: 'SSR repeat distribution'
+		    },
+		    xAxis: {
+		        categories: res.species_categories
+		    },
+		    yAxis: {
+		        categories: res.ssr_repeat_heatmap.repeats,
+		        title: null,
+		        labels: {
+		        	enabled: false
+		        }
+		    },
+		    tooltip: {
+		        formatter: function () {
+		            return '<b>Species: </b> ' + this.series.xAxis.categories[this.point.x] + '<br><b>Repeat: </b>' +
+		                this.series.yAxis.categories[this.point.y] + '<br><b>Log10 counts: </b>' + this.point.value.toFixed(5);
+		        }
+		    },
+		    colorAxis: {
+		        stops: [
+		            [0, '#3060cf'],
+		            [0.5, '#fffbbc'],
+		            [0.9, '#c4463a'],
 		            [1, '#c4463a']
 		        ],
 		        startOnTick: false,

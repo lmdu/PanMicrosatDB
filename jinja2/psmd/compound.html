@@ -185,7 +185,7 @@
 var apply_filter = false;
 var table = $('table#cssrview').DataTable({
 	scrollX: true,
-	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-right'B>>" +
+	dom: "<'row'<'col-sm-12 col-md-2'l><'col-md-4 tipinfo'><'col-sm-12 col-md-6 text-right'B>>" +
 		 "<'row'<'col-sm-12'tr>>" +
 		 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
 	buttons: [
@@ -220,7 +220,7 @@ var table = $('table#cssrview').DataTable({
 		{name: 'complexity', title: 'Complexity'},
 		{name: 'length', title: 'Length'},
 		{name: 'structure', title: 'Pattern', orderable: false},
-		{name: 'location', title: 'Location'}
+		{name: 'location', title: 'Location', visible: {{ location_show }} }
 	],
 	searching: true,
 	processing: true,
@@ -247,10 +247,17 @@ var table = $('table#cssrview').DataTable({
 	}
 });
 
+$("div.tipinfo").html('<small class="text-danger">Double click a row to view detailed compound SSR information</small>');
+
 table.on('draw.dt', function(){
 	$('#cssrview tbody tr').dblclick(function(){
 		var row = table.row(this).data();
-		var params = {ssrid: row[0], type: 'cssr', species: $('#species-select').val()};
+		var params = {
+			ssrid: row[0],
+			type: 'cssr',
+			species: $('#species-select').val(),
+			location_show: {{ location_show }}
+		};
 		$('#primer3-dialog input').each(function(){
 			params[$(this).attr('name')] = $(this).val();
 		});

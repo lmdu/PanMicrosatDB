@@ -8,6 +8,18 @@ from .thirds.issr import generate_alignment
 
 from django.http import JsonResponse
 
+def display_location(gid):
+	show = 'false'
+
+	db_config = get_ssr_db(gid)
+	with in_database(db_config):
+		count = SSRAnnot.objects.count()
+		if count > 0:
+			show = 'true'
+
+	return show
+
+
 class BaseDisplay(object):
 	'''Show SSRs in Datatable
 	@param db, db config used for in_database to switch database connection
@@ -79,7 +91,7 @@ class SSRDisplay(BaseDisplay):
 		try:
 			location = ssr.ssrannot.get_location_display()
 		except:
-			location = 'N/A'
+			location = 'intergenic'
 
 		return (ssr.id, ssr.sequence.accession, ssr.sequence.name, ssr.start, \
 				ssr.end, colored_seq(ssr.motif), colored_seq(ssr.standard_motif), \
@@ -110,7 +122,7 @@ class CSSRDisplay(BaseDisplay):
 		try:
 			location = cssr.cssrannot.get_location_display()
 		except:
-			location = 'N/A'
+			location = 'intergenic'
 
 		pattern = colored_cssr_pattern(cssr.structure)
 		pattern = re.sub(r'(\d+)', lambda m: '<sub>'+m.group(0)+'</sub>', pattern)
@@ -152,6 +164,7 @@ class BaseDetail(object):
 		self.db = db
 		self.ssr_id = int(post.get('ssrid'))
 		self.primer_settings = get_primer_setttings(post)
+		self.show_location = post.get('location_show')
 		#get detailed information
 		self.get_detail()
 
@@ -220,7 +233,11 @@ class BaseDetail(object):
 		return ''.join(html)
 
 	def get_location(self):
-		html = '<tr><td class="text-center" colspan="4">N/A</td><td>Intergenic</td></tr>'
+		print(self.show_location)
+		if self.show_location == 'true':
+			html = '<tr><td class="text-center" colspan="4">N/A</td><td>Intergenic</td></tr>'
+		else:
+			html = '<tr><td class="text-center" colspan="5">N/A</td></tr>'
 		
 		if self.annot:
 			loc = self.annot.get_location_display()

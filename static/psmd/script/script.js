@@ -170,11 +170,4 @@ $('#species-select').on('change', function(){
 	}
 });
 
-//highchart global setting
-Highcharts.setOptions({
-	credits: {
-		enabled: false
-	}
-});
-
 });

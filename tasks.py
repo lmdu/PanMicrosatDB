@@ -10,7 +10,7 @@ from celery import shared_task, Task
 from .models import Genome, Job
 from .config import Config
 from .thirds import kseq, tandem
-from .thirds.motifs import StandardMotif
+from .thirds.motifs import MotifStandard
 
 TABLE_SQL = """
 CREATE TABLE sequence(
@@ -168,7 +168,7 @@ def get_flank_seq(seq, start, end, flank):
 	return (left, right)
 
 def search_for_ssr(db, fasta_file, min_repeats, standard_level, flank_len):
-	standard_motifs = StandardMotif(standard_level)
+	standard_motifs = MotifStandard(standard_level)
 	seq_num = 0
 	ssr_num = 1
 	seq_sql = "INSERT INTO sequence VALUES (?,?,?)"
@@ -180,7 +180,7 @@ def search_for_ssr(db, fasta_file, min_repeats, standard_level, flank_len):
 		if not ssrs:
 			continue
 
-		ssrs = [(ssr_num+idx, seq_num, ssr[3], ssr[4], ssr[0], standard_motifs.standard(ssr[0]), ssr[1], ssr[2], ssr[5]) for idx, ssr in enumerate(ssrs)]
+		ssrs = [(ssr_num+idx, seq_num, ssr[3], ssr[4], ssr[0], standard_motifs.get_standard(ssr[0]), ssr[1], ssr[2], ssr[5]) for idx, ssr in enumerate(ssrs)]
 		ssr_num += len(ssrs)
 		ssr_sql = "INSERT INTO ssr VALUES (?,?,?,?,?,?,?,?,?)"
 		db.cursor().executemany(ssr_sql, ssrs)
@@ -253,7 +253,7 @@ def search_for_cssr(db, fasta_file, min_repeats, dmax, flank_len):
 
 def search_for_issr(db, fasta_file, seed_repeat, seed_len, max_edits, mis_penalty, \
 					gap_penalty, min_score, standard_level, flank_len):
-	standard_motifs = StandardMotif(standard_level)
+	standard_motifs = MotifStandard(standard_level)
 	seq_num = 0
 	issr_num = 1
 	seq_sql = "INSERT INTO sequence VALUES (?,?,?)"
@@ -266,7 +266,7 @@ def search_for_issr(db, fasta_file, seed_repeat, seed_len, max_edits, mis_penalt
 		if not issrs:
 			continue
 
-		issrs = [(issr_num+idx, seq_num, issr[2], issr[3], issr[0], standard_motifs.standard(issr[0]), issr[1], \
+		issrs = [(issr_num+idx, seq_num, issr[2], issr[3], issr[0], standard_motifs.get_standard(issr[0]), issr[1], \
 				 issr[4], issr[5], issr[6], issr[7], issr[8], issr[9]) for idx,issr in enumerate(issrs)]
 		issr_num += len(issrs)
 		issr_sql = "INSERT INTO issr VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"

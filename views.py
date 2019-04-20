@@ -196,13 +196,14 @@ def browse(request):
 	
 	if 'draw' not in request.POST:
 		genome = Genome.objects.get(pk=gid)
+		location_show = display_location(gid)
 		species = {
 			'kingdom': (genome.category.parent.parent.pk, genome.category.parent.parent.name),
 			'group': (genome.category.parent.pk, genome.category.parent.name),
 			'subgroup': (genome.category.pk, genome.category.name),
 			'species': (genome.pk, genome.species_name)
 		}
-		return render(request, 'psmd/browse.html', {'species':species})
+		return render(request, 'psmd/browse.html', {'species':species, 'location_show': location_show})
 
 	
 	if request.method == 'POST':
@@ -219,13 +220,14 @@ def compound(request):
 
 		if 'draw' not in request.POST:
 			genome = Genome.objects.get(pk=gid)
+			location_show = display_location(gid)
 			species = {
 				'kingdom': (genome.category.parent.parent.pk, genome.category.parent.parent.name),
 				'group': (genome.category.parent.pk, genome.category.parent.name),
 				'subgroup': (genome.category.pk, genome.category.name),
 				'species': (genome.pk, genome.species_name)
 			}
-			return render(request, 'psmd/compound.html', {'species':species})
+			return render(request, 'psmd/compound.html', {'species':species, 'location_show': location_show})
 
 		db_config = get_ssr_db(gid)
 		display = CSSRDisplay(db_config, request.POST)
@@ -438,6 +440,32 @@ def analysis(request):
 			'counts': "\n".join(items)
 		}
 
+		#ssr repats distribution plot
+		
+		items = ["species,repeat,counts"]
+		repeat_data = []
+		for sp in species_datas:
+			d = json.loads(sp['ssr_repdis'])
+			rep_data = {}
+			for _, rc in d.items():
+				for r, c in rc.items():
+					rep_data[int(r)] = rep_data.get(int(r), 0) + int(c)
+			repeat_data.append(rep_data)
+		repeats = sorted({r for d in repeat_data for r in d})
+
+		for i, counts in enumerate(repeat_data):
+			for j, repeat in enumerate(repeats):
+				v = counts.get(repeat, 0)
+				if v > 0:
+					v = math.log(v, 10)
+
+				items.append("{},{},{}".format(i, j, v))
+
+		charts['ssr_repeat_heatmap'] = {
+			'repeats': repeats,
+			'counts': "\n".join(items)
+		}		
+
 		#ssr type distribution plot
 		types = ['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa']
 		items = [{'name':t, 'data': []} for t in types]
@@ -448,20 +476,6 @@ def analysis(request):
 
 		charts['ssr_type_stack_bar'] = items
 		
-		#ssr repats distribution plot
-		'''
-		items = []
-		for sp in species_datas:
-			item = []
-			d = json.loads(sp['ssr_repdis'])
-			for _, rc in d.items():
-				for r, c in rc.items():
-					item.extend([int(r)]*int(c))
-			print(item)
-			items.append(sorted(item))
-
-		charts['ssr_repeat_violin'] = make_violin_plot(species_names, items)
-		'''
 
 		return JsonResponse(charts)
 

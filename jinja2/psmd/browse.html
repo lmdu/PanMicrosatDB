@@ -216,7 +216,7 @@ $('#view-option-select').prop('disabled', false);
 var apply_filter = false;
 var table = $('table#ssrview').DataTable({
 	scrollX: true,
-	dom: "<'row'<'col-sm-12 col-md-6'l<'tipinfo'>><'col-sm-12 col-md-6 text-right'B>>" +
+	dom: "<'row'<'col-sm-12 col-md-2'l><'col-md-4 tipinfo'><'col-sm-12 col-md-6 text-right'B>>" +
 		 "<'row'<'col-sm-12'tr>>" +
 		 "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
 	buttons:[
@@ -253,7 +253,7 @@ var table = $('table#ssrview').DataTable({
 		{name: 'ssr_type', title: 'Type'},
 		{name: 'repeats', title: 'Repeats'},
 		{name: 'length', title: 'Length'},
-		{name: 'location', title: 'Location'}
+		{name: 'location', title: 'Location', visible: {{ location_show }} }
 	],
 	searching: true,
 	processing: true,
@@ -283,12 +283,17 @@ var table = $('table#ssrview').DataTable({
 	}
 });
 
-$("div.tipinfo").html('<span class="text-danger">Double click a row to view detailed SSR information</span>');
+$("div.tipinfo").html('<small class="text-danger">Double click a row to view detailed SSR information</small>');
 
 table.on('draw.dt', function(){
 	$('#ssrview tbody tr').dblclick(function(){
 		var row = table.row(this).data();
-		var params = {ssrid: row[0], type: 'ssr', species: $('#species-select').val()};
+		var params = {
+			ssrid: row[0],
+			type: 'ssr',
+			species: $('#species-select').val(),
+			location_show: {{ location_show }}
+		};
 		$('#primer3-dialog input').each(function(){
 			params[$(this).attr('name')] = $(this).val();
 		});

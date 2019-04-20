@@ -179,7 +179,10 @@ table.table{
 $('#view-option-select').prop('disabled', false);
 
 //ssr type distribution
-Highcharts.chart('ssr-type-pie-chart',{
+Highcharts.chart('ssr-type-pie-chart', {
+	credits: {
+		enabled: false
+	},
 	chart:{
 		type: 'pie'
 	},
@@ -207,7 +210,10 @@ Highcharts.chart('ssr-type-pie-chart',{
 });
 
 //ssr length of each type distribution
-Highcharts.chart('ssr-len-pie-chart',{
+Highcharts.chart('ssr-len-pie-chart', {
+	credits: {
+		enabled: false
+	},
 	chart:{
 		type: 'pie'
 	},
@@ -238,7 +244,10 @@ Highcharts.chart('ssr-len-pie-chart',{
 });
 
 //ssr length of each type distribution
-Highcharts.chart('ssr-coding-pie-chart',{
+Highcharts.chart('ssr-coding-pie-chart', {
+	credits: {
+		enabled: false
+	},
 	chart:{
 		type: 'pie'
 	},
@@ -267,6 +276,9 @@ Highcharts.chart('ssr-coding-pie-chart',{
 
 //ssr motif distribution
 Highcharts.chart('ssr-motif-bar-chart', {
+	credits: {
+		enabled: false
+	},
 	chart: {
 		type: 'column'
 	},
@@ -296,6 +308,9 @@ Highcharts.chart('ssr-motif-bar-chart', {
 
 //SSR repeat distribution
 Highcharts.chart('ssr-repeat-line-chart', {
+	credits: {
+		enabled: false
+	},
 	title: {
 		text: 'SSR repeat distribution'
 	},
@@ -315,6 +330,9 @@ Highcharts.chart('ssr-repeat-line-chart', {
 
 //SSR length distribution
 Highcharts.chart('ssr-len-line-chart', {
+	credits: {
+		enabled: false
+	},
 	title: {
 		text: 'SSR length distribution'
 	},
@@ -339,6 +357,9 @@ Highcharts.chart('ssr-len-line-chart', {
 
 //compound complexity distribution
 Highcharts.chart('cssr-complex-line-chart', {
+	credits: {
+		enabled: false
+	},
 	chart: {
 		type: 'areaspline'
 	},
@@ -368,6 +389,9 @@ Highcharts.chart('cssr-complex-line-chart', {
 
 //compound length distribution
 Highcharts.chart('cssr-len-line-chart', {
+	credits: {
+		enabled: false
+	},
 	chart: {
 		type: 'areaspline'
 	},
