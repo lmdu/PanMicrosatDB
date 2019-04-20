@@ -15,12 +15,12 @@ import collections
 import multiprocessing
 
 from ..thirds import kseq, ncls, tandem
-from ..thirds.motifs import StandardMotif
+from ..thirds.motifs import MotifStandard
 from ..config import Config
 
 #minimum tandem repeats
-#min_tandem_repeats = [12, 7, 5, 4, 4, 4]
-min_tandem_repeats = [6, 3, 3, 3, 3, 3]
+min_tandem_repeats = [12, 7, 5, 4, 4, 4]
+#min_tandem_repeats = [6, 3, 3, 3, 3, 3]
 
 def make_folder(folder):
 	if not os.path.exists(folder):
@@ -253,7 +253,7 @@ GFF_DIR = os.path.join(WORK_DIR, 'gffs')
 
 def search_for_ssrs(acc, sub_dir):
 	#standard motif
-	motifs = StandardMotif(3)
+	motifs = MotifStandard(2)
 
 	out_dir = os.path.join(DB_DIR, sub_dir)
 
@@ -387,7 +387,7 @@ def search_for_ssrs(acc, sub_dir):
 
 		def iter_ssr():
 			for ssr in ssrs:
-				yield (None, seqs_mapping[seqid], ssr[3], ssr[4], ssr[0], motifs.standard(ssr[0]), ssr[1], ssr[2], ssr[5])
+				yield (None, seqs_mapping[seqid], ssr[3], ssr[4], ssr[0], motifs.get_standard(ssr[0]), ssr[1], ssr[2], ssr[5])
 		conn.cursor().executemany("INSERT INTO ssr VALUES (?,?,?,?,?,?,?,?,?)", iter_ssr())
 
 		#extract flanking sequence for SSRs

@@ -448,4 +448,21 @@ def analysis(request):
 
 		charts['ssr_type_stack_bar'] = items
 		
+		#ssr repats distribution plot
+		'''
+		items = []
+		for sp in species_datas:
+			item = []
+			d = json.loads(sp['ssr_repdis'])
+			for _, rc in d.items():
+				for r, c in rc.items():
+					item.extend([int(r)]*int(c))
+			print(item)
+			items.append(sorted(item))
+
+		charts['ssr_repeat_violin'] = make_violin_plot(species_names, items)
+		'''
+
 		return JsonResponse(charts)
+
+

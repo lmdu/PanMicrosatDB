@@ -1,4 +1,5 @@
 import itertools
+
 def is_motif(motif):
 	'''
 	check the motif length is weather or not minimal length,
@@ -37,7 +38,7 @@ def is_motif(motif):
 		else:
 			return True
 
-def similar_motif(motif):
+def cycle_equal_motifs(motif):
 	'''
 	remove the similarity motifs e.g. AC and CA, CA is AC.
 	@motif string.
@@ -46,112 +47,103 @@ def similar_motif(motif):
 	if len(motif) == 1:
 		return [motif]
 	
-	similar_motifs = []
-	for i, b in enumerate(motif):
-		new_motif = "%s%s" % (motif[i+1:], motif[0:i+1])
-		similar_motifs.append(new_motif)
-	return similar_motifs
+	return ["{}{}".format(motif[i+1:], motif[0:i+1]) for i, b in enumerate(motif)]
 
-def complete_motif(motif):
+def complement_motifs(motif):
 	'''
-	motif completement eg. TG -> AG
+	motif completement eg. TG -> AC
 	@para motif str
 	@return list
 	'''
 	codes = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
-	new_motif = "".join([ codes.get(base, base) for base in motif])
-	return similar_motif(new_motif)
+	complement = "".join([codes.get(b, b) for b in motif])
+	return cycle_equal_motifs(complement)
 
+def reverse_motifs(motif):
+	return cycle_equal_motifs(motif[::-1])
 
-def reverse_complete_motif(motif):
+def reverse_complement_motifs(motif):
 	'''
 	remove the reverse complete motifs e.g. AC and GT.
 	@motif string
 	@return list
 	'''
-	return complete_motif(motif[::-1])
-
-def reverse_motif(motif):
-	return similar_motif(motif[::-1])
+	return complement_motifs(motif[::-1])
 
 def motif_to_number(motif):
-	sort_rule = {'A':'1', 'T':'2', 'C':'3', 'G':'4'}
+	sort_rule = {'A': '1', 'T': '2', 'C': '3', 'G': '4'}
 	return int("".join(sort_rule.get(a, '5') for a in motif.upper()))
 
 def motif_sorted(motifs):
 	return sorted(motifs, key=motif_to_number)
 
 
-class StandardMotif:
-	_motifs = {}
+class MotifStandard:
+	_motif_mapping = {}
+
 	def __init__(self, level=0):
-		self.level = level
+		self.set_level(level)
 
-	def setLevel(self, level=0):
-		self._motifs = {}
+	def set_level(self, level=0):
+		'''Set standard level and generate motif mapping'''
 		self.level = level
+		if self.level > 0:
+			self.generate_mapping()
 
-	def standard(self, motif):
+	def get_standard(self, motif):
+		'''Get standard motif for given motif'''
 		if self.level == 0:
 			return motif
-
-		if motif in self._motifs:
-			return self._motifs[motif]
-
-		motifs = []
 		
-		if self.level >= 1:
-			motifs.extend(similar_motif(motif))
+		return self._motif_mapping.get(motif, None)
 
-		if self.level >= 2:
-			motifs.extend(reverse_complete_motif(motif))
+	def generate_mapping(self):
+		'''Generate motif reverse mapping'''
+		motifs = self.generate_motifs()
+		self._motif_mapping = {m2:m1 for m1 in motifs for m2 in motifs[m1]}
 
-		if self.level >= 3:
-			motifs.extend(complete_motif(motif))
+	def generate_motifs(self):
+		'''Generate standard motifs and corresponding equal motifs'''
+		bases = ['A', 'T', 'C', 'G']
+		motifs = []
+		for i in range(1, 7):
+			for motif in itertools.product(bases, repeat=i):
+				motif = "".join(motif)
+				if is_motif(motif):	
+					motifs.append(motif)
 
-		if self.level >= 4:
-			motifs.extend(reverse_motif(motif))
+		mappings = {}
 
-
-		#remove the same motifs
-		motifs = list(set(motifs))
-
-		#sort motifs as A>T>C>G
-		motifs = motif_sorted(motifs)
+		if self.level == 0:
+			#5356 motifs
+			return motifs
 
 		for motif in motifs:
-			self._motifs[motif] = motifs[0]
+			candiates = []
 
-		return motifs[0]
+			if self.level >= 1:
+				candiates.extend(cycle_equal_motifs(motif))
 
-	def mapping(self):
-		bases = ['A', 'T', 'C', 'G']
-		motifs = {}
-		for i in range(6):
-			for motif in itertools.product(bases, repeat=i+1):
-				motif = "".join(list(motif))
-				if not is_motif(motif):
-					continue
+			if self.level >= 2:
+				candiates.extend(reverse_complement_motifs(motif))
 
-				smotif = self.standard(motif)
-				if smotif not in motifs:
-					motifs[smotif] = []
+			if self.level >= 3:
+				candiates.extend(complement_motifs(motif))
 
-				if motif not in motifs[smotif]:
-					motifs[smotif].append(motif)
+			if self.level >= 4:
+				candiates.extend(reverse_motifs(motif))
 
-		return motifs
+			#remove the same motifs
+			candiates = list(set(candiates))
 
-	@staticmethod
-	def generate_motif():
-		bases = ['A', 'T', 'C', 'G']
-		motifs = []
-		for i in range(6):
-			for motif in itertools.product(bases, repeat=i+1):
-				motif = "".join(list(motif))
-				if not is_motif(motif):
-					continue
-				
-				motifs.append(motif)
+			#sort motifs as A>T>C>G
+			candiates = motif_sorted(candiates)
 
-		return motifs
+			if candiates[0] not in mappings:
+				mappings[candiates[0]] = candiates
+
+		return mappings
+
+if __name__ == '__main__':
+	s = MotifStandard(2)
+	print(s.get_standard('ATG'))

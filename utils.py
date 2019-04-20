@@ -233,4 +233,3 @@ def get_primer_setttings(post):
 
 	return settings
 
- 

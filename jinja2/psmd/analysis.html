@@ -104,8 +104,7 @@ $('#species-select').on('change', function(){
 
 $('#compare-btn').click(function(){
 	//console.log(species_list);
-
-	species_list = [646, 658, 716];
+	//species_list = [646, 658, 716];
 
 	$.post('analysis', {species: species_list}, function(res){
 		
@@ -294,8 +293,6 @@ $('#compare-btn').click(function(){
 		    colorAxis: {
 		        stops: [
 		            [0, '#3060cf'],
-		            [0.5, '#fffbbc'],
-		            [0.9, '#c4463a'],
 		            [1, '#c4463a']
 		        ],
 		        startOnTick: false,
@@ -306,10 +303,10 @@ $('#compare-btn').click(function(){
 		    	layout: 'vertical'
 		    },
 		    series: [{
-		       boostThreshold: 400,
+		       boostThreshold: 1000000,
 		       borderWidth: 0,
 		       nullColor: '#EFEFEF',
-		       turboThreshold: 5356
+		       turboThreshold: 1000000
 		    }]
 
 		});
