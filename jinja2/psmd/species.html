@@ -72,16 +72,46 @@ table.table{
 			<h5 class="card-header">Microsatellites</h5>
 			<table class="table">
 				<tbody>
-					<tr><td>Total number of microsatellites</td><td>{{ summary.ssr_count }}</td></tr>
-					<tr><td>Total length of microsatellites (bp)</td><td>{{ summary.ssr_length }}</td></tr>
-					<tr><td>The average length of microsatellites (bp)</td><td>{{ summary.ssr_average }}</td></tr>
-					<tr><td>Number of microsatellites per sequence</td><td>{{ summary.ssr_perseq }}</td></tr>
-					<tr><td>Relative abundance (loci/Mb)</td><td>{{ summary.ssr_frequency }}</td></tr>
-					<tr><td>Relative density (bp/Mb)</td><td>{{ summary.ssr_density }}</td></tr>
-					<tr><td>Percentage of genome covered (%)</td><td>{{ summary.genome_cover}}</td></tr>
-					<tr><td>Total number of motif category</td><td>{{ summary.ssr_category }}</td></tr>
-					<tr><td>Maximum repeats / motif</td><td>{{ summary.ssr_maxrep }}</td></tr>
-					<tr><td>Maximum length (bp) / motif</td><td>{{ summary.ssr_maxlen }}</td></tr>
+					<tr>
+						<td>Total number of microsatellites</td>
+						<td>{{ summary.ssr_count }}</td>
+					</tr>
+					<tr>
+						<td>Total length of microsatellites (bp)</td>
+						<td>{{ summary.ssr_length }}</td>
+					</tr>
+					<tr>
+						<td>The average length of microsatellites (bp)</td>
+						<td>{{ summary.ssr_average|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Number of microsatellites per sequence</td>
+						<td>{{ summary.ssr_perseq|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Relative abundance (loci/Mb)</td>
+						<td>{{ summary.ssr_frequency|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Relative density (bp/Mb)</td>
+						<td>{{ summary.ssr_density|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Percentage of genome covered (%)</td>
+						<td>{{ summary.genome_cover|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Total number of motif category</td>
+						<td>{{ summary.ssr_category }}</td>
+					</tr>
+					<tr>
+						<td>Maximum repeats / motif</td>
+						<td>{{ summary.ssr_maxrep }}</td>
+					</tr>
+					<tr>
+						<td>Maximum length (bp) / motif</td>
+						<td>{{ summary.ssr_maxlen }}</td>
+					</tr>
 				</tbody>
 			</table>
 		</div>
@@ -91,16 +121,46 @@ table.table{
 			<h5 class="card-header">Compound microsatellites</h5>
 			<table class="table">
 				<tbody>
-					<tr><td>Total number of compound microsatellites</td><td>{{ summary.cm_count }}</td></tr>
-					<tr><td>Total length of compound microsatellites (bp)</td><td>{{ summary.cssr_length }}</td></tr>
-					<tr><td>The average length of compound microsatellites (bp)</td><td>{{ summary.cm_average }}</td></tr>
-					<tr><td>Number of compound microsatellites per sequence</td><td>{{ summary.cssr_perseq }}</td></tr>
-					<tr><td>Relative abundance (loci/Mb)</td><td>{{ summary.cssr_frequency }}</td></tr>
-					<tr><td>Relative density (bp/Mb)</td><td>{{ summary.cssr_density }}</td></tr>
-					<tr><td>Total number of SSRs comprised for compound</td><td>{{ summary.cssr_count }}</td></tr>
-					<tr><td>cSSRs%</td><td>{{ summary.cssr_percent }}</td></tr>
-					<tr><td>Maximum length (bp)</td><td>{{ summary.cssr_maxlen }}</td></tr>
-					<tr><td>Maximum complexity</td><td>{{ summary.cssr_maxcpl }}</td></tr>
+					<tr>
+						<td>Total number of compound microsatellites</td>
+						<td>{{ summary.cm_count }}</td>
+					</tr>
+					<tr>
+						<td>Total length of compound microsatellites (bp)</td>
+						<td>{{ summary.cssr_length }}</td>
+					</tr>
+					<tr>
+						<td>The average length of compound microsatellites (bp)</td>
+						<td>{{ summary.cm_average|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Number of compound microsatellites per sequence</td>
+						<td>{{ summary.cssr_perseq|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Relative abundance (loci/Mb)</td>
+						<td>{{ summary.cssr_frequency|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Relative density (bp/Mb)</td>
+						<td>{{ summary.cssr_density|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Total number of SSRs comprised for compound</td>
+						<td>{{ summary.cssr_count }}</td>
+					</tr>
+					<tr>
+						<td>cSSRs%</td>
+						<td>{{ summary.cssr_percent|float|round(3) }}</td>
+					</tr>
+					<tr>
+						<td>Maximum length (bp)</td>
+						<td>{{ summary.cssr_maxlen }}</td>
+					</tr>
+					<tr>
+						<td>Maximum complexity</td>
+						<td>{{ summary.cssr_maxcpl }}</td>
+					</tr>
 				</tbody>
 			</table>
 		</div>
