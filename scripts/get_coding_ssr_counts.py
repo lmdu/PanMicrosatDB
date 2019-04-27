@@ -5,8 +5,8 @@ import sqlite3
 
 WORK_DIR = '/home/ming/PSMD'
 DB_DIR = os.path.join(WORK_DIR, 'dbs')
-total_coding_ssrs = 0
-total_coding_cssrs = 0
+
+
 for infile in sys.argv[1:]:
 	with open(infile) as fh:
 		rows = csv.reader(fh, delimiter='\t')
@@ -19,14 +19,32 @@ for infile in sys.argv[1:]:
 
 			conn = sqlite3.connect(db_file)
 			cursor = conn.cursor()
+			
+			for row in cursor.execute("SELECT COUNT(*) FROM ssr"):
+				total_ssr = row[0]
+
+			for row in cursor.execute("SELECT COUNT(*) FROM ssrannot"):
+				genic_ssr = row[0]
+
 			for row in cursor.execute("SELECT COUNT(*) FROM ssrannot WHERE location=1"):
-				total_coding_ssrs += row[0]
-				
+				cds_ssr = row[0]
+
+			for row in cursor.execute("SELECT COUNT(*) FROM cssr"):
+				total_cssr = row[0]
+
+			for row in cursor.execute("SELECT COUNT(*) FROM cssrannot"):
+				genic_cssr = row[0]
+
 			for row in cursor.execute("SELECT COUNT(*) FROM cssrannot WHERE location=1"):
-				total_coding_cssrs += row[0]
+				cds_cssr = row[0]
 
 			cursor.close()
 			conn.close()
 
-print(total_coding_ssrs)
-print(total_coding_cssrs)
+			if genic_ssr == 0:
+				continue
+
+			res = row[3:6]
+			res.extend([genic_ssr, cds_ssr, total_ssr-cds_ssr, genic_cssr, cds_cssr, total_cssr-cds_cssr])
+
+			print("\t".join(res))
