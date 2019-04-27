@@ -20,23 +20,23 @@ for infile in sys.argv[1:]:
 			conn = sqlite3.connect(db_file)
 			cursor = conn.cursor()
 			
-			for row in cursor.execute("SELECT COUNT(*) FROM ssr"):
-				total_ssr = row[0]
+			for record in cursor.execute("SELECT COUNT(*) FROM ssr"):
+				total_ssr = record[0]
 
-			for row in cursor.execute("SELECT COUNT(*) FROM ssrannot"):
-				genic_ssr = row[0]
+			for record in cursor.execute("SELECT COUNT(*) FROM ssrannot"):
+				genic_ssr = record[0]
 
-			for row in cursor.execute("SELECT COUNT(*) FROM ssrannot WHERE location=1"):
-				cds_ssr = row[0]
+			for record in cursor.execute("SELECT COUNT(*) FROM ssrannot WHERE location=1"):
+				cds_ssr = record[0]
 
-			for row in cursor.execute("SELECT COUNT(*) FROM cssr"):
-				total_cssr = row[0]
+			for record in cursor.execute("SELECT COUNT(*) FROM cssr"):
+				total_cssr = record[0]
 
-			for row in cursor.execute("SELECT COUNT(*) FROM cssrannot"):
-				genic_cssr = row[0]
+			for record in cursor.execute("SELECT COUNT(*) FROM cssrannot"):
+				genic_cssr = record[0]
 
-			for row in cursor.execute("SELECT COUNT(*) FROM cssrannot WHERE location=1"):
-				cds_cssr = row[0]
+			for record in cursor.execute("SELECT COUNT(*) FROM cssrannot WHERE location=1"):
+				cds_cssr = record[0]
 
 			cursor.close()
 			conn.close()
@@ -44,7 +44,7 @@ for infile in sys.argv[1:]:
 			if genic_ssr == 0:
 				continue
 
-			res = list(row[3:6])
+			res = [row[0], row[1], row[3], row[4], row[5]]
 			res.extend([genic_ssr, cds_ssr, total_ssr-cds_ssr, genic_cssr, cds_cssr, total_cssr-cds_cssr])
 
 			print("\t".join(list(map(str,res))))
