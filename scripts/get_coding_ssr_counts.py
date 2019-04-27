@@ -44,7 +44,7 @@ for infile in sys.argv[1:]:
 			if genic_ssr == 0:
 				continue
 
-			res = row[3:6]
+			res = list(row[3:6])
 			res.extend([genic_ssr, cds_ssr, total_ssr-cds_ssr, genic_cssr, cds_cssr, total_cssr-cds_cssr])
 
 			print("\t".join(res))
