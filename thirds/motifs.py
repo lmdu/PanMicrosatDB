@@ -89,6 +89,9 @@ class MotifStandard:
 		self.level = level
 		if self.level > 0:
 			self.generate_mapping()
+	
+	def get_motifs(self):
+		return motif_sorted(self.generate_motifs())
 
 	def get_standard(self, motif):
 		'''Get standard motif for given motif'''

@@ -1,5 +1,7 @@
 {% extends "psmd/base.html" %}
 
+{% block title %} {{ task.job_id }} {% endblock %}
+
 {% block main %}
 {% set colors = {0: 'secondary', 1: 'primary', 2: 'success', 3: 'danger'} %}
 {% set types = {'ssr': 'perferct microsatellite', 'cssr': 'compound microsatellite', 'issr': 'imperfect microsatellite'} %}
