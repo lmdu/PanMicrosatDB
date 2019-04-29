@@ -16,6 +16,9 @@ for infile in sys.argv[1:]:
 		reader = csv.reader(fh, delimiter='\t')
 		for row in reader:
 			k = row[3]
+			if k == 'Viroids':
+				continue
+
 			g = row[4].split(',')[0]
 			s = row[5].split(',')[0]
 
@@ -58,6 +61,9 @@ for infile in sys.argv[1:]:
 	with open(infile) as fh:
 		rows = csv.reader(fh, delimiter='\t')
 		for row in rows:
+			if row[3] == 'Viroids':
+				continue
+
 			if ',' in row[4]:
 				row[4] = row[4].split(',')[0]
 
@@ -73,6 +79,9 @@ for infile in sys.argv[1:]:
 			size = summary.get('genome_size', 0)
 			gc = summary.get('gc_content', 0)
 			ssr = summary.get('ssr_count', 0)
+			if int(ssr) == 0:
+				continue
+
 			sra = summary.get('ssr_frequency', 0)
 			srd = summary.get('ssr_density', 0)
 			cover = summary.get('genome_cover', 0)

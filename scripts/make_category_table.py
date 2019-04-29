@@ -11,6 +11,9 @@ for infile in sys.argv[1:]:
 		reader = csv.reader(fh, delimiter='\t')
 		for row in reader:
 			k = row[3]
+			if k == 'Viroids':
+				continue
+
 			g = row[4].split(',')[0]
 			s = row[5].split(',')[0]
 
