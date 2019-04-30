@@ -11,6 +11,9 @@ for infile in sys.argv[1:]:
 	with open(infile) as fh:
 		rows = csv.reader(fh, delimiter='\t')
 		for row in rows:
+			if row[3] == 'Viroids':
+				continue
+
 			if ',' in row[4]:
 				row[4] = row[4].split(',')[0]
 
@@ -22,6 +25,9 @@ for infile in sys.argv[1:]:
 			
 			for record in cursor.execute("SELECT COUNT(*) FROM ssr"):
 				total_ssr = record[0]
+
+			if total_ssr == 0:
+				continue
 
 			for record in cursor.execute("SELECT COUNT(*) FROM ssrannot"):
 				genic_ssr = record[0]
@@ -48,6 +54,6 @@ for infile in sys.argv[1:]:
 				continue
 
 			res = [row[0], row[1], row[3], row[4], row[5]]
-			res.extend([genic_ssr, cds_ssr, total_ssr-cds_ssr, genic_cssr, cds_cssr, total_cssr-cds_cssr, complexity])
+			res.extend([total_ssr, genic_ssr, cds_ssr, total_ssr-cds_ssr, total_cssr, genic_cssr, cds_cssr, total_cssr-cds_cssr, complexity])
 
 			print("\t".join(list(map(str,res))))
