@@ -24,34 +24,34 @@ for infile in sys.argv[1:]:
 			cursor = conn.cursor()
 			
 			for record in cursor.execute("SELECT COUNT(*) FROM ssr"):
-				total_ssr = record[0]
+				total_ssr = record[0] or 0
 
 			if total_ssr == 0:
 				continue
 
 			for record in cursor.execute("SELECT COUNT(*) FROM ssrannot"):
-				genic_ssr = record[0]
+				genic_ssr = record[0] or 0
 
 			for record in cursor.execute("SELECT COUNT(*) FROM ssrannot WHERE location=1"):
-				cds_ssr = record[0]
+				cds_ssr = record[0] or 0
 
 			for record in cursor.execute("SELECT COUNT(*) FROM cssr"):
-				total_cssr = record[0]
+				total_cssr = record[0] or 0
 
 			for record in cursor.execute("SELECT COUNT(*) FROM cssrannot"):
-				genic_cssr = record[0]
+				genic_cssr = record[0] or 0
 
 			for record in cursor.execute("SELECT COUNT(*) FROM cssrannot WHERE location=1"):
-				cds_cssr = record[0]
+				cds_cssr = record[0] or 0
 
 			for record in cursor.execute("SELECT SUM(complexity) FROM cssr"):
-				complexity = record[0]
+				complexity = record[0] or 0
 
 			cursor.close()
 			conn.close()
 
-			if genic_ssr == 0:
-				continue
+			#if genic_ssr == 0:
+			#	continue
 
 			res = [row[0], row[1], row[3], row[4], row[5]]
 			res.extend([total_ssr, genic_ssr, cds_ssr, total_ssr-cds_ssr, total_cssr, genic_cssr, cds_cssr, total_cssr-cds_cssr, complexity])
