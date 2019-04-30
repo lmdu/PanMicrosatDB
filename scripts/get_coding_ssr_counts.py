@@ -38,6 +38,9 @@ for infile in sys.argv[1:]:
 			for record in cursor.execute("SELECT COUNT(*) FROM cssrannot WHERE location=1"):
 				cds_cssr = record[0]
 
+			for record in cursor.execute("SELECT SUM(complexity) FROM cssr"):
+				complexity = record[0]
+
 			cursor.close()
 			conn.close()
 
@@ -45,6 +48,6 @@ for infile in sys.argv[1:]:
 				continue
 
 			res = [row[0], row[1], row[3], row[4], row[5]]
-			res.extend([genic_ssr, cds_ssr, total_ssr-cds_ssr, genic_cssr, cds_cssr, total_cssr-cds_cssr])
+			res.extend([genic_ssr, cds_ssr, total_ssr-cds_ssr, genic_cssr, cds_cssr, total_cssr-cds_cssr, complexity])
 
 			print("\t".join(list(map(str,res))))
