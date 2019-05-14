@@ -46,19 +46,54 @@
 				</tr>
 				<tr>
 					<th>Counts</th>
-					<th>RA (loci/Mb)</th>
-					<th>RD (bp/Mb)</th>
-					<th>Genome Covered</th>
+					<th>Frequency (loci/Mb)</th>
+					<th>Density (bp/Mb)</th>
+					<th>Genome Covered (%)</th>
 					<th>Counts</th>
-					<th>RA (loci/Mb)</th>
-					<th>RD (bp/Mb)</th>
-					<th>cSSR%</th>
+					<th>Frequency (loci/Mb)</th>
+					<th>Density (bp/Mb)</th>
+					<th>cSSRs%</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
 		</table>
 	</div>
 </div>
+
+<div class="modal fade" id="download-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5>Download statistics</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		        	<span aria-hidden="true">&times;</span>
+		        </button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label for="dl-format">Output format</label>
+					<select class="custom-select" id="dl-format">
+						<option value="csv">CSV</option>
+						<option value="tsv">TSV</option>
+					</select>
+				</div>
+				<div class="form-group mt-3">
+					<label for="dl-statistics">Statistics</label>
+					<select class="custom-select" id="dl-statistics">
+						<option value="overview_statistics">Overview statistics</option>
+						<option value="ssrtype_statistics">SSR type statistics</option>
+						<option value="motif_statistics">Motif statistics</option>
+						<option value="genic_statistics">Genic statistics</option>
+					</select>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" id="dl-ok">Ok</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <script type="text/javascript">
 var size_unit = 'GB';
 
@@ -111,6 +146,13 @@ var table = $('#summary').DataTable({
 				node.addClass('active');
 				table.ajax.reload();
 			}
+		},
+		{
+			text: 'Download',
+			className: 'btn-sm btn-danger',
+			action: function(e, dt, node){
+				$('#download-dialog').modal('show');
+			}
 		}
 	],
 	searching: true,
@@ -158,5 +200,20 @@ $('#species-select').change(function(){
 		table.ajax.reload();
 	}
 });
+
+$('#dl-ok').click(function(){
+	var data = {
+		'mode': $('#dl-statistics').val(),
+		'outfmt': $('#dl-format').val(),
+		'kingdom': $('#kingdom-select').val() || '0',
+		'group': $('#group-select').val() || '0',
+		'subgroup': $('#subgroup-select').val() || '0',
+		'species': $('#species-select').val() || '0',
+		'unit': size_unit
+	};
+	$.redirect("{{ url('download') }}", data, 'POST', '_blank');
+	$('#download-dialog').modal('hide');
+});
+
 </script>
 {% endblock %}

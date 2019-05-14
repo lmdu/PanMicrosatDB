@@ -3,6 +3,8 @@ import time
 import sqlite3
 
 from django.http import StreamingHttpResponse
+from .models import Genome
+from .utils import humanized_genome_size, Filters
 
 class Echo:
 	def write(self, value):
@@ -224,3 +226,71 @@ def download_ssrs(db, ssrs, ssrtype, task_id, outfmt):
 	response['Content-Disposition'] = 'attachment; filename="{}"'.format(outfile)
 	
 	return response
+
+def download_statistics(post):
+	stat_type = post.get('mode')
+	outfmt = post.get('outfmt')
+	kingdom = int(post.get('kingdom', 0))
+	group = int(post.get('group', 0))
+	subgroup = int(post.get('subgroup', 0))
+	species = int(post.get('species', 0))
+	unit = post.get('unit', 'GB')
+
+	filters = Filters()
+	if species:
+		filters.add('id', species)
+
+	if subgroup:
+		filters.add('category', subgroup)
+
+	if group: 
+		filters.add('category__parent', group)
+
+	if kingdom:
+		filters.add('category__parent__parent', kingdom)
+	
+
+	if filters:
+		genomes = Genome.objects.filter(**filters)
+	else:
+		genomes = Genome.objects.all()
+
+	pseudo_writer = Echo()
+	if outfmt == 'csv':
+		writer = csv.writer(pseudo_writer)
+	else:
+		writer = csv.writer(pseudo_writer, delimiter='\t')
+
+	if stat_type == 'overview_statistics':
+		def data_generator():
+			yield writer.writerow(('ID', 'Kingdom', 'Group', 'Subgroup', 'Taxonomy', 'Species name',
+				'Accession', 'Genome size', 'GC content', 'SSR counts', 'SSR frequency',
+				'SSR density', 'Genome coverage', 'CM counts', 'CM frequency', 'CM density',
+				'cSSRs%'))
+			for g in genomes:
+				yield writer.writerow((g.id, g.category.parent.parent.name,
+					g.category.parent.name, g.category.name,
+					g.taxonomy, g.species_name,
+					g.download_accession,
+					humanized_genome_size(g.size, unit), 
+					g.gc_content,
+					g.ssr_count,
+					g.ssr_frequency,
+					g.ssr_density,
+					g.cover,
+					g.cm_count,
+					g.cm_frequency,
+					g.cm_density,
+					g.cssr_percent
+				))
+
+	response = StreamingHttpResponse(
+		streaming_content = data_generator(),
+		content_type='text/csv'
+	)
+	response['Content-Disposition'] = 'attachment; filename="{}.{}"'.format(stat_type, outfmt)
+	
+	return response
+
+				
+	

@@ -239,7 +239,13 @@ def download(request):
 		return
 
 	mode = request.POST.get('mode')
+	
+	#download statistics
+	if 'statistics' in mode:
+		return download_statistics(request.POST)
+	
 	outfmt = request.POST.get('outfmt')
+	
 	gid = int(request.POST.get('species', 0))
 	tid = request.POST.get('task', None)
 
