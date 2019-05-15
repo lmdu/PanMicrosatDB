@@ -70,8 +70,10 @@
 		        </button>
 			</div>
 			<div class="modal-body">
-				<div class="form-group">
-					<label for="dl-format">Output format</label>
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<label class="input-group-text">Output format</label>
+					</div>
 					<select class="custom-select" id="dl-format">
 						<option value="csv">CSV</option>
 						<option value="tsv">TSV</option>
@@ -86,9 +88,20 @@
 						<option value="genic_statistics">Genic statistics</option>
 					</select>
 				</div>
+				<div class="input-group mt-3">
+					<div class="input-group-prepend">
+						<label class="input-group-text">Data type</label>
+					</div>
+					<select class="custom-select" id="dl-datatype" disabled="disabled">
+						<option value="ssr_counts">SSR counts</option>
+						<option value="ssr_length">SSR length</option>
+						<option value="ssr_frequency">SSR frequency</option>
+						<option value="ssr_density">SSR density</option>
+					</select>
+				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-primary" id="dl-ok">Ok</button>
+				<button type="button" class="btn btn-sm btn-primary" id="dl-ok">Download</button>
 			</div>
 		</div>
 	</div>
@@ -205,6 +218,7 @@ $('#dl-ok').click(function(){
 	var data = {
 		'mode': $('#dl-statistics').val(),
 		'outfmt': $('#dl-format').val(),
+		'datatype': $('#dl-datatype').val(),
 		'kingdom': $('#kingdom-select').val() || '0',
 		'group': $('#group-select').val() || '0',
 		'subgroup': $('#subgroup-select').val() || '0',
@@ -213,6 +227,14 @@ $('#dl-ok').click(function(){
 	};
 	$.redirect("{{ url('download') }}", data, 'POST', '_blank');
 	$('#download-dialog').modal('hide');
+});
+
+$('#dl-statistics').change(function(){
+	if($(this).val() == 'overview_statistics'){
+		$('#dl-datatype').attr('disabled', true);
+	} else {
+		$('#dl-datatype').attr('disabled', false);
+	}
 });
 
 </script>

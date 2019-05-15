@@ -1,9 +1,13 @@
+import os
 import csv
 import time
+import json
 import sqlite3
 
 from django.http import StreamingHttpResponse
-from .models import Genome
+from .models import Genome, Summary
+from .config import Config
+from .router import in_database
 from .utils import humanized_genome_size, Filters
 
 class Echo:
@@ -229,6 +233,7 @@ def download_ssrs(db, ssrs, ssrtype, task_id, outfmt):
 
 def download_statistics(post):
 	stat_type = post.get('mode')
+	data_type = post.get('datatype')
 	outfmt = post.get('outfmt')
 	kingdom = int(post.get('kingdom', 0))
 	group = int(post.get('group', 0))
@@ -251,9 +256,9 @@ def download_statistics(post):
 	
 
 	if filters:
-		genomes = Genome.objects.filter(**filters)
+		genomes = Genome.objects.select_related('category', 'category__parent', 'category__parent__parent').filter(**filters)
 	else:
-		genomes = Genome.objects.all()
+		genomes = Genome.objects.select_related('category', 'category__parent', 'category__parent__parent').all()
 
 	pseudo_writer = Echo()
 	if outfmt == 'csv':
@@ -283,6 +288,57 @@ def download_statistics(post):
 					g.cm_density,
 					g.cssr_percent
 				))
+
+	elif stat_type == 'ssrtype_statistics':
+		def data_generator():
+			yield writer.writerow(('#Kingdom', 'Group', 'Subgroup', 'Species', 'Mono', 'Di',
+				'Tri', 'Tetra', 'Penta', 'Hexa'))
+			for g in genomes:
+				out_row = [g.category.parent.parent.name, g.category.parent.name, g.category.name]
+				sub_dir = os.path.join(*out_row)
+				sub_dir = sub_dir.replace(' ', '_').replace(',', '')
+				db_file = os.path.join(Config.DB_DIR, sub_dir, '{}.db'.format(g.download_accession))
+
+				db_config = {
+					'ENGINE': 'django.db.backends.sqlite3',
+					'NAME': db_file
+				}
+
+				out_row.append(g.species_name)
+				
+				with in_database(db_config):
+					res = Summary.objects.get(option='ssr_types')
+					ssr_counts = json.loads(res.content)
+				
+				genome_size = g.size
+
+				for i, t in enumerate(['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa']):
+					count = ssr_counts.get(t, 0)
+
+					print(data_type)
+
+					if data_type == 'ssr_counts':
+						out_row.append(count)
+
+					elif data_type == 'ssr_length':
+						out_row.append(count*(i+1))
+
+					elif data_type == 'ssr_frequency':
+						out_row.append(count/(genome_size/1000000))
+
+					elif data_type == 'ssr_density':
+						out_row.append(count*(i+1)/(genome_size/1000000))
+
+				print(out_row)
+
+				yield writer.writerow(out_row)
+
+	elif stat_type == 'motif_statistics':
+		pass
+
+	elif stat_type == 'genic_statistics':
+		pass
+
 
 	response = StreamingHttpResponse(
 		streaming_content = data_generator(),
