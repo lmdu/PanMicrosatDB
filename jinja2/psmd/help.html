@@ -1,0 +1,24 @@
+{% extends "psmd/base.html" %}
+
+{% block title %}Documentation{% endblock %}
+
+{% block main %}
+<div class="row mt-5">
+	<div class="col-md-2">
+		<div class="list-group" id="list-tab" role="tablist">
+			<a href="#homepage" class="list-group-item list-group-item-action active" id="homepage-link" data-toggle="list" role="tab" aria-controls="homepage">Homepage</a>
+			<a href="#overview" class="list-group-item list-group-item-action" id="overview-link" data-toggle="list" role="tab" aria-controls="overview">Overview</a>
+		</div>
+	</div>
+	<div class="col-md-10">
+		<div class="tab-content">
+			<div class="tab-pane fade show active" id="list-homepage" role="tabpanel" aria-labelledby="homepage-link">
+				111
+			</div>
+			<div class="tab-pane fade show" id="list-overview" role="tabpanel" aria-labelledby="overview-link">
+				222
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -9,6 +9,7 @@ from .models import Genome, Summary
 from .config import Config
 from .router import in_database
 from .utils import humanized_genome_size, Filters
+from .thirds.motifs import MotifStandard
 
 class Echo:
 	def write(self, value):
@@ -231,6 +232,160 @@ def download_ssrs(db, ssrs, ssrtype, task_id, outfmt):
 	
 	return response
 
+class StatisticsDownloader:
+	def __init__(self, post):
+		self.data_type = post.get('datatype')
+		self.outfmt = post.get('outfmt')
+		kingdom = int(post.get('kingdom', 0))
+		group = int(post.get('group', 0))
+		subgroup = int(post.get('subgroup', 0))
+		species = int(post.get('species', 0))
+		unit = post.get('unit', 'GB')
+
+		filters = Filters()
+		if species:
+			filters.add('id', species)
+
+		if subgroup:
+			filters.add('category', subgroup)
+
+		if group: 
+			filters.add('category__parent', group)
+
+		if kingdom:
+			filters.add('category__parent__parent', kingdom)
+
+		if filters:
+			self.genomes = Genome.objects.select_related('category', 'category__parent', 'category__parent__parent').filter(**filters)
+		else:
+			self.genomes = Genome.objects.select_related('category', 'category__parent', 'category__parent__parent').all()
+
+		pseudo_writer = Echo()
+		if outfmt == 'csv':
+			self.writer = csv.writer(pseudo_writer)
+		else:
+			self.writer = csv.writer(pseudo_writer, delimiter='\t')
+
+	@property
+	def headers(self):
+		pass
+
+	def make_row(self, g):
+		pass
+
+	def iter(self):
+		yield self.headers
+
+		for g in self.genomes:
+			yield self.make_row(g)
+
+	def get_db(self, g):
+		out_row = [g.category.parent.parent.name, g.category.parent.name, g.category.name]
+		sub_dir = os.path.join(*out_row)
+		sub_dir = sub_dir.replace(' ', '_').replace(',', '')
+		db_file = os.path.join(Config.DB_DIR, sub_dir, '{}.db'.format(g.download_accession))
+		out_row.append(g.species_name)
+
+		db_config = {
+			'ENGINE': 'django.db.backends.sqlite3',
+			'NAME': db_file
+		}
+
+		return (out_row, db_config)
+
+
+class OverviewStatisticsDownloader(StatisticsDownloader):
+	@property
+	def headers(self):
+		return self.writer.writerow(('ID', 'Kingdom', 'Group', 'Subgroup', 'Taxonomy', 'Species name',
+				'Accession', 'Genome size', 'GC content', 'SSR counts', 'SSR frequency',
+				'SSR density', 'Genome coverage', 'CM counts', 'CM frequency', 'CM density',
+				'cSSRs%'))
+
+	def make_row(self, g):
+		return (g.id, g.category.parent.parent.name,
+			g.category.parent.name, g.category.name,
+			g.taxonomy, g.species_name,
+			g.download_accession,
+			humanized_genome_size(g.size, unit), 
+			g.gc_content,
+			g.ssr_count,
+			g.ssr_frequency,
+			g.ssr_density,
+			g.cover,
+			g.cm_count,
+			g.cm_frequency,
+			g.cm_density,
+			g.cssr_percent
+		)
+
+class SSRTypeStatisticsDownloader(StatisticsDownloader):
+	@property
+	def headers(self):
+		return self.writer.writerow(('#Kingdom', 'Group', 'Subgroup', 'Species', 'Mono', 'Di',
+				'Tri', 'Tetra', 'Penta', 'Hexa'))
+
+	def make_row(self, g):
+		out_row, db_config = self.get_db(g)
+		
+		with in_database(db_config):
+			res = Summary.objects.get(option='ssr_types')
+			ssr_counts = json.loads(res.content)
+		
+		genome_size = g.size
+
+		for i, t in enumerate(['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa']):
+			count = ssr_counts.get(t, 0)
+
+			if data_type == 'ssr_counts':
+				out_row.append(count)
+
+			elif data_type == 'ssr_length':
+				out_row.append(count*(i+1))
+
+			elif data_type == 'ssr_frequency':
+				out_row.append(count/(genome_size/1000000))
+
+			elif data_type == 'ssr_density':
+				out_row.append(count*(i+1)/(genome_size/1000000))
+
+		return self.writer.writerow(out_row)
+
+class MotifStatisticsDownloader(StatisticsDownloader):
+	@property
+	def headers(self):
+		self.motifs = MotifStandard(2).get_motifs()
+		header_row = ['#Kingdom', 'Group', 'Subgroup', 'Species']
+		header_row.extend(self.motifs)
+		return self.writer.writerow(header_row)
+
+	def make_row(self, g):
+		out_row, db_config = self.get_db(g)
+		
+		with in_database(db_config):
+			res = Summary.objects.get(option='ssr_motif')
+			ssr_counts = json.loads(res.content)
+
+		genome_size = g.size
+		for m in self.motifs:
+			count = ssr_counts.get(m, 0)
+
+			if data_type == 'ssr_counts':
+				out_row.append(count)
+
+			elif data_type == 'ssr_length':
+				out_row.append(count*len(m))
+
+			elif data_type == 'ssr_frequency':
+				out_row.append(count/(genome_size/1000000))
+
+			elif data_type == 'ssr_density':
+				out_row.append(count*len(m)/(genome_size/1000000))
+
+		return self.writer.writerow(out_row)
+		
+
+
 def download_statistics(post):
 	stat_type = post.get('mode')
 	data_type = post.get('datatype')
@@ -268,10 +423,7 @@ def download_statistics(post):
 
 	if stat_type == 'overview_statistics':
 		def data_generator():
-			yield writer.writerow(('ID', 'Kingdom', 'Group', 'Subgroup', 'Taxonomy', 'Species name',
-				'Accession', 'Genome size', 'GC content', 'SSR counts', 'SSR frequency',
-				'SSR density', 'Genome coverage', 'CM counts', 'CM frequency', 'CM density',
-				'cSSRs%'))
+			yield writer.writerow(a)
 			for g in genomes:
 				yield writer.writerow((g.id, g.category.parent.parent.name,
 					g.category.parent.name, g.category.name,

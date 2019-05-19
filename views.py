@@ -486,3 +486,5 @@ def analysis(request):
 		return JsonResponse(charts)
 
 
+def help(request):
+	return render(request, 'psmd/help.html')
