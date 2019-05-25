@@ -5,7 +5,8 @@ import json
 import sqlite3
 
 from django.http import StreamingHttpResponse
-from .models import Genome, Summary
+from django.db.models import Count
+from .models import Genome, Summary, SSRAnnot, SSR
 from .config import Config
 from .router import in_database
 from .utils import humanized_genome_size, Filters
@@ -261,7 +262,7 @@ class StatisticsDownloader:
 			self.genomes = Genome.objects.select_related('category', 'category__parent', 'category__parent__parent').all()
 
 		pseudo_writer = Echo()
-		if outfmt == 'csv':
+		if self.outfmt == 'csv':
 			self.writer = csv.writer(pseudo_writer)
 		else:
 			self.writer = csv.writer(pseudo_writer, delimiter='\t')
@@ -292,7 +293,6 @@ class StatisticsDownloader:
 		}
 
 		return (out_row, db_config)
-
 
 class OverviewStatisticsDownloader(StatisticsDownloader):
 	@property
@@ -337,16 +337,16 @@ class SSRTypeStatisticsDownloader(StatisticsDownloader):
 		for i, t in enumerate(['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa']):
 			count = ssr_counts.get(t, 0)
 
-			if data_type == 'ssr_counts':
+			if self.data_type == 'ssr_counts':
 				out_row.append(count)
 
-			elif data_type == 'ssr_length':
+			elif self.data_type == 'ssr_length':
 				out_row.append(count*(i+1))
 
-			elif data_type == 'ssr_frequency':
+			elif self.data_type == 'ssr_frequency':
 				out_row.append(count/(genome_size/1000000))
 
-			elif data_type == 'ssr_density':
+			elif self.data_type == 'ssr_density':
 				out_row.append(count*(i+1)/(genome_size/1000000))
 
 		return self.writer.writerow(out_row)
@@ -370,130 +370,77 @@ class MotifStatisticsDownloader(StatisticsDownloader):
 		for m in self.motifs:
 			count = ssr_counts.get(m, 0)
 
-			if data_type == 'ssr_counts':
+			if self.data_type == 'ssr_counts':
 				out_row.append(count)
 
-			elif data_type == 'ssr_length':
+			elif self.data_type == 'ssr_length':
 				out_row.append(count*len(m))
 
-			elif data_type == 'ssr_frequency':
+			elif self.data_type == 'ssr_frequency':
 				out_row.append(count/(genome_size/1000000))
 
-			elif data_type == 'ssr_density':
+			elif self.data_type == 'ssr_density':
 				out_row.append(count*len(m)/(genome_size/1000000))
 
 		return self.writer.writerow(out_row)
+
+class CodingStatisticsDownloader(StatisticsDownloader):
+	@property
+	def headers(self):
+		header_row = ['#Kingdom', 'Group', 'Subgroup', 'Species',
+			'Total', 'Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa']
+		return self.writer.writerow(header_row)
+
+	def make_row(self, g):
+		out_row, db_config = self.get_db(g)
 		
+		with in_database(db_config):
+			total = SSRAnnot.objects.filter(location=1).count()
+			qs = SSR.objects.values('ssr_type').filter(ssrannot__location=1).annotate(counts=Count('id'))
+			ssr_counts = {q['ssr_type']: q['counts'] for q in qs}
+
+		genome_size = g.size
+
+		for i in range(0, 7):
+			if i == 0:
+				count = total
+			else:
+				count = ssr_counts.get(i, 0)
+
+			if self.data_type == 'ssr_counts':
+				out_row.append(count)
+
+			elif self.data_type == 'ssr_length':
+				out_row.append(count*i)
+
+			elif self.data_type == 'ssr_frequency':
+				out_row.append(count/(genome_size/1000000))
+
+			elif self.data_type == 'ssr_density':
+				out_row.append(count*i/(genome_size/1000000))
+
+		return self.writer.writerow(out_row)
 
 
 def download_statistics(post):
 	stat_type = post.get('mode')
-	data_type = post.get('datatype')
 	outfmt = post.get('outfmt')
-	kingdom = int(post.get('kingdom', 0))
-	group = int(post.get('group', 0))
-	subgroup = int(post.get('subgroup', 0))
-	species = int(post.get('species', 0))
-	unit = post.get('unit', 'GB')
-
-	filters = Filters()
-	if species:
-		filters.add('id', species)
-
-	if subgroup:
-		filters.add('category', subgroup)
-
-	if group: 
-		filters.add('category__parent', group)
-
-	if kingdom:
-		filters.add('category__parent__parent', kingdom)
-	
-
-	if filters:
-		genomes = Genome.objects.select_related('category', 'category__parent', 'category__parent__parent').filter(**filters)
-	else:
-		genomes = Genome.objects.select_related('category', 'category__parent', 'category__parent__parent').all()
-
-	pseudo_writer = Echo()
-	if outfmt == 'csv':
-		writer = csv.writer(pseudo_writer)
-	else:
-		writer = csv.writer(pseudo_writer, delimiter='\t')
 
 	if stat_type == 'overview_statistics':
-		def data_generator():
-			yield writer.writerow(a)
-			for g in genomes:
-				yield writer.writerow((g.id, g.category.parent.parent.name,
-					g.category.parent.name, g.category.name,
-					g.taxonomy, g.species_name,
-					g.download_accession,
-					humanized_genome_size(g.size, unit), 
-					g.gc_content,
-					g.ssr_count,
-					g.ssr_frequency,
-					g.ssr_density,
-					g.cover,
-					g.cm_count,
-					g.cm_frequency,
-					g.cm_density,
-					g.cssr_percent
-				))
+		loader = OverviewStatisticsDownloader(post)
 
 	elif stat_type == 'ssrtype_statistics':
-		def data_generator():
-			yield writer.writerow(('#Kingdom', 'Group', 'Subgroup', 'Species', 'Mono', 'Di',
-				'Tri', 'Tetra', 'Penta', 'Hexa'))
-			for g in genomes:
-				out_row = [g.category.parent.parent.name, g.category.parent.name, g.category.name]
-				sub_dir = os.path.join(*out_row)
-				sub_dir = sub_dir.replace(' ', '_').replace(',', '')
-				db_file = os.path.join(Config.DB_DIR, sub_dir, '{}.db'.format(g.download_accession))
-
-				db_config = {
-					'ENGINE': 'django.db.backends.sqlite3',
-					'NAME': db_file
-				}
-
-				out_row.append(g.species_name)
-				
-				with in_database(db_config):
-					res = Summary.objects.get(option='ssr_types')
-					ssr_counts = json.loads(res.content)
-				
-				genome_size = g.size
-
-				for i, t in enumerate(['Mono', 'Di', 'Tri', 'Tetra', 'Penta', 'Hexa']):
-					count = ssr_counts.get(t, 0)
-
-					print(data_type)
-
-					if data_type == 'ssr_counts':
-						out_row.append(count)
-
-					elif data_type == 'ssr_length':
-						out_row.append(count*(i+1))
-
-					elif data_type == 'ssr_frequency':
-						out_row.append(count/(genome_size/1000000))
-
-					elif data_type == 'ssr_density':
-						out_row.append(count*(i+1)/(genome_size/1000000))
-
-				print(out_row)
-
-				yield writer.writerow(out_row)
+		loader = SSRTypeStatisticsDownloader(post)
 
 	elif stat_type == 'motif_statistics':
-		pass
+		loader = MotifStatisticsDownloader(post)
 
-	elif stat_type == 'genic_statistics':
-		pass
+	elif stat_type == 'coding_statistics':
+		loader = CodingStatisticsDownloader(post)
 
 
 	response = StreamingHttpResponse(
-		streaming_content = data_generator(),
+		streaming_content = loader.iter(),
 		content_type='text/csv'
 	)
 	response['Content-Disposition'] = 'attachment; filename="{}.{}"'.format(stat_type, outfmt)

@@ -14,7 +14,7 @@ urlpatterns = [
 	path('search', views.search, name='search'),
 	path('seqid', views.sequence, name='seqid'),
 	path('flank', views.flank, name='flank'),
-	path('krait', views.krait, name='krait'),
+	path('tool', views.krait, name='krait'),
 	path('task/<task_id>', views.task, name='task'),
 	path('help', views.help, name='help'),
 ]

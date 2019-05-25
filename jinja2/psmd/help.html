@@ -2,21 +2,149 @@
 
 {% block title %}Documentation{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ static('psmd/style/zoom.css') }}">
+<script src="{{ static('psmd/script/zoom.js') }}"></script>
+{% endblock %}
+
 {% block main %}
 <div class="row mt-5">
 	<div class="col-md-2">
 		<div class="list-group" id="list-tab" role="tablist">
-			<a href="#homepage" class="list-group-item list-group-item-action active" id="homepage-link" data-toggle="list" role="tab" aria-controls="homepage">Homepage</a>
-			<a href="#overview" class="list-group-item list-group-item-action" id="overview-link" data-toggle="list" role="tab" aria-controls="overview">Overview</a>
+			<a href="#list-homepage" class="list-group-item list-group-item-action active" id="homepage-link" data-toggle="list" role="tab" aria-controls="homepage">Homepage</a>
+			<a href="#list-overview" class="list-group-item list-group-item-action" id="overview-link" data-toggle="list" role="tab" aria-controls="overview">Statistics overview</a>
+			<a href="#list-browse" class="list-group-item list-group-item-action" id="browse-link" data-toggle="list" role="tab" aria-controls="browse">Browsing microsatellites</a>
+			<a href="#list-analysis" class="list-group-item list-group-item-action" id="analysis-link" data-toggle="list" role="tab" aria-controls="analysis">Comparative analysis</a>
+			<a href="#list-tool" class="list-group-item list-group-item-action" id="tool-link" data-toggle="list" role="tab" aria-controls="tool">Online search tool</a>
 		</div>
 	</div>
 	<div class="col-md-10">
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="list-homepage" role="tabpanel" aria-labelledby="homepage-link">
-				111
+				<div class="row align-items-center">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig1_search.png') }}"></div>
+					<div class="col-md-6">
+						<p>1. PSMD allows you to search a species by typing species name, common name, NCBI taxonomy ID, NCBI assembly accession number (RefSeq accession prefered).</p>
+						<p>2. A table with search results will be displayed, click on a row to quickly access to microsatellite summary information page of species.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig2_quick.png') }}"></div>
+					<div class="col-md-6">
+						<p>1. You can select or search a species for quick access by specifying kingdom, group, subgroup and species name.</p>
+						<p>2. You also can click on image links to directly redirect to human or model organisms.</p>
+					</div>
+				</div>
 			</div>
-			<div class="tab-pane fade show" id="list-overview" role="tabpanel" aria-labelledby="overview-link">
-				222
+
+			<div class="tab-pane fade" id="list-overview" role="tabpanel" aria-labelledby="overview-link">
+				<div class="row align-items-center">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig3_overview.png') }}"></div>
+					<div class="col-md-6">
+						<p>PSMD allows you to browse statistical information of all species.</p>
+						<p>1. You can use dropdown menus to limit results to a kingdom, group, subgroup or a species.</p>
+						<p>2. Change number of rows in result table to 10, 25, 50, 100.</p>
+						<p>3. You can change the unit of genome size to GB, MB, KB, BP and open download dialog by clicking Download button.</p>
+						<p>4. A result table for displaying statistical summary information. Double click on a row to view detailed species information. <strong>Taxonomy:</strong> NCBI taxonomy ID; <strong>Species:</strong> Species name; <strong>Accession:</strong> NCBI assembly accession number; <strong>Genome size:</strong> genome size of speices can be changed by clicking unit buttons; <strong>GC content:</strong> Percentage of GC in genome; <strong>Counts:</strong> number of SSRs or compound SSRs; <strong>Frequency:</strong> number of loci per MB genome (loci/Mb); <strong>Density: </strong> length of SSRs per MB genome (bp/Mb); <strong>Genome covered:</strong> Percentage of genome covered by SSRs; <strong>cSSRs%:</strong> Percentage of individual SSRs being part of a compound SSRs.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig4_statdialog.png') }}"></div>
+					<div class="col-md-6">
+						<p>By clicking on download button, you can open download dialog.</p>
+						<p>1. Download statistical information as CSV (Comma-Separated Values) or TSV (Tab-Separated Values) file.</p>
+						<p>2. Select statistical content to download. <strong>Overview statistics:</strong> contents displayed in table; <strong>SSR type statistics:</strong> statistics for each SSR type (Mono- to Hexa-); <strong>Motif statistics:</strong> statistics for 501 standard motifs; <strong>Coding SSRs statistics:</strong> statistics for SSRs in coding regions.</p>
+						<p>3. Select output data type. SSR counts, length, frequency (loci/Mb) or density (bp/Mb).</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="tab-pane fade" id="list-browse" role="tabpanel" aria-labelledby="browse-link">
+				<div class="row align-items-center">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig5_browse.png') }}"></div>
+					<div class="col-md-6">
+						<p>The browse page list all SSRs identified from a species.</p>
+						<p>1. You select or search a species to browse by specifying kingom, group, subgroup and species.</p>
+						<p>2. The default displaying SSRs are perfect. Option allows you to switch to browse compound SSRs or redirect to summary information page of species.</p>
+						<p>3. Change number of rows displayed in table to 10, 25, 50, 100.</p>
+						<p>4. Buttons for opening filter dialog (Filters), primer3 setting dialog (Primer3), download dialog (Download)</p>
+						<p>5. A table to show SSRs. Click on table to sort SSRs. <strong>Sequence Accession:</strong> accession number of sequence where SSR located; <strong>Sequence Name:</strong> name of sequence where SSR located; <strong>Start:</strong> start position of SSR (1-based); <strong>End:</strong> end position of SSR; <strong>Motif:</strong> motif sequence of SSR; <strong>Standard Motif:</strong> standard motif by grouping cyclically equivalent and reverse complementary permutations; <strong>Type:</strong> SSR type (Mono-, Di-, Tri-, Tetra-, Penta-, Hexa-nucleotide); <strong>Repeats:</strong> number of repeat period; <strong>Length:</strong> total base of SSR; <strong>Location:</strong> genic location (CDS, intron, exon, or intergenic).</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig9_detaildialog.png') }}"></div>
+					<div class="col-md-6">
+						<p>Double click on a row in table to display detailed SSR information.</p>
+						<p>1. Displaying SSR sequence with 100 bp flanking sequence.</p>
+						<p>2. If SSR located in gene, the detailed gene information will be displayed.</p>
+						<p>3. If primer of SSR designed successfully, the detailed primers information will be displayed.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig6_filterdialog.png') }}"></div>
+					<div class="col-md-6">
+						<p>Click on Filters button to open SSR filter dialog.</p>
+						<p>1. You can filter SSRs in table by setting filters for each column in table.</p>
+						<p>2. Click on Apply filters button to applay filters and click on Reset filters to clear filters.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig7_primerdialog.png') }}"></div>
+					<div class="col-md-6">
+						<p>Click on "Primer3" button to open primer3 setting dialog. You can specify the parameters for primer3 which affects the primers displayed in SSR detailed information dialog.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig8_ssrdldialog.png') }}"></div>
+					<div class="col-md-6">
+						<p>Click on "Download" button to open download dialog.</p>
+						<p>1. Download SSRs as CSV, TSV or GFF formatted file.</p>
+						<p>2. You can select output SSRs (All rows in table or filtered rows in table).</p>
+					</div>
+				</div>
+
+			</div>
+			<div class="tab-pane fade" id="list-tool" role="tabpanel" aria-labelledby="tool-link">
+				<div class="row align-items-center">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig10_step1.png') }}"></div>
+					<div class="col-md-6">
+						<h4>Step One <small>Input DNA sequences</small></h4>
+						<p>1. Buttons for switching to step one, two or three.</p>
+						<p>2. Select or search a genome in PSMD database for SSR detection by specifying kingdom, group, subgroup and species.</p>
+						<p>3. Input or paste FASTA formatted DNA sequence for SSR detection. Sequence size must < 2.5M.</p>
+						<p>4. Upload a flat text or gzipped FASTA formatted file for SSR detection. File size must < 100 M.</p>
+						<p>5. Input a URL of FASTA formatted file to download and search for SSRs. No file size limited.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig11_step2.png') }}"></div>
+					<div class="col-md-6">
+						<h4>Step Two <small>Set search parameters</small></h4>
+						<p>1. Select SSR type (perfect, compound, or imperfect) for search</p>
+						<p>2. Set mimimum tandem repeats for perfect SSR detection, and Maximum distance (dmax) allowed between any two adjacent SSRs forming a compound SSR for compound SSR detection.</p>
+						<p>3. Set imperfect SSR search parameters.</p>
+						<p>4. Set length of flanking sequence, and motif standardization level.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig12_step3.png') }}"></div>
+					<div class="col-md-6">
+						<h4>Step Three <small>Submit task</small></h4>
+						<p>1. Check input validation and display relevant information.</p>
+						<p>2. You can input an email address. After task completed, a hypelink used to view task result will be sent to you.</p>
+						<p>3. After task submitted, a unique task ID will be assigned, click on task ID to check task status and view results.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig13_taskresult.png') }}"></div>
+					<div class="col-md-6">
+						<h4>Task Results</h4>
+						<p>1. Display task status and running paramters.</p>
+						<p>2. Display SSRs identified from input sequences. You can browse, filter and download results. Double click on a row to display detailed SSR information with primers.</p>
+					</div>
+				</div>
+
+
 			</div>
 		</div>
 	</div>

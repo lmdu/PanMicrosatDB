@@ -323,7 +323,7 @@ $('#start-search').click(function(){
 	}
 
 	$.ajax({
-		url: 'krait',
+		url: '{{ url("krait") }}',
 		type: 'POST',
 		data: data,
 		processData: false,
