@@ -13,6 +13,7 @@
 		<div class="list-group" id="list-tab" role="tablist">
 			<a href="#list-homepage" class="list-group-item list-group-item-action active" id="homepage-link" data-toggle="list" role="tab" aria-controls="homepage">Homepage</a>
 			<a href="#list-overview" class="list-group-item list-group-item-action" id="overview-link" data-toggle="list" role="tab" aria-controls="overview">Statistics overview</a>
+			<a href="#list-summary" class="list-group-item list-group-item-action" id="summary-link" data-toggle="list" role="tab" aria-controls="summary">Microsatellite summary</a>
 			<a href="#list-browse" class="list-group-item list-group-item-action" id="browse-link" data-toggle="list" role="tab" aria-controls="browse">Browsing microsatellites</a>
 			<a href="#list-analysis" class="list-group-item list-group-item-action" id="analysis-link" data-toggle="list" role="tab" aria-controls="analysis">Comparative analysis</a>
 			<a href="#list-tool" class="list-group-item list-group-item-action" id="tool-link" data-toggle="list" role="tab" aria-controls="tool">Online search tool</a>
@@ -72,6 +73,12 @@
 					</div>
 				</div>
 				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig18_cssrs.png') }}"></div>
+					<div class="col-md-6">
+						<p>Compound SSR browsing is similar to perfect SSR browsing. Among columns, <strong>Complexity:</strong> number of individual SSRs in a compound SSR; <strong>Pattern:</strong> sequence composition of compound SSRs.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
 					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig9_detaildialog.png') }}"></div>
 					<div class="col-md-6">
 						<p>Double click on a row in table to display detailed SSR information.</p>
@@ -102,8 +109,40 @@
 						<p>2. You can select output SSRs (All rows in table or filtered rows in table).</p>
 					</div>
 				</div>
-
 			</div>
+
+			<div class="tab-pane fade" id="list-analysis" role="tabpanel" aria-labelledby="analysis-link">
+				<div class="row align-items-center">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig14_compare.png') }}"></div>
+					<div class="col-md-6">
+						<p>1. You can search and add a species to compare by specifying kingdom, group, subgroup and species.</p>
+						<p>2. Selected species to compare. Click on "x" to remove corresponding species.</p>
+						<p>3. Click on "Compare" button to generate comparative plots.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig15_plot1.png') }}"></div>
+					<div class="col-md-6">
+						<p>1. Perfect SSRs frequency (loci/Mb) and density (bp/Mb) plots.</p>
+						<p>2. Compound SSRs frequency (loci/Mb) and density (bp/Mb) plots.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig16_plot2.png') }}"></div>
+					<div class="col-md-6">
+						<p>1. Percentage of genome covered by SSRs (%) and Percentage of individual SSRs being part of a compound SSRs (cSSRs%) plots.</p>
+						<p>2. SSRs types (Mono-, Di-, Tri-, Tetra-, Penta-, Hexa-) distribution plot.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig17_plot3.png') }}"></div>
+					<div class="col-md-6">
+						<p>1. Heatmap for abundance of standard 501 motifs.</p>
+						<p>2. Heatmap for abundance of each repeat.</p>
+					</div>
+				</div>
+			</div>
+
 			<div class="tab-pane fade" id="list-tool" role="tabpanel" aria-labelledby="tool-link">
 				<div class="row align-items-center">
 					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig10_step1.png') }}"></div>
