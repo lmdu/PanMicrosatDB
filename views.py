@@ -179,10 +179,10 @@ def species(request):
 			for stat in Summary.objects.all():
 				make_plot(data, stat.content, stat.option)
 		
-		if int(data['cm_count']):
-			data['cm_average'] = round(int(data['cssr_length'])/int(data['cm_count']), 2)
-		else:
-			data['cm_average'] = 0
+		#if int(data['cm_count']):
+		#	data['cm_average'] = round(int(data['cssr_length'])/int(data['cm_count']), 2)
+		#else:
+		#	data['cm_average'] = 0
 
 		return render(request, 'psmd/species.html', {
 			'summary': data

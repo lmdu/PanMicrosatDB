@@ -123,43 +123,43 @@ table.table{
 				<tbody>
 					<tr>
 						<td>Total number of compound microsatellites</td>
-						<td>{{ summary.cm_count }}</td>
+						<td>{{ summary.get('cm_count', 0) }}</td>
 					</tr>
 					<tr>
 						<td>Total length of compound microsatellites (bp)</td>
-						<td>{{ summary.cssr_length }}</td>
+						<td>{{ summary.get('cssr_length', 0) }}</td>
 					</tr>
 					<tr>
 						<td>The average length of compound microsatellites (bp)</td>
-						<td>{{ summary.cm_average|float|round(3) }}</td>
+						<td>{{ summary.get('cm_average', 0)|float|round(3) }}</td>
 					</tr>
 					<tr>
 						<td>Number of compound microsatellites per sequence</td>
-						<td>{{ summary.cssr_perseq|float|round(3) }}</td>
+						<td>{{ summary.get('cssr_perseq', 0)|float|round(3) }}</td>
 					</tr>
 					<tr>
 						<td>Relative abundance (loci/Mb)</td>
-						<td>{{ summary.cssr_frequency|float|round(3) }}</td>
+						<td>{{ summary.get('cssr_frequency', 0)|float|round(3) }}</td>
 					</tr>
 					<tr>
 						<td>Relative density (bp/Mb)</td>
-						<td>{{ summary.cssr_density|float|round(3) }}</td>
+						<td>{{ summary.get('cssr_density', 0)|float|round(3) }}</td>
 					</tr>
 					<tr>
 						<td>Total number of SSRs comprised for compound</td>
-						<td>{{ summary.cssr_count }}</td>
+						<td>{{ summary.get('cssr_count', 0) }}</td>
 					</tr>
 					<tr>
 						<td>cSSRs%</td>
-						<td>{{ summary.cssr_percent|float|round(3) }}</td>
+						<td>{{ summary.get('cssr_percent', 0)|float|round(3) }}</td>
 					</tr>
 					<tr>
 						<td>Maximum length (bp)</td>
-						<td>{{ summary.cssr_maxlen }}</td>
+						<td>{{ summary.get('cssr_maxlen', 'N/A') }}</td>
 					</tr>
 					<tr>
 						<td>Maximum complexity</td>
-						<td>{{ summary.cssr_maxcpl }}</td>
+						<td>{{ summary.get('cssr_maxcpl', 'N/A') }}</td>
 					</tr>
 				</tbody>
 			</table>
@@ -218,6 +218,7 @@ table.table{
 	</div>
 </div>
 
+{% if summary.get('cm_count') %}
 <div class="row mt-3">
 	<div class="col-lg-6">
 		<div class="card">
@@ -234,6 +235,7 @@ table.table{
 		</div>
 	</div>
 </div>
+{% endif %}
 
 <script>
 $('#view-option-select').prop('disabled', false);
