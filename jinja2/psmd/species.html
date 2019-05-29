@@ -417,6 +417,7 @@ Highcharts.chart('ssr-len-line-chart', {
 	series: {{ summary.ssr_lendis|safe }}
 });
 
+{% if summary.get('cm_count') %}
 //compound complexity distribution
 Highcharts.chart('cssr-complex-line-chart', {
 	credits: {
@@ -479,6 +480,8 @@ Highcharts.chart('cssr-len-line-chart', {
 		data: {{ summary.cssr_lendis }}
 	}]
 });
+
+{% endif %}
 </script>
 
 {% endblock %}

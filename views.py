@@ -420,13 +420,13 @@ def analysis(request):
 		}
 
 		charts['cssr_freq_dens_line'] = {
-			'frequency': [float(sp['cssr_frequency']) for sp in species_datas],
-			'density': [float(sp['cssr_density']) for sp in species_datas]
+			'frequency': [float(sp.get('cssr_frequency', 0)) for sp in species_datas],
+			'density': [float(sp.get('cssr_density', 0)) for sp in species_datas]
 		}
 
 		charts['ssr_cover_cssrp_line'] = {
 			'cover': [float(sp['genome_cover']) for sp in species_datas],
-			'cssrp': [float(sp['cssr_percent']) for sp in species_datas]
+			'cssrp': [float(sp.get('cssr_percent',0)) for sp in species_datas]
 		}
 
 		#ssr motif heatmap plot

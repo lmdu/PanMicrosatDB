@@ -15,6 +15,11 @@
 
 body{
 	font-family: "Roboto";
+	padding-top: 4.5rem;
+}
+
+.sticky-offset {
+    top: 6.5rem;
 }
 
 a,
