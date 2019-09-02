@@ -35,6 +35,7 @@
 	<div class="col-md-10" id="selected-species">
 	</div>
 	<div class="col-md-2 text-right">
+		<button class="btn btn-sm btn-secondary" id="clear-all">Clear all</button>
 		<button class="btn btn-sm btn-primary" id="compare-btn">Compare</button>
 	</div>
 </div>
@@ -107,6 +108,11 @@ $('#species-select').on('change', function(){
 
 	$('#selected-species').append(badge_ele);
 	species_list.push(sid);
+});
+
+$('#clear-all').click(function(){
+	species_list = [];
+	$('#selected-species').empty();
 });
 
 $('#compare-btn').click(function(){

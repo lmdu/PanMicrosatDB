@@ -35,6 +35,10 @@ a,
 h6{
 	font-weight: 600;
 }
+
+.table-cursor tbody tr{
+	cursor: pointer;
+}
 /*
 input,
 textarea,

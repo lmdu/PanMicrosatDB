@@ -44,7 +44,8 @@
 
 <div class="row mt-4">
 	<div class="col">
-		<table id="ssrview" class="table table-bordered table-hover" width="100%">
+		<table id="ssrview" class="table table-bordered table-hover table-cursor" width="100%">
+			<tbody title="Double click to view detailed information"></tbody>
 		</table>
 	</div>
 </div>
@@ -105,8 +106,8 @@
 					<div class="form-group col-12 input-group">
 						<div class="input-group-prepend">
 							<select class="input-group-text" id="select-seqtype">
-								<option value="name">Name</option>
-								<option value="accession">Accession</option>
+								<option value="name">Sequence name</option>
+								<option value="accession">Sequence accession</option>
 							</select>
 						</div>
 						<select class="custom-select" name="sequence" id="select-sequence"></select>
@@ -253,7 +254,7 @@ var table = $('table#ssrview').DataTable({
 		{name: 'ssr_type', title: 'Type'},
 		{name: 'repeats', title: 'Repeats'},
 		{name: 'length', title: 'Length'},
-		{name: 'location', title: 'Location', visible: {{ location_show }} }
+		{name: 'ssrannot__location', orderable: false, title: 'Location', visible: {{ location_show }} }
 	],
 	searching: true,
 	processing: true,
