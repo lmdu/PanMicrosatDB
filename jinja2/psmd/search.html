@@ -1,0 +1,66 @@
+{% extends "psmd/base.html" %}
+
+{% block title %} Search {% endblock %}
+
+{% block main %}
+
+<h2 class="mt-5">Search for <span id="search-term">{{ term }}</span></h2>
+
+<div class="row mt-4">
+	<div class="col">
+		<table id="search-species" class="table table-bordered table-hover table-cursor" width="100%">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>NCBI taxonomy</th>
+					<th>Species name</th>
+					<th>Common name</th>
+					<th>Genbank accession</th>
+					<th>Assembly accession</th>
+					<th>Biosample</th>
+					<th>Bioproject</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+var table = $('table#search-species').DataTable({
+	scrollX: true,
+	dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'p>>" +
+		 "<'row'<'col-sm-12'tr>>" +
+		 "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+	searching: true,
+	processing: true,
+	serverSide: true,
+	//select: true,
+	ajax: {
+		url: "{{ url('search') }}",
+		type: 'POST',
+		data: function(d){
+			d.term = $('#search-term').text();
+		}
+	}
+});
+
+$('#search-species-btn').click(function(event){
+	event.preventDefault();
+	var tag = $.trim($('#search-tag').val());
+	if(tag){
+		$('#search-term').text(tag);
+		table.ajax.reload();
+	}
+});
+
+table.on('draw.dt', function(){
+	$('#search-species tbody tr').attr("title", "Double click to view detailed species information")
+	.dblclick(function(){
+		var row = table.row(this).data();
+		$.redirect("{{ url('species') }}", {species: row[0]}, 'POST', '_blank');
+	});
+});
+</script>
+
+{% endblock %}

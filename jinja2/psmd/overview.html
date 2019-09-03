@@ -32,14 +32,14 @@
 
 <div class="row mt-4">
 	<div class="col">
-		<table id="summary" class="table table-bordered table-hover" width="100%">
+		<table id="summary" class="table table-bordered table-hover table-cursor" width="100%">
 			<thead>
 				<tr>
 					<th rowspan="2" class="align-middle">ID</th>
 					<th rowspan="2" class="align-middle">Taxonomy</th>
 					<th rowspan="2" class="align-middle">Species</th>
 					<th rowspan="2" class="align-middle">Accession</th>
-					<th rowspan="2" class="align-middle">Genome size</th>
+					<th rowspan="2" class="align-middle">Genome size (<span id="gs-unit">GB</span>)</th>
 					<th rowspan="2" class="align-middle">GC Content</th>
 					<th colspan="4">Perfect Microsatellites</th>
 					<th colspan="4">Compound Microsatellites</th>
@@ -127,6 +127,7 @@ var table = $('#summary').DataTable({
 				size_unit = 'GB';
 				node.siblings().removeClass('active');
 				node.addClass('active');
+				$('#gs-unit').text('GB');
 				table.ajax.reload();
 			}
 		},
@@ -137,6 +138,7 @@ var table = $('#summary').DataTable({
 				size_unit = 'MB';
 				node.siblings().removeClass('active');
 				node.addClass('active');
+				$('#gs-unit').text('MB');
 				table.ajax.reload();
 			}
 		},
@@ -147,6 +149,7 @@ var table = $('#summary').DataTable({
 				size_unit = 'KB';
 				node.siblings().removeClass('active');
 				node.addClass('active');
+				$('#gs-unit').text('KB');
 				table.ajax.reload();
 			}
 		},
@@ -157,6 +160,7 @@ var table = $('#summary').DataTable({
 				size_unit = 'BP';
 				node.siblings().removeClass('active');
 				node.addClass('active');
+				$('#gs-unit').text('BP');
 				table.ajax.reload();
 			}
 		},
@@ -187,7 +191,8 @@ var table = $('#summary').DataTable({
 $("div.tipinfo").html('<small class="text-danger">Double click a row to view detailed species information</small>');
 
 table.on('draw.dt', function(){
-	$('#summary tbody tr').dblclick(function(){
+	$('#summary tbody tr').attr("title", "Double click to view detailed species information")
+	.dblclick(function(){
 		var row = table.row(this).data();
 		$.redirect("{{ url('species') }}", {species: row[0]}, 'POST', '_blank');
 	});

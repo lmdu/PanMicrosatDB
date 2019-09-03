@@ -42,17 +42,19 @@
 				<li class="nav-item {% if request.path == url('krait') %} active {% endif %}"><a href="{{ url('krait') }}" class="nav-link">Tool<sup class="badge badge-warning"><small>Online</small></sup></a></li>
 				<li class="nav-item {% if request.path == url('help') %} active {% endif %}"><a href="{{ url('help') }}" class="nav-link">Help</a></li>
 			</ul>
-			<div class="form-inline">
+			<form class="form-inline">
 				<div class="dropdown" id="search-bar">
-					<input type="text" class="form-control" placeholder="name, taxonomy accession" title="Species name, common name, assembly accession, taxonomy ID">
+					<input type="search" class="form-control" placeholder="Search species" title="Species name, common name, assembly accession, taxonomy ID" id="search-tag">
+					<button class="btn btn-outline-info" id="search-species-btn">Search</button>
+					<!--
 					<div class="dropdown-menu">
 						<table class="table table-sm">
 							<thead><th>Taxonomy</th><th>Species</th><th>Common name</th><th>Accession</th></thead>
 							<tbody></tbody>
 						</table>
-					</div>
+					</div>-->
 				</div>
-			</div>	
+			</form>	
 		</div>
 	</div>
 </nav>
@@ -79,7 +81,7 @@
 </footer>
 
 <script type="text/javascript">
-$('#search-bar input').keyup(function(){
+/*$('#search-bar input').keyup(function(){
 	var term = $(this).val().trim();
 	if(!term){
 		$('#search-bar input').css('width', '300px');
@@ -102,7 +104,18 @@ $('#search-bar input').keyup(function(){
 			}
 		});
 	}
-});
+});*/
+
+if(window.location.pathname != '/psmd/search'){
+	$('#search-species-btn').click(function(event){
+		event.preventDefault();
+		var tag = $.trim($('#search-tag').val());
+		if(tag){
+			$.redirect('search', {term: tag}, 'POST', '_blank');
+		}
+	});
+}
+
 </script>
 
 </body>

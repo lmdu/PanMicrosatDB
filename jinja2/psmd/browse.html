@@ -45,7 +45,7 @@
 <div class="row mt-4">
 	<div class="col">
 		<table id="ssrview" class="table table-bordered table-hover table-cursor" width="100%">
-			<tbody title="Double click to view detailed information"></tbody>
+			<tbody></tbody>
 		</table>
 	</div>
 </div>
@@ -287,7 +287,8 @@ var table = $('table#ssrview').DataTable({
 $("div.tipinfo").html('<small class="text-danger">Double click a row to view detailed SSR information</small>');
 
 table.on('draw.dt', function(){
-	$('#ssrview tbody tr').dblclick(function(){
+	$('#ssrview tbody tr').attr("title", "Double click to view detailed SSR information")
+	.dblclick(function(){
 		var row = table.row(this).data();
 		var params = {
 			ssrid: row[0],

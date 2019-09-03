@@ -42,20 +42,53 @@ def index(request):
 def search(request):
 	if request.method == 'POST':
 		term = request.POST.get('term')
+
+		if 'draw' not in request.POST:
+			return render(request, 'psmd/search.html', {
+				'term': term
+			})
+
+		start = int(request.POST.get('start'))
+		length = int(request.POST.get('length'))
+		draw = int(request.POST.get('draw'))
+		#genomes = Genome.objects.filter(Q(taxonomy__icontains=term) | Q(species_name__icontains=term) \
+		#	| Q(common_name__icontains=term) | Q(download_accession__icontains=term))[:10]
 		genomes = Genome.objects.filter(Q(taxonomy__icontains=term) | Q(species_name__icontains=term) \
-			| Q(common_name__icontains=term) | Q(download_accession__icontains=term))[:10]
+			| Q(common_name__icontains=term) | Q(download_accession__icontains=term) | Q(assembly_accession__icontains=term) \
+			| Q(biosample__icontains=term) | Q(bioproject__icontains=term))
 
-		def format_val(*items):
-			res = ['<tr data-id="{}">'.format(items[0])]
-			for item in items[1:]:
-				res.append('<td>{}</td>'.format(re.sub(r'(?i)({})'.format(term), r'<b>\1</b>', item)))
-			res.append('</tr>')
-			return ''.join(res)
+		total = genomes.count()
 
-		res = [format_val(g.id, g.taxonomy, g.species_name, g.common_name, g.download_accession) for g in genomes]
+		#def format_val(*items):
+		#	res = ['<tr data-id="{}">'.format(items[0])]
+		#	for item in items[1:]:
+		#		res.append('<td>{}</td>'.format(re.sub(r'(?i)({})'.format(term), r'<b>\1</b>', item)))
+		#	res.append('</tr>')
+		#	return ''.join(res)
 
+		#res = [format_val(g.id, g.taxonomy, g.species_name, g.common_name, g.download_accession) for g in genomes]
+		#return JsonResponse({'data': ''.join(res)})
 
-		return JsonResponse({'data': ''.join(res)})
+		pattern = re.compile(r'(?i)({})'.format(term))
+
+		res = []
+		for g in genomes[start:start+length]:
+			res.append((g.id,
+				pattern.sub(r'<b class="text-danger">\1</b>', g.taxonomy),
+				pattern.sub(r'<b class="text-danger">\1</b>', g.species_name),
+				pattern.sub(r'<b class="text-danger">\1</b>', g.common_name),
+				pattern.sub(r'<b class="text-danger">\1</b>', g.assembly_accession),
+				pattern.sub(r'<b class="text-danger">\1</b>', g.download_accession),
+				pattern.sub(r'<b class="text-danger">\1</b>', g.biosample),
+				pattern.sub(r'<b class="text-danger">\1</b>', g.bioproject)
+			))
+
+		return JsonResponse({
+			'draw': draw,
+			'recordsTotal': total,
+			'recordsFiltered': total,
+			'data': res
+		})
 
 @csrf_exempt
 def category(request):
