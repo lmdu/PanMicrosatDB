@@ -61,7 +61,14 @@
 		        </button>
 			</div>
 			<div class="modal-body">
-				<h6>Sequence</h6>
+				<div class="d-flex">
+					<div class="mr-auto"><h6>Sequence</h6></div>
+					<div class="ml-auto">
+						<button type="button" class="btn badge btn-primary" id="copy-seq-btn">Copy Sequence</button>
+						<button type="button" class="btn badge btn-info" id="clear-primer-btn">Clear Primer</button>
+					</div>
+				</div>
+
 				<div class="sequence-table sequence-box" id="sequence-table"></div>
 				<h6>Genic location</h6>
 				<table class="table table-bordered table-sm" id="gannot-table">
@@ -83,6 +90,7 @@
 						<th>GC Content</th>
 						<th>End stability</th>
 						<th>Product Size</th>
+						<th>Location</th>
 					</thead>
 					<tbody></tbody>
 				</table>
@@ -310,6 +318,27 @@ table.on('draw.dt', function(){
 			$('#ssr-seq-dialog #gannot-table tbody').html(data.location);
 			$('#ssr-seq-dialog #primer-table tbody').html(data.primer);
 			$('#ssr-seq-dialog').modal('show');
+
+			$('.primer-view-btn').click(function(){
+				var left = $(this).data('left');
+				var llen = $(this).data('llen');
+				var right = $(this).data('right');
+				var rlen = $(this).data('rlen');
+
+				$('#sequence-table .sequence-nucleotide').each(function(i){
+					if($(this).find('.meta-info').text() == '*'){
+						$(this).find('.meta-info').text('');
+					}
+
+					if(i >= left && i < left+llen){
+						$(this).find('.meta-info').text('*');
+					} else if(i <= right && i > right - rlen){
+						$(this).find('.meta-info').text('*');
+					}
+				});
+
+			});
+
 		});
 	});
 });
@@ -410,6 +439,28 @@ $('#species-select').change(function(){
 	if(parseInt($(this).val())){
 		table.ajax.reload();
 	}
+});
+
+$('#copy-seq-btn').click(function(){
+	var seq = '';
+	$('#sequence-table .sequence-nucleotide .base-row span').each(function(){
+		seq += $(this).text();
+	});
+
+	var $temp = $("<input>");
+	$('body').append($temp);
+	$temp.val(seq).select();
+	document.execCommand("copy");
+	$temp.remove();
+	alert('Copied sequence to clipboard.');
+});
+
+$('#clear-primer-btn').click(function(){
+	$('#sequence-table .sequence-nucleotide').each(function(){
+		if($(this).find('.meta-info').text() == '*'){
+			$(this).find('.meta-info').text('');
+		}
+	});
 });
 
 </script>

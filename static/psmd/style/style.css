@@ -207,7 +207,7 @@ footer{
 	font-size: 11px;
 	display: flex;
 	align-items: flex-end;
-	justify-content: left;
+	justify-content: center;
 	position: relative;
 	width: 1vw;
 	height: 0.4vh;

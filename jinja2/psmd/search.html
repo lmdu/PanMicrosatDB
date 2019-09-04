@@ -12,6 +12,9 @@
 			<thead>
 				<tr>
 					<th>ID</th>
+					<th>Kingdom</th>
+					<th>Group</th>
+					<th>Subgroup</th>
 					<th>NCBI taxonomy</th>
 					<th>Species name</th>
 					<th>Common name</th>
@@ -35,7 +38,7 @@ var table = $('table#search-species').DataTable({
 	searching: true,
 	processing: true,
 	serverSide: true,
-	//select: true,
+	ordering: false,
 	ajax: {
 		url: "{{ url('search') }}",
 		type: 'POST',

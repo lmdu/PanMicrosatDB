@@ -272,12 +272,16 @@ class BaseDetail(object):
 				gc2 = round(res['PRIMER_RIGHT_{}_GC_PERCENT'.format(i)], 2)
 				stab2 = round(res['PRIMER_RIGHT_{}_END_STABILITY'.format(i)], 2)
 
+				left_start, left_len = res['PRIMER_LEFT_{}'.format(i)]
+				right_start, right_len = res['PRIMER_RIGHT_{}'.format(i)]
+
 				html = """
 				<tr><td class="align-middle" rowspan="2">{}</td><td>Forward</td><td>{}</td><td>{}</td>
-				<td>{}</td><td>{}</td><td class="align-middle" rowspan="2">{}</td></tr>
+				<td>{}</td><td>{}</td><td class="align-middle" rowspan="2">{}</td><td rowspan="2" class="align-middle">
+				<span class="btn btn-sm btn-info primer-view-btn" data-left="{}" data-llen="{}" data-right="{}" data-rlen="{}">View<span></td></tr>
 				<tr><td>Reverse</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>
 				"""
-				primers.append(html.format(num, forward, tm1, gc1, stab1, product, reverse, tm2, gc2, stab2))
+				primers.append(html.format(num, forward, tm1, gc1, stab1, product, left_start, left_len, right_start, right_len, reverse, tm2, gc2, stab2))
 
 			primers = "".join(primers)
 		else:

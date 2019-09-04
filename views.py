@@ -74,6 +74,9 @@ def search(request):
 		res = []
 		for g in genomes[start:start+length]:
 			res.append((g.id,
+				g.category.parent.parent.name,
+				g.category.parent.name,
+				g.category.name,
 				pattern.sub(r'<b class="text-danger">\1</b>', g.taxonomy),
 				pattern.sub(r'<b class="text-danger">\1</b>', g.species_name),
 				pattern.sub(r'<b class="text-danger">\1</b>', g.common_name),
