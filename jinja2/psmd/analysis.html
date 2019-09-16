@@ -78,7 +78,6 @@
 	</div>
 </div>
 
-<script src="{{ static('psmd/script/heatmap.js') }}"></script>
 <script type="text/javascript">
 var species_list = [];
 
@@ -285,6 +284,8 @@ $('#compare-btn').click(function(){
 			series: res.ssr_type_stack_bar
 		});
 
+		console.log(res.ssr_motif_heatmap.counts);
+
 		//ssr motif heatmap plot
 		Highcharts.chart('ssr-motif-heatmap', {
 			credits: {
@@ -294,9 +295,9 @@ $('#compare-btn').click(function(){
 		   		csv: res.ssr_motif_heatmap.counts
 		   	},
 		   	chart: {
-		        type: 'heatmap',
+		        type: 'heatmap'
 		    },
-		     boost: {
+		    boost: {
 		        useGPUTranslations: true
 		    },
 		    title: {
@@ -315,7 +316,7 @@ $('#compare-btn').click(function(){
 		    tooltip: {
 		        formatter: function () {
 		            return '<b>Species: </b> ' + this.series.xAxis.categories[this.point.x] + '<br><b>Motif: </b>' +
-		                this.series.yAxis.categories[this.point.y] + '<br><b>Log10 counts: </b>' + this.point.value.toFixed(5);
+		                this.series.yAxis.categories[this.point.y] + '<br><b>Log2 counts: </b>' + this.point.value.toFixed(5);
 		        }
 		    },
 		    colorAxis: {
@@ -333,10 +334,10 @@ $('#compare-btn').click(function(){
 		    	layout: 'vertical'
 		    },
 		    series: [{
-		       boostThreshold: 1000000,
+		       boostThreshold: 100,
 		       borderWidth: 0,
 		       nullColor: '#EFEFEF',
-		       turboThreshold: 1000000
+		       turboThreshold: Number.MAX_VALUE
 		    }]
 
 		});
@@ -350,7 +351,7 @@ $('#compare-btn').click(function(){
 		   		csv: res.ssr_repeat_heatmap.counts
 		   	},
 		   	chart: {
-		        type: 'heatmap',
+		        type: 'heatmap'
 		    },
 		     boost: {
 		        useGPUTranslations: true
@@ -371,7 +372,7 @@ $('#compare-btn').click(function(){
 		    tooltip: {
 		        formatter: function () {
 		            return '<b>Species: </b> ' + this.series.xAxis.categories[this.point.x] + '<br><b>Repeat: </b>' +
-		                this.series.yAxis.categories[this.point.y] + '<br><b>Log10 counts: </b>' + this.point.value.toFixed(5);
+		                this.series.yAxis.categories[this.point.y] + '<br><b>Log2 counts: </b>' + this.point.value.toFixed(5);
 		        }
 		    },
 		    colorAxis: {
@@ -389,10 +390,10 @@ $('#compare-btn').click(function(){
 		    	layout: 'vertical'
 		    },
 		    series: [{
-		       boostThreshold: 1000000,
+		       boostThreshold: 0,
 		       borderWidth: 0,
 		       nullColor: '#EFEFEF',
-		       turboThreshold: 1000000
+		       turboThreshold: Number.MAX_VALUE
 		    }]
 
 		});

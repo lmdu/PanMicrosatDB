@@ -474,7 +474,7 @@ def analysis(request):
 			for j, motif in enumerate(motif_types):
 				v = int(counts.get(motif, 0))
 				if v > 0:
-					v = math.log(v, 10)
+					v = math.log(v, 2)
 				items.append("{},{},{}".format(i, j, v))
 
 		charts['ssr_motif_heatmap'] = {
@@ -499,7 +499,7 @@ def analysis(request):
 			for j, repeat in enumerate(repeats):
 				v = counts.get(repeat, 0)
 				if v > 0:
-					v = math.log(v, 10)
+					v = math.log(v, 2)
 
 				items.append("{},{},{}".format(i, j, v))
 
@@ -517,6 +517,8 @@ def analysis(request):
 				items[types.index(t)]['data'].append(c)
 
 		charts['ssr_type_stack_bar'] = items
+
+		print(charts['ssr_repeat_heatmap'])
 		
 
 		return JsonResponse(charts)
