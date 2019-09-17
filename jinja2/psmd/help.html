@@ -12,6 +12,7 @@
 	<div class="col-md-2">
 		<div class="list-group sticky-top sticky-offset" id="list-tab" role="tablist">
 			<a href="#list-homepage" class="list-group-item list-group-item-action active" id="homepage-link" data-toggle="list" role="tab" aria-controls="homepage">Homepage</a>
+			<a href="#list-search" class="list-group-item list-group-item-action" id="search-link" data-toggle="list" role="tab" aria-controls="search">Search species</a>
 			<a href="#list-overview" class="list-group-item list-group-item-action" id="overview-link" data-toggle="list" role="tab" aria-controls="overview">Statistics overview</a>
 			<a href="#list-browse" class="list-group-item list-group-item-action" id="browse-link" data-toggle="list" role="tab" aria-controls="browse">Browsing microsatellites</a>
 			<a href="#list-analysis" class="list-group-item list-group-item-action" id="analysis-link" data-toggle="list" role="tab" aria-controls="analysis">Comparative analysis</a>
@@ -22,10 +23,12 @@
 		<div class="tab-content">
 			<div class="tab-pane fade show active" id="list-homepage" role="tabpanel" aria-labelledby="homepage-link">
 				<div class="row align-items-center">
-					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig1_search.png') }}"></div>
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig1_home.png') }}"></div>
 					<div class="col-md-6">
-						<p>1. PSMD allows you to search a species by typing species name, common name, NCBI taxonomy ID, NCBI assembly accession number (RefSeq accession prefered).</p>
-						<p>2. A table with search results will be displayed, click on a row to quickly access to microsatellite summary information page of species.</p>
+						<p>1. <strong>Home</strong>: go to homepage. <strong>Overview</strong>: go to view and download statistics. <strong>Browse</strong>: go to view, filter and download microsatellites. <strong>Analysis</strong>: go to compare microsatellite distribution between several species. <strong>Tool</strong>: go to search microsatellites with custom parameters. <strong>Help</strong>: go to view documentation.</p>
+						<p>2. Go to search a species by scientific name, common name, NCBI taxonomy ID, Genbank assembly accession.</p>
+						<p>4. Current version and latest update time.</p>
+						<p>5. Contact information</p>
 					</div>
 				</div>
 				<div class="row align-items-center mt-5">
@@ -33,6 +36,22 @@
 					<div class="col-md-6">
 						<p>1. You can select or search a species for quick access by specifying kingdom, group, subgroup and species name.</p>
 						<p>2. You also can click on image links to directly redirect to human or model organisms.</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="tab-pane fade" id="list-search" role="tabpanel" aria-labelledby="search-link">
+				<div class="row align-items-center">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig19_searchbox.png') }}"></div>
+					<div class="col-md-6">
+						<p>1. PSMD allows you to search a species by typing species name, common name, NCBI taxonomy ID, genbank assembly accession, refseq assembly accession, biosample accession, or bioproject accession.</p>
+					</div>
+				</div>
+				<div class="row align-items-center mt-5">
+					<div class="col-md-6"><img data-action="zoom" class="img-fluid" src="{{ static('psmd/img/fig20_searchres.png') }}"></div>
+					<div class="col-md-6">
+						<p>1. A table with search results will be displayed. click on a row to quickly access to microsatellite summary information page of species.</p>
+						<p>2. The searched term will be highlighted in table.</p>
 					</div>
 				</div>
 			</div>
@@ -82,8 +101,11 @@
 					<div class="col-md-6">
 						<p>Double click on a row in table to display detailed SSR information.</p>
 						<p>1. Displaying SSR sequence with 100 bp flanking sequence.</p>
-						<p>2. If SSR located in gene, the detailed gene information will be displayed.</p>
-						<p>3. If primer of SSR designed successfully, the detailed primers information will be displayed.</p>
+						<p>2. Click copy sequence button to copy the sequence displayed.</p>
+						<p>3. Click clear primer button to clear the location of primer.</p>
+						<p>4. If SSR located in gene, the detailed gene information will be displayed.</p>
+						<p>5. If primer of SSR designed successfully, the detailed primers information will be displayed.</p>
+						<p>6. Click view button to check the primer location in sequence box.</p>
 					</div>
 				</div>
 				<div class="row align-items-center mt-5">
