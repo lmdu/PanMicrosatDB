@@ -518,9 +518,6 @@ def analysis(request):
 
 		charts['ssr_type_stack_bar'] = items
 
-		print(charts['ssr_repeat_heatmap'])
-		
-
 		return JsonResponse(charts)
 
 
